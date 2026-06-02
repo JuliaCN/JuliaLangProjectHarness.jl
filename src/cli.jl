@@ -47,6 +47,9 @@ function run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr)
 end
 
 function run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stderr)
+    if !isempty(args) && first(args) == "query"
+        return run_julia_harness_query_cli(args[2:end]; out=out)
+    end
     protocol_status = run_julia_project_harness_protocol_cli(args; out)
     !isnothing(protocol_status) && return protocol_status
 
@@ -180,6 +183,78 @@ function run_julia_harness_check_cli(args::Vector{String}; out=stdout)
     report = run_julia_project_harness(project_root)
     print(out, render_julia_project_harness(report))
     is_clean(report) ? 0 : 1
+end
+
+
+function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)
+    from_hook = nothing
+    selector = nothing
+    terms = String[]
+    surfaces = String[]
+    render_view = "hits"
+    code_only = false
+    positionals = String[]
+    index = 1
+    while index <= length(args)
+        arg = args[index]
+        if arg == "--from-hook"
+            index == length(args) && error("--from-hook requires a hook reason")
+            from_hook = args[index + 1]
+            index += 2
+        elseif arg == "--selector"
+            index == length(args) && error("--selector requires a selector")
+            selector = args[index + 1]
+            index += 2
+        elseif arg == "--term"
+            index == length(args) && error("--term requires a value")
+            push!(terms, args[index + 1])
+            index += 2
+        elseif arg == "--surface"
+            index == length(args) && error("--surface requires owner,tests style surfaces")
+            append!(surfaces, normalize_julia_query_surfaces(args[index + 1]))
+            index += 2
+        elseif arg == "--view"
+            index == length(args) && error("--view requires graph, hits, both, or seeds")
+            render_view = args[index + 1]
+            index += 2
+        elseif arg == "--code"
+            code_only = true
+            index += 1
+        elseif startswith(arg, "-")
+            error("unknown query option: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400arg)")
+        else
+            push!(positionals, arg)
+            index += 1
+        end
+    end
+    from_hook == "direct-source-read" || error("unsupported query hook route: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400from_hook)")
+    isnothing(selector) && error("--from-hook requires --selector")
+    project_root = isempty(positionals) ? pwd() : first(positionals)
+    if !isempty(terms)
+        isempty(surfaces) && append!(surfaces, ["owner", "tests"])
+        return run_julia_harness_search_cli(vcat(["fzf", join(terms, ",")], surfaces, ["--view", render_view, project_root]); out=out)
+    end
+    code_only || error("query direct-source-read requires --term or --code")
+    print(out, render_julia_query_code_selector(selector, project_root))
+    return 0
+end
+
+function normalize_julia_query_surfaces(value::String)::Vector{String}
+    pipes = String[]
+    for surface in split(value, ",")
+        normalized = strip(surface)
+        isempty(normalized) && continue
+        pipe = normalized == "owners" ? "owner" : normalized
+        pipe in ("owner", "tests", "items") || error("unknown query surface: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400normalized)")
+        push!(pipes, pipe)
+    end
+    isempty(pipes) && error("--surface requires at least one surface")
+    return pipes
+end
+
+function julia_query_owner_selector(selector::String)::String
+    path = replace(selector, r"^owner:" => "")
+    return replace(path, r":[0-9]+([:-][0-9]+)?$" => "")
 end
 
 function parse_julia_harness_cli_args(args::Vector{String})

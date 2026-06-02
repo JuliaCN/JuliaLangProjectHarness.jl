@@ -33,6 +33,7 @@ include("verification/context.jl")
 include("verification/profile_index.jl")
 include("moshi_extension.jl")
 include("cli/search_protocol.jl")
+include("cli/query_code.jl")
 include("cli.jl")
 
 export JuliaDiagnosticSeverity,

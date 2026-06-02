@@ -295,3 +295,24 @@ end
     @test isempty(String(take!(out)))
     @test occursin("expected only one output mode", String(take!(err)))
 end
+@testset "query direct source read code projection" begin
+    project_root = normpath(joinpath(@__DIR__, "..", ".."))
+    out = IOBuffer()
+    status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+        [
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/cli.jl:40-70",
+            "--code",
+            project_root,
+        ];
+        out,
+    )
+    output = String(take!(out))
+
+    @test status == 0
+    @test occursin("function run_julia_project_harness_cli", output)
+    @test !occursin("[search-owner]", output)
+    @test !occursin("line=", output)
+end
