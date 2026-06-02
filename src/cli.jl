@@ -47,6 +47,9 @@ function run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr)
 end
 
 function run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stderr)
+    protocol_status = run_julia_project_harness_protocol_cli(args; out)
+    !isnothing(protocol_status) && return protocol_status
+
     options = parse_julia_harness_cli_args(args)
     if options.help
         print(out, julia_harness_cli_usage())
@@ -116,6 +119,66 @@ function run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout,
     else
         print(out, render_julia_project_harness(report))
     end
+    is_clean(report) ? 0 : 1
+end
+
+function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout)
+    isempty(args) && return nothing
+    command = first(args)
+    if command == "agent"
+        length(args) >= 2 || error("agent requires a subcommand")
+        args[2] == "guide" || error("unknown agent subcommand: $(args[2])")
+        project_root = length(args) >= 3 ? args[3] : pwd()
+        print(out, julia_harness_agent_guide(project_root))
+        return 0
+    elseif command == "search"
+        return run_julia_harness_search_cli(args[2:end]; out)
+    elseif command == "check"
+        return run_julia_harness_check_cli(args[2:end]; out)
+    end
+    nothing
+end
+
+function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
+    length(args) >= 1 || error("search requires a view")
+    view = args[1]
+    if view == "prime"
+        options = parse_julia_search_args(args[2:end])
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_prime_search(options.project_root))
+    elseif view == "owner"
+        length(args) >= 2 || error("search owner requires an owner path")
+        owner_path = args[2]
+        options = parse_julia_search_args(args[3:end])
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_owner_search(owner_path, options.pipes; project_root=options.project_root))
+    elseif view == "fzf"
+        length(args) >= 2 || error("search fzf requires a query")
+        query = args[2]
+        options = parse_julia_search_args(args[3:end])
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_text_search(query, options.pipes; project_root=options.project_root))
+    elseif view == "ingest"
+        options = parse_julia_search_args(args[2:end])
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_ingest_search(read(stdin, String), options.pipes; project_root=options.project_root))
+    elseif view == "policy"
+        length(args) >= 2 || error("search policy requires a rule id or alias")
+        query = args[2]
+        options = parse_julia_search_args(args[3:end])
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_policy_search(query, options.pipes; project_root=options.project_root))
+    else
+        error("unknown search view: $(view)")
+    end
+    0
+end
+
+function run_julia_harness_check_cli(args::Vector{String}; out=stdout)
+    isempty(args) || args[1] == "--changed" || error("unknown check option: $(args[1])")
+    project_root = length(args) >= 2 ? args[2] : pwd()
+    report = run_julia_project_harness(project_root)
+    print(out, render_julia_project_harness(report))
     is_clean(report) ? 0 : 1
 end
 
@@ -200,9 +263,11 @@ end
 
 function julia_harness_cli_usage()
     """
-    julia-project-harness [--json | --agent-snapshot | --advice | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
+    julia-project-harness [agent guide | search policy RULE owner tests --view seeds | --json | --agent-snapshot | --advice | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
 
     Compact text is the default agent-facing repair surface.
+    Use agent guide to print provider-owned agent commands.
+    Use search policy RULE owner tests --view seeds to resolve policy handles.
     Use --agent-snapshot to emit a low-noise project summary.
     Use --verification-tasks to emit agent-runnable verification duties.
     Use --verification-receipt-template to emit a JSON receipt skeleton.
