@@ -23,7 +23,7 @@
   },
   "routes": {
     "guide": {
-      "argv": ["aslp-julia-harness", "agent", "guide", "."]
+      "argv": ["aslp-julia-harness", "guide", "."]
     },
     "prime": {
       "argv": ["aslp-julia-harness", "search", "prime", "--view", "seeds", "."]

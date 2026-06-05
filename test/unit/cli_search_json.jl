@@ -1,6 +1,7 @@
 @testset "cli search json packets" begin
     root = mktempdir()
     write_cli_project(root)
+    workspace_out = IOBuffer()
     prime_out = IOBuffer()
     fzf_out = IOBuffer()
     query_out = IOBuffer()
@@ -8,6 +9,10 @@
     ingest_out = IOBuffer()
     registry_out = IOBuffer()
 
+    workspace_status = run_julia_project_harness_cli(
+        ["search", "workspace", "--view", "seeds", "--json", root];
+        out=workspace_out,
+    )
     prime_status = run_julia_project_harness_cli(
         ["search", "prime", "--view", "seeds", "--json", root];
         out=prime_out,
@@ -56,6 +61,7 @@
     end
     registry_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=registry_out)
 
+    workspace_packet = JSON3.read(String(take!(workspace_out)))
     prime_packet = JSON3.read(String(take!(prime_out)))
     fzf_packet = JSON3.read(String(take!(fzf_out)))
     query_packet = JSON3.read(String(take!(query_out)))
@@ -64,6 +70,11 @@
     registry = JSON3.read(String(take!(registry_out)))
     language = only(registry.languages)
 
+    @test workspace_status == 0
+    @test workspace_packet.method == "search/workspace"
+    @test workspace_packet.view == "workspace"
+    @test workspace_packet.searchSynthesis.scope == "workspace"
+    @test any(owner -> owner.path == "src/CliExample.jl", workspace_packet.owners)
     @test prime_status == 0
     @test prime_packet.schemaId == "agent.semantic-protocols.semantic-search-packet"
     @test prime_packet.method == "search/prime"
@@ -96,6 +107,13 @@
     @test registry_status == 0
     @test any(
         descriptor -> startswith(descriptor.method, "search/") && descriptor.supportsJson == true,
+        language.methodDescriptors,
+    )
+    @test any(
+        descriptor ->
+            descriptor.method == "search/workspace" &&
+                descriptor.view == "workspace" &&
+                descriptor.requiresQuery == false,
         language.methodDescriptors,
     )
     @test any(

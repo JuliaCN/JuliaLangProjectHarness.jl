@@ -1,8 +1,8 @@
 # JuliaC ASLP provider app
 
-This directory builds a JuliaC executable for the workspace-managed Julia
-provider. The executable keeps JuliaSyntax as the fact authority while giving
-the Rust ASLP client a stable provider command for cache refresh.
+This directory builds the JuliaC executable for the Julia provider. The
+executable keeps JuliaSyntax as the fact authority while giving the Rust ASLP
+client a stable provider command for facade routing and cache refresh.
 
 Build:
 
@@ -14,7 +14,8 @@ ASLP_JULIA_BUILD_DIR=build/juliac julia --project=juliac juliac/compile.jl
 Smoke:
 
 ```sh
-build/juliac/aslp-julia-harness agent guide .
+build/juliac/aslp-julia-harness guide .
+build/juliac/aslp-julia-harness agent doctor --json .
 build/juliac/aslp-julia-harness search fzf parser owner tests --view seeds .
 build/juliac/aslp-julia-harness export index .
 ```

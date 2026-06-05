@@ -31,7 +31,7 @@
     @test packet.protocolId == "agent.semantic-protocols.semantic-language"
     @test packet.languageId == "julia"
     @test packet.providerId == "julia-lang-project-harness"
-    @test packet.binary == "julia-project-harness"
+    @test packet.binary == "aslp-julia-harness"
     @test packet.method == "query/owner-items"
     @test packet.ownerPath == "src/CliExample.jl"
     @test packet.query == "run"

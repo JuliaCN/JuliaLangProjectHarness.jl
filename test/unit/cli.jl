@@ -98,24 +98,33 @@ end
     write_cli_project(root)
     compact_out = IOBuffer()
     json_out = IOBuffer()
+    doctor_out = IOBuffer()
 
     compact_status = run_julia_project_harness_cli(["agent", "registry", root]; out=compact_out)
     json_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=json_out)
+    doctor_status = run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out=doctor_out)
     registry = JSON3.read(String(take!(json_out)))
+    doctor_registry = JSON3.read(String(take!(doctor_out)))
     language = only(registry.languages)
 
     @test compact_status == 0
     @test occursin("[julia-agent-registry]", String(take!(compact_out)))
     @test json_status == 0
+    @test doctor_status == 0
     @test registry.registryId == "agent.semantic-protocols.semantic-language-registry"
+    @test doctor_registry.registryId == registry.registryId
     @test registry.protocolId == "agent.semantic-protocols.semantic-language"
     @test language.languageId == "julia"
     @test language.providerId == "julia-lang-project-harness"
+    @test language.binary == "aslp-julia-harness"
     @test "search/prime" in language.methods
     @test "search/fzf" in language.methods
     @test "search/query" in language.methods
     @test "search/policy" in language.methods
     @test "query/owner-items" in language.methods
+    @test "guide" in language.methods
+    @test !("agent/guide" in language.methods)
+    @test "agent/doctor" in language.methods
     @test "agent/registry" in language.methods
     @test any(schema -> schema.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index", language.schemas)
     @test any(schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json", language.schemas)
@@ -409,6 +418,7 @@ end
     @test wide_read_packet.readPlan.frontier[1].read == "src/cli/query.jl:1:40"
     @test wide_read_packet.readPlan.frontier[1].action == "code"
     @test search_status == 0
-    @test occursin("[search-query] hook=direct-source-read", search_output)
-    @test occursin("|seed owner:src/cli.jl", search_output)
+    @test occursin("[search-query]", search_output)
+    @test occursin("selector=**/*.jl", search_output)
+    @test occursin("O=owner:path(src/cli.jl)!owner", search_output)
 end

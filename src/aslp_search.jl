@@ -189,6 +189,30 @@ function julia_search_native_facts(entries::Vector{JuliaSearchIndexEntry}, proje
     [aslp_search_index_fact(entry, project_root) for entry in entries[1:min(length(entries), limit)]]
 end
 
+function julia_workspace_search_packet(project_root::AbstractString; render_mode::AbstractString="seeds")
+    entries = julia_project_search_index(project_root)
+    owners = search_entries_to_owner_paths(entries)
+    tests = search_entries_to_test_paths(entries, project_root)
+    packet = julia_search_packet_base("workspace", render_mode, project_root)
+    packet["nativeSyntaxFacts"] = julia_search_native_facts(entries, project_root)
+    packet["nodes"] = [
+        Dict{String,Any}(
+            "id" => "owner:$(owner)",
+            "kind" => "owner",
+            "path" => owner,
+            "fields" => Dict{String,Any}("source" => "julia-workspace-index"),
+        ) for owner in owners[1:min(length(owners), 24)]
+    ]
+    julia_search_attach_frontier!(
+        packet,
+        owners,
+        tests;
+        algorithm="julia-workspace-index",
+        scope="workspace",
+        summary="Julia workspace owner and test frontier",
+    )
+end
+
 function julia_prime_search_packet(project_root::AbstractString; render_mode::AbstractString="seeds")
     entries = julia_project_search_index(project_root)
     owners = search_entries_to_owner_paths(entries)
@@ -340,7 +364,9 @@ function render_julia_search_packet_json(
     from_hook::Union{Nothing,AbstractString}=nothing,
     intent::Union{Nothing,AbstractString}=nothing,
 )
-    packet = if view == "prime"
+    packet = if view == "workspace"
+        julia_workspace_search_packet(project_root; render_mode)
+    elseif view == "prime"
         julia_prime_search_packet(project_root; render_mode)
     elseif view == "owner"
         isnothing(owner_path) && error("search owner JSON requires an owner path")
@@ -369,4 +395,27 @@ function render_julia_search_packet_json(
         error("unknown search JSON view: $(view)")
     end
     JSON3.write(packet)
+end
+
+function semantic_agent_protocol_binary()
+    get(ENV, "SEMANTIC_AGENT_PROTOCOL_BIN", "asp")
+end
+
+"""Render a Julia search packet through the shared ASP graph renderer.
+
+Safety contract: the external command is fixed to `asp graph render`, the stdin
+payload is provider-owned JSON, and CLI search smoke tests verify the graph
+rendering path.
+"""
+function render_julia_search_graph(view::AbstractString; kwargs...)
+    packet_json = render_julia_search_packet_json(view; kwargs...)
+    command = `$(semantic_agent_protocol_binary()) graph render --packet - --view seeds`
+    try
+        read(pipeline(IOBuffer(String(packet_json)), command), String)
+    catch error
+        error(
+            "failed to render Julia search through shared asp graph renderer: " *
+            sprint(showerror, error),
+        )
+    end
 end

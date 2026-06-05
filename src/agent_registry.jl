@@ -4,7 +4,7 @@ const JULIA_AGENT_REGISTRY_PROTOCOL_ID = "agent.semantic-protocols.semantic-lang
 const JULIA_AGENT_REGISTRY_PROTOCOL_VERSION = "1"
 const JULIA_AGENT_PROVIDER_NAMESPACE =
     "agent.semantic-protocols.languages.julia.julia-lang-project-harness"
-const JULIA_AGENT_BINARY = "julia-project-harness"
+const JULIA_AGENT_BINARY = "aslp-julia-harness"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("parser-compact-case.v1.schema.json", "agent.semantic-protocols.parser-compact-case"),
@@ -122,6 +122,15 @@ end
 function julia_agent_method_descriptors()
     [
         julia_search_method_descriptor(
+            "search/workspace",
+            "workspace";
+            requires_query=false,
+            capabilities=[
+                julia_agent_capability("workspace-router"; namespace="semantic"),
+                julia_agent_capability("julia-syntax-search-index"),
+            ],
+        ),
+        julia_search_method_descriptor(
             "search/prime",
             "prime";
             requires_query=false,
@@ -196,6 +205,13 @@ function julia_agent_method_descriptors()
         julia_query_method_descriptor(),
         julia_check_method_descriptor(),
         Dict{String,Any}(
+            "method" => "agent/doctor",
+            "command" => "agent",
+            "outputSchemaIds" => ["agent.semantic-protocols.semantic-language-registry"],
+            "supportsCompact" => true,
+            "supportsJson" => true,
+        ),
+        Dict{String,Any}(
             "method" => "agent/registry",
             "command" => "agent",
             "outputSchemaIds" => ["agent.semantic-protocols.semantic-language-registry"],
@@ -203,8 +219,8 @@ function julia_agent_method_descriptors()
             "supportsJson" => true,
         ),
         Dict{String,Any}(
-            "method" => "agent/guide",
-            "command" => "agent",
+            "method" => "guide",
+            "command" => "guide",
             "clients" => ["codex"],
             "supportsCompact" => true,
             "supportsJson" => false,
@@ -247,11 +263,7 @@ function julia_agent_registry_packet(project_root::AbstractString=pwd())
                 "languageId" => JULIA_INDEX_EXPORT_LANGUAGE_ID,
                 "providerId" => JULIA_INDEX_EXPORT_PROVIDER_ID,
                 "binary" => JULIA_AGENT_BINARY,
-                "providerCommandPrefix" => [
-                    "julia",
-                    "--project=$(root)",
-                    joinpath(root, "bin", "julia-project-harness.jl"),
-                ],
+                "providerCommandPrefix" => [JULIA_AGENT_BINARY],
                 "namespace" => JULIA_AGENT_PROVIDER_NAMESPACE,
                 "displayName" => "Julia Harness",
                 "methods" => methods,

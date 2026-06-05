@@ -1,7 +1,8 @@
-@testset "cli agent guide and policy search output" begin
+@testset "cli guide and policy search output" begin
     root = mktempdir()
     write_cli_project(root)
     guide_out = IOBuffer()
+    workspace_out = IOBuffer()
     prime_out = IOBuffer()
     owner_out = IOBuffer()
     text_out = IOBuffer()
@@ -11,7 +12,11 @@
     ingest_out = IOBuffer()
     check_out = IOBuffer()
 
-    guide_status = run_julia_project_harness_cli(["agent", "guide", root]; out=guide_out)
+    guide_status = run_julia_project_harness_cli(["guide", root]; out=guide_out)
+    workspace_status = run_julia_project_harness_cli(
+        ["search", "workspace", "--view", "seeds", root];
+        out=workspace_out,
+    )
     prime_status = run_julia_project_harness_cli(
         ["search", "prime", "--view", "seeds", root];
         out=prime_out,
@@ -66,8 +71,14 @@
         wait(writer)
         status
     end
+    ingest_extra_root_status =
+        run_julia_project_harness_cli(
+            ["search", "ingest", "owner", "tests", "extra", "--view", "seeds", root];
+            out=IOBuffer(),
+        )
 
     guide_rendered = String(take!(guide_out))
+    workspace_rendered = String(take!(workspace_out))
     prime_rendered = String(take!(prime_out))
     owner_rendered = String(take!(owner_out))
     text_rendered = String(take!(text_out))
@@ -79,47 +90,52 @@
 
     @test guide_status == 0
     @test occursin("[julia-harness-guide]", guide_rendered)
-    @test occursin("julia-project-harness agent registry --json", guide_rendered)
-    @test occursin("julia-project-harness query <owner-path> --term", guide_rendered)
-    @test occursin("julia-project-harness search policy", guide_rendered)
-    @test occursin("julia-project-harness search query --from-hook direct-source-read", guide_rendered)
-    @test occursin("julia-project-harness export index", guide_rendered)
+    @test occursin("aslp-julia-harness guide", guide_rendered)
+    @test occursin("aslp-julia-harness agent doctor --json", guide_rendered)
+    @test !occursin("aslp-julia-harness agent guide", guide_rendered)
+    @test occursin("aslp-julia-harness search workspace --view seeds", guide_rendered)
+    @test occursin("aslp-julia-harness query <owner-path> --term", guide_rendered)
+    @test occursin("aslp-julia-harness search policy", guide_rendered)
+    @test occursin("aslp-julia-harness search query --from-hook direct-source-read", guide_rendered)
+    @test !occursin("aslp-julia-harness export index", guide_rendered)
+    @test !occursin("aslp-julia-harness --search", guide_rendered)
+    @test !occursin("julia-project-harness", guide_rendered)
+    @test workspace_status == 0
+    @test occursin("[search-workspace]", workspace_rendered)
+    @test occursin("view=workspace", workspace_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", workspace_rendered)
     @test prime_status == 0
     @test occursin("[search-prime]", prime_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", prime_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", prime_rendered)
+    @test occursin("view=prime", prime_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", prime_rendered)
+    @test occursin("T=test:path(test/runtests.jl)!tests", prime_rendered)
     @test owner_status == 0
-    @test occursin("[search-owner] q=src/CliExample.jl owner=1", owner_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", owner_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", owner_rendered)
+    @test occursin("[search-owner] q=src/CliExample.jl view=owner", owner_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", owner_rendered)
+    @test occursin("T=test:path(test/runtests.jl)!tests", owner_rendered)
     @test text_status == 0
-    @test occursin("[search-fzf] q=\"run\"", text_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", text_rendered)
-    @test occursin("test/runtests.jl", text_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", text_rendered)
+    @test occursin("[search-fzf] q=run view=fzf", text_rendered)
+    @test occursin("Q=query:term(run)!fzf", text_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", text_rendered)
     @test query_status == 0
-    @test occursin("[search-query] hook=direct-source-read", query_rendered)
-    @test occursin("selector=\"**/*.jl\"", query_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", query_rendered)
-    @test occursin("test/runtests.jl", query_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", query_rendered)
+    @test occursin("[search-query] q=run", query_rendered)
+    @test occursin("selector=**/*.jl", query_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", query_rendered)
     @test policy_status == 0
-    @test occursin("[search-policy] q=JULIA-PROJ-R001 handle=1", policy_rendered)
-    @test occursin("|handle JULIA-PROJ-R001 kind=policy-rule", policy_rendered)
-    @test occursin("|seed owner:src/rules/catalog.jl", policy_rendered)
-    @test occursin("|seed tests:test/unit/rule_catalog.jl,test/unit/project/policy.jl", policy_rendered)
-    @test occursin(
-        "windowSet=owner:src/rules/catalog.jl,tests:test/unit/rule_catalog.jl,tests:test/unit/project/policy.jl",
-        policy_rendered,
-    )
+    @test occursin("[search-policy] q=JULIA-PROJ-R001 view=policy", policy_rendered)
+    @test occursin("O=owner:path(src/rules/catalog.jl)!owner", policy_rendered)
+    @test occursin("T=test:path(test/unit/rule_catalog.jl)!tests", policy_rendered)
+    @test occursin("T2=test:path(test/unit/project/policy.jl)!tests", policy_rendered)
     @test miss_status == 0
-    @test occursin("status=miss", miss_rendered)
-    @test occursin("|note kind=policy-not-found", miss_rendered)
+    @test occursin("[search-policy] q=JULIA-UNKNOWN-R999 view=policy", miss_rendered)
+    @test occursin("G>{}", miss_rendered)
+    @test occursin("rank= frontier=", miss_rendered)
     @test ingest_status == 0
-    @test occursin("[search-ingest] owner=1 tests=1 pipes=owner,tests", ingest_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", ingest_rendered)
-    @test occursin("|seed tests:test/runtests.jl", ingest_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", ingest_rendered)
+    @test occursin("[search-ingest]", ingest_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)!owner", ingest_rendered)
+    @test occursin("T=test:path(test/runtests.jl)!tests", ingest_rendered)
+    @test occursin("frontier=O.owner,T.tests", ingest_rendered)
+    @test ingest_extra_root_status != 0
     @test check_status == 0
     @test check_rendered == "[ok] julia\n"
 end

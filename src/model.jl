@@ -189,6 +189,7 @@ end
 
 const DEFAULT_IGNORED_DIR_NAMES = Set([
     ".cache",
+    ".devenv",
     ".direnv",
     ".git",
     ".idea",

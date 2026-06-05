@@ -1,3 +1,9 @@
+@testset "default config ignores local environment directories" begin
+    config = default_julia_harness_config()
+
+    @test ".devenv" in config.ignored_dir_names
+end
+
 function write_config_project(root::AbstractString)
     write(
         joinpath(root, "Project.toml"),
