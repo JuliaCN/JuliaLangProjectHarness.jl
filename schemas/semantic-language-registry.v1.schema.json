@@ -1,0 +1,688 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-semantic-protocols.local/schemas/semantic-language-registry.v1.schema.json",
+  "title": "Semantic Language Registry",
+  "description": "Language-server-style provider registry for semantic language protocol implementations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "registryId",
+    "registryVersion",
+    "protocolId",
+    "protocolVersion",
+    "languages"
+  ],
+  "properties": {
+    "registryId": {
+      "const": "agent.semantic-protocols.semantic-language-registry"
+    },
+    "registryVersion": {
+      "const": "1"
+    },
+    "protocolId": {
+      "const": "agent.semantic-protocols.semantic-language"
+    },
+    "protocolVersion": {
+      "const": "1"
+    },
+    "projectRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "languages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/languageRegistration"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$"
+    },
+    "method": {
+      "type": "string",
+      "pattern": "^(?:query|(search|query|check|proof|review|evidence|ast-patch|agent)/[a-z][a-z0-9_-]*)$"
+    },
+    "command": {
+      "enum": [
+        "search",
+        "query",
+        "check",
+        "proof",
+        "review",
+        "evidence",
+        "ast-patch",
+        "agent"
+      ]
+    },
+    "outputSchemaId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]*$"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+    },
+    "capabilityDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "languageId",
+        "namespace",
+        "name"
+      ],
+      "properties": {
+        "languageId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "namespace": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "fallbackDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "trigger"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/identifier"
+        },
+        "trigger": {
+          "enum": [
+            "query-miss",
+            "item-query-miss",
+            "path-only-owner"
+          ]
+        },
+        "appliesToPipes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "schemaRegistration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "schemaVersion",
+        "path"
+      ],
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "languageRegistration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "languageId",
+        "providerId",
+        "binary",
+        "namespace",
+        "methods",
+        "methodDescriptors",
+        "schemas"
+      ],
+      "properties": {
+        "languageId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "providerId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "binary": {
+          "$ref": "#/$defs/identifier"
+        },
+        "providerCommandPrefix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "namespace": {
+          "$ref": "#/$defs/namespace"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "methods": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/method"
+          }
+        },
+        "methodDescriptors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/methodDescriptor"
+          }
+        },
+        "schemas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/schemaRegistration"
+          }
+        }
+      }
+    },
+    "methodDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "command",
+        "supportsJson",
+        "supportsCompact"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^search/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "view",
+              "outputSchemaIds",
+              "requiresQuery",
+              "acceptsStdin",
+              "supportsPackageScope"
+            ],
+            "properties": {
+              "command": {
+                "const": "search"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^query(?:/|$)"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds"
+            ],
+            "properties": {
+              "command": {
+                "const": "query"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^check/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "const": "check"
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^agent/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "const": "agent"
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^proof/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds"
+            ],
+            "properties": {
+              "command": {
+                "const": "proof"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^review/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds"
+            ],
+            "properties": {
+              "command": {
+                "const": "review"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^evidence/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds"
+            ],
+            "properties": {
+              "command": {
+                "const": "evidence"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^ast-patch/"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds",
+              "mutationAvailable"
+            ],
+            "properties": {
+              "command": {
+                "const": "ast-patch"
+              },
+              "outputSchemaIds": {
+                "minItems": 1
+              },
+              "mutationAvailable": {
+                "type": "boolean"
+              }
+            },
+            "not": {
+              "required": [
+                "view"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "method": {
+                "pattern": "^agent/"
+              },
+              "supportsJson": {
+                "const": true
+              }
+            },
+            "required": [
+              "method",
+              "supportsJson"
+            ]
+          },
+          "then": {
+            "required": [
+              "outputSchemaIds"
+            ],
+            "properties": {
+              "outputSchemaIds": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/method"
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        },
+        "view": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "outputSchemaIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/outputSchemaId"
+          }
+        },
+        "packetSchemas": {
+          "type": "array",
+          "description": "Short packet schema names advertised by this method, for example semantic-tree-sitter-query.v1.",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]+\\.v[0-9]+$"
+          }
+        },
+        "requiresQuery": {
+          "type": "boolean"
+        },
+        "acceptsStdin": {
+          "type": "boolean"
+        },
+        "supportsPackageScope": {
+          "type": "boolean"
+        },
+        "supportsQuerySet": {
+          "type": "boolean"
+        },
+        "queryInputForms": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "selector",
+              "code-shaped",
+              "catalog-id",
+              "s-expression"
+            ]
+          }
+        },
+        "queryCatalogs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/queryCatalogDescriptor"
+          }
+        },
+        "grammarId": {
+          "type": "string",
+          "pattern": "^tree-sitter-[a-z][a-z0-9_-]*$"
+        },
+        "grammarProfileVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grammarProfileSchema": {
+          "type": "string",
+          "pattern": "^semantic-tree-sitter-grammar-profile\\.v[0-9]+$"
+        },
+        "grammarProfilePath": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?![0-9]+:)(?!\\.\\.?($|/))(?!.*(^|/)\\.\\.?($|/))(?!.*//)[^\\s:\\\\]+(?:/[^\\s:\\\\]+)*\\.json$",
+          "description": "Canonical grammar profile path/handle. When the provider embeds profile source, this is not a downstream filesystem requirement."
+        },
+        "cacheReplay": {
+          "type": "boolean"
+        },
+        "acceptedQuerySetSelectors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "exact-set",
+              "prefix-set",
+              "fuzzy-set",
+              "stdin-path-set"
+            ]
+          }
+        },
+        "querySetScopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "project",
+              "package",
+              "owner"
+            ]
+          }
+        },
+        "acceptedPipes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/capabilityDescriptor"
+          }
+        },
+        "ingestRequiredFor": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/capabilityDescriptor"
+          }
+        },
+        "fallbacks": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/fallbackDescriptor"
+          }
+        },
+        "clients": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        },
+        "requiredOptions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outputModes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "compact",
+              "json",
+              "code",
+              "names",
+              "outline",
+              "read-packet"
+            ]
+          }
+        },
+        "supportsJson": {
+          "type": "boolean"
+        },
+        "supportsCompact": {
+          "type": "boolean"
+        },
+        "mutationAvailable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "queryCatalogDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "path",
+        "captures"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?![0-9]+:)(?!\\.\\.?($|/))(?!.*(^|/)\\.\\.?($|/))(?!.*//)[^\\s:\\\\]+(?:/[^\\s:\\\\]+)*\\.scm$",
+          "description": "Canonical catalog path/handle. When sourceDelivery is provider-binary-embedded, this is not a downstream filesystem requirement."
+        },
+        "captures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$"
+          }
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceDelivery": {
+          "enum": [
+            "provider-binary-embedded"
+          ],
+          "description": "How the provider makes this canonical .scm source available to downstream clients. provider-binary-embedded means the provider binary carries the source and does not require package source files on the target machine."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaId": "agent.semantic-protocols.semantic-agent-hook-provider-manifest",
+  "schemaVersion": "1",
+  "protocolId": "agent.semantic-protocols.agent-hooks",
+  "protocolVersion": "1",
+  "manifestId": "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
+  "manifestVersion": "v1",
+  "languageId": "julia",
+  "providerId": "julia-lang-project-harness",
+  "namespace": "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
+  "binary": "aslp-julia-harness",
+  "source": {
+    "defaultExtensions": [".jl"],
+    "defaultConfigFiles": ["Project.toml"],
+    "defaultSourceRoots": ["src", "test", "docs", "examples", "benchmark"],
+    "defaultIgnoredPathPrefixes": [".git", "build", "Manifest.toml"]
+  },
+  "policy": {
+    "directSourceRead": "block",
+    "bulkSourceDump": "block",
+    "rawSourceSearch": "block",
+    "agentSearchJson": "block"
+  },
+  "routes": {
+    "guide": {
+      "argv": ["aslp-julia-harness", "agent", "guide", "."]
+    },
+    "prime": {
+      "argv": ["aslp-julia-harness", "search", "prime", "--view", "seeds", "."]
+    },
+    "owner": {
+      "argv": ["aslp-julia-harness", "search", "owner", "{path}", "--view", "seeds", "."]
+    },
+    "fzf": {
+      "argv": ["aslp-julia-harness", "search", "fzf", "{query}", "owner", "tests", "--view", "seeds", "."]
+    },
+    "ingest": {
+      "argv": ["aslp-julia-harness", "search", "ingest", "owner", "tests", "--view", "seeds", "."],
+      "stdinMode": "pipe-candidates"
+    },
+    "checkChanged": {
+      "argv": ["aslp-julia-harness", "check", "--changed", "."]
+    },
+    "exportIndex": {
+      "argv": ["aslp-julia-harness", "export", "index", "."]
+    }
+  }
+}

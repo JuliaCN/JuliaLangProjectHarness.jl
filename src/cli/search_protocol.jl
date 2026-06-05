@@ -4,6 +4,7 @@ struct JuliaSearchCliOptions
     pipes::Vector{String}
     render_view::String
     project_root::String
+    json::Bool
 end
 
 const JULIA_SEARCH_TEST_TOKEN_STOPWORDS = Set([
@@ -22,11 +23,14 @@ function parse_julia_search_args(args::Vector{String})
     pipes = String[]
     render_view = "graph"
     project_root = pwd()
+    json = false
     index = 1
     while index <= length(args)
         arg = args[index]
-        if arg in ("owner", "tests")
+        if arg in ("owner", "tests", "items")
             push!(pipes, arg)
+        elseif arg == "--json"
+            json = true
         elseif arg == "--view"
             index += 1
             index <= length(args) || error("--view requires a render mode")
@@ -38,7 +42,7 @@ function parse_julia_search_args(args::Vector{String})
         end
         index += 1
     end
-    JuliaSearchCliOptions(pipes, render_view, project_root)
+    JuliaSearchCliOptions(pipes, render_view, project_root, json)
 end
 
 function julia_harness_agent_guide(project_root::AbstractString)
@@ -46,11 +50,15 @@ function julia_harness_agent_guide(project_root::AbstractString)
     """
     [julia-harness-guide] project=$(root)
     |cmd julia-project-harness agent guide $(root)
+    |cmd julia-project-harness agent registry --json $(root)
     |cmd julia-project-harness search prime --view seeds $(root)
-    |cmd julia-project-harness search owner <owner-path> --view seeds $(root)
+    |cmd julia-project-harness search owner <owner-path> items --view seeds $(root)
+    |cmd julia-project-harness query <owner-path> --term <symbol-or-prefix> [--names-only|--code|--json] $(root)
     |cmd julia-project-harness search policy <rule-id-or-alias> owner tests --view seeds $(root)
     |cmd julia-project-harness search fzf <query> owner tests --view seeds $(root)
+    |cmd julia-project-harness search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds $(root)
     |pipe <candidate-lines> | julia-project-harness search ingest owner tests --view seeds $(root)
+    |cmd julia-project-harness export index $(root)
     |cmd julia-project-harness --search <query> --tag <tag> --limit <n> $(root)
     |cmd julia-project-harness check --changed $(root)
     |cmd julia-project-harness --agent-snapshot $(root)

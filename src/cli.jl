@@ -130,14 +130,38 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
     command = first(args)
     if command == "agent"
         length(args) >= 2 || error("agent requires a subcommand")
-        args[2] == "guide" || error("unknown agent subcommand: $(args[2])")
-        project_root = length(args) >= 3 ? args[3] : pwd()
-        print(out, julia_harness_agent_guide(project_root))
+        subcommand = args[2]
+        if subcommand == "guide"
+            project_root = length(args) >= 3 ? args[3] : pwd()
+            print(out, julia_harness_agent_guide(project_root))
+        elseif subcommand == "registry"
+            json = false
+            project_root = pwd()
+            for arg in args[3:end]
+                if arg == "--json"
+                    json = true
+                elseif startswith(arg, "--")
+                    error("unknown agent registry option: $(arg)")
+                else
+                    project_root = arg
+                end
+            end
+            if json
+                print(out, render_julia_agent_registry_json(project_root))
+                print(out, "\n")
+            else
+                print(out, render_julia_agent_registry(project_root))
+            end
+        else
+            error("unknown agent subcommand: $(subcommand)")
+        end
         return 0
     elseif command == "search"
         return run_julia_harness_search_cli(args[2:end]; out)
     elseif command == "check"
         return run_julia_harness_check_cli(args[2:end]; out)
+    elseif command == "export"
+        return run_julia_harness_export_cli(args[2:end]; out)
     end
     nothing
 end
@@ -147,28 +171,124 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
     view = args[1]
     if view == "prime"
         options = parse_julia_search_args(args[2:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "prime";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_prime_search(options.project_root))
     elseif view == "owner"
         length(args) >= 2 || error("search owner requires an owner path")
         owner_path = args[2]
         options = parse_julia_search_args(args[3:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "owner";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    owner_path,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_owner_search(owner_path, options.pipes; project_root=options.project_root))
     elseif view == "fzf"
         length(args) >= 2 || error("search fzf requires a query")
         query = args[2]
         options = parse_julia_search_args(args[3:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "fzf";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    query,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_text_search(query, options.pipes; project_root=options.project_root))
     elseif view == "ingest"
         options = parse_julia_search_args(args[2:end])
+        stdin_text = read(stdin, String)
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "ingest";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    stdin_text,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
-        print(out, render_julia_ingest_search(read(stdin, String), options.pipes; project_root=options.project_root))
+        print(out, render_julia_ingest_search(stdin_text, options.pipes; project_root=options.project_root))
+    elseif view == "query"
+        options = parse_julia_search_query_args(args[2:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "query";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    selector=options.selector,
+                    terms=options.terms,
+                    pipes=options.pipes,
+                    from_hook=options.from_hook,
+                    intent=options.intent,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(
+            out,
+            render_julia_hook_query_search(
+                options.selector,
+                options.terms,
+                options.pipes;
+                project_root=options.project_root,
+                from_hook=options.from_hook,
+                intent=options.intent,
+            ),
+        )
     elseif view == "policy"
         length(args) >= 2 || error("search policy requires a rule id or alias")
         query = args[2]
         options = parse_julia_search_args(args[3:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "policy";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    query,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_policy_search(query, options.pipes; project_root=options.project_root))
     else
@@ -183,78 +303,6 @@ function run_julia_harness_check_cli(args::Vector{String}; out=stdout)
     report = run_julia_project_harness(project_root)
     print(out, render_julia_project_harness(report))
     is_clean(report) ? 0 : 1
-end
-
-
-function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)
-    from_hook = nothing
-    selector = nothing
-    terms = String[]
-    surfaces = String[]
-    render_view = "hits"
-    code_only = false
-    positionals = String[]
-    index = 1
-    while index <= length(args)
-        arg = args[index]
-        if arg == "--from-hook"
-            index == length(args) && error("--from-hook requires a hook reason")
-            from_hook = args[index + 1]
-            index += 2
-        elseif arg == "--selector"
-            index == length(args) && error("--selector requires a selector")
-            selector = args[index + 1]
-            index += 2
-        elseif arg == "--term"
-            index == length(args) && error("--term requires a value")
-            push!(terms, args[index + 1])
-            index += 2
-        elseif arg == "--surface"
-            index == length(args) && error("--surface requires owner,tests style surfaces")
-            append!(surfaces, normalize_julia_query_surfaces(args[index + 1]))
-            index += 2
-        elseif arg == "--view"
-            index == length(args) && error("--view requires graph, hits, both, or seeds")
-            render_view = args[index + 1]
-            index += 2
-        elseif arg == "--code"
-            code_only = true
-            index += 1
-        elseif startswith(arg, "-")
-            error("unknown query option: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400arg)")
-        else
-            push!(positionals, arg)
-            index += 1
-        end
-    end
-    from_hook == "direct-source-read" || error("unsupported query hook route: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400from_hook)")
-    isnothing(selector) && error("--from-hook requires --selector")
-    project_root = isempty(positionals) ? pwd() : first(positionals)
-    if !isempty(terms)
-        isempty(surfaces) && append!(surfaces, ["owner", "tests"])
-        return run_julia_harness_search_cli(vcat(["fzf", join(terms, ",")], surfaces, ["--view", render_view, project_root]); out=out)
-    end
-    code_only || error("query direct-source-read requires --term or --code")
-    print(out, render_julia_query_code_selector(selector, project_root))
-    return 0
-end
-
-function normalize_julia_query_surfaces(value::String)::Vector{String}
-    pipes = String[]
-    for surface in split(value, ",")
-        normalized = strip(surface)
-        isempty(normalized) && continue
-        pipe = normalized == "owners" ? "owner" : normalized
-        pipe in ("owner", "tests", "items") || error("unknown query surface: 20 20 12 61 79 80 81 98 701 33 100 204 250 395 398 399 400normalized)")
-        push!(pipes, pipe)
-    end
-    isempty(pipes) && error("--surface requires at least one surface")
-    return pipes
-end
-
-function julia_query_owner_selector(selector::String)::String
-    path = replace(selector, r"^owner:" => "")
-    return replace(path, r":[0-9]+([:-][0-9]+)?$" => "")
 end
 
 function parse_julia_harness_cli_args(args::Vector{String})

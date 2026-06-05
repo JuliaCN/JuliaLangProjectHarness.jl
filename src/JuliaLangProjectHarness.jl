@@ -19,6 +19,9 @@ include("search_index/moshi.jl")
 include("search_index/origin.jl")
 include("search_index/verification.jl")
 include("search_render.jl")
+include("aslp_export.jl")
+include("agent_registry.jl")
+include("aslp_query.jl")
 include("agent_snapshot.jl")
 include("verification.jl")
 include("verification/benchmarks.jl")
@@ -33,6 +36,9 @@ include("verification/context.jl")
 include("verification/profile_index.jl")
 include("moshi_extension.jl")
 include("cli/search_protocol.jl")
+include("cli/search_query.jl")
+include("aslp_search.jl")
+include("cli/query.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 
@@ -66,6 +72,10 @@ export JuliaDiagnosticSeverity,
     julia_modularity_rules,
     julia_project_policy_rules,
     julia_project_search_index,
+    julia_agent_registry_packet,
+    julia_index_export_packet,
+    julia_query_owner_items_packet,
+    julia_schema_registrations,
     julia_rule_pack_descriptors,
     julia_rule_visibility,
     julia_syntax_rules,
@@ -76,6 +86,11 @@ export JuliaDiagnosticSeverity,
     render_julia_project_harness_advice,
     render_julia_project_harness_agent_snapshot,
     render_julia_project_harness_json,
+    render_julia_index_export_json,
+    render_julia_agent_registry,
+    render_julia_agent_registry_json,
+    render_julia_query_owner_items,
+    render_julia_query_owner_items_json,
     render_julia_rule_visibility,
     render_julia_search_results,
     render_julia_verification_pending_advice,
@@ -89,6 +104,7 @@ export JuliaDiagnosticSeverity,
     render_julia_verification_task_index,
     render_julia_verification_task_index_json,
     review_julia_verification_receipts,
+    run_julia_harness_export_cli,
     run_julia_project_harness_cli,
     run_julia_lang_harness,
     run_julia_project_harness,

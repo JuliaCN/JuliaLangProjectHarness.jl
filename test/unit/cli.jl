@@ -1,3 +1,5 @@
+using JSON3
+
 function write_cli_project(root::AbstractString)
     write(
         joinpath(root, "Project.toml"),
@@ -91,100 +93,106 @@ end
     @test occursin("src/CliExample.jl", rendered)
 end
 
-@testset "cli agent guide and policy search output" begin
+@testset "cli agent registry advertises schemas and methods" begin
     root = mktempdir()
     write_cli_project(root)
-    guide_out = IOBuffer()
-    prime_out = IOBuffer()
-    owner_out = IOBuffer()
-    text_out = IOBuffer()
-    policy_out = IOBuffer()
-    miss_out = IOBuffer()
-    ingest_out = IOBuffer()
-    check_out = IOBuffer()
+    compact_out = IOBuffer()
+    json_out = IOBuffer()
 
-    guide_status = run_julia_project_harness_cli(["agent", "guide", root]; out=guide_out)
-    prime_status = run_julia_project_harness_cli(
-        ["search", "prime", "--view", "seeds", root];
-        out=prime_out,
+    compact_status = run_julia_project_harness_cli(["agent", "registry", root]; out=compact_out)
+    json_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=json_out)
+    registry = JSON3.read(String(take!(json_out)))
+    language = only(registry.languages)
+
+    @test compact_status == 0
+    @test occursin("[julia-agent-registry]", String(take!(compact_out)))
+    @test json_status == 0
+    @test registry.registryId == "agent.semantic-protocols.semantic-language-registry"
+    @test registry.protocolId == "agent.semantic-protocols.semantic-language"
+    @test language.languageId == "julia"
+    @test language.providerId == "julia-lang-project-harness"
+    @test "search/prime" in language.methods
+    @test "search/fzf" in language.methods
+    @test "search/query" in language.methods
+    @test "search/policy" in language.methods
+    @test "query/owner-items" in language.methods
+    @test "agent/registry" in language.methods
+    @test any(schema -> schema.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index", language.schemas)
+    @test any(schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json", language.schemas)
+    @test any(
+        descriptor ->
+            descriptor.method == "search/policy" &&
+                "agent.semantic-protocols.semantic-handle" in descriptor.outputSchemaIds,
+        language.methodDescriptors,
     )
-    owner_status = run_julia_project_harness_cli(
-        ["search", "owner", "src/CliExample.jl", "--view", "seeds", root];
-        out=owner_out,
+    @test any(
+        descriptor ->
+            descriptor.method == "search/query" &&
+                descriptor.supportsJson == true &&
+                "--from-hook" in descriptor.requiredOptions &&
+                "agent.semantic-protocols.semantic-native-syntax-fact-index" in descriptor.outputSchemaIds,
+        language.methodDescriptors,
     )
-    text_status = run_julia_project_harness_cli(
-        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", root];
-        out=text_out,
+    @test any(
+        descriptor ->
+            descriptor.method == "query/owner-items" &&
+                descriptor.supportsJson == true &&
+                "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
+        language.methodDescriptors,
     )
-    policy_status = run_julia_project_harness_cli(
-        ["search", "policy", "JULIA-PROJ-R001", "owner", "tests", "--view", "seeds", root];
-        out=policy_out,
+end
+
+@testset "package-local semantic schemas stay synchronized when protocol root is present" begin
+    package_root = normpath(joinpath(@__DIR__, "..", ".."))
+    protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
+    registrations = julia_schema_registrations()
+
+    @test any(
+        registration ->
+            registration["schemaId"] == "agent.semantic-protocols.semantic-language-registry",
+        registrations,
     )
-    miss_status = run_julia_project_harness_cli(
-        ["search", "policy", "JULIA-UNKNOWN-R999", "owner", "tests", "--view", "seeds", root];
-        out=miss_out,
+    @test any(
+        registration ->
+            registration["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index",
+        registrations,
     )
-    check_status = run_julia_project_harness_cli(["check", "--changed", root]; out=check_out)
-    ingest_status = let input = "src/CliExample.jl:1:module CliExample\ntest/runtests.jl:3:@testset \"run\" begin\n",
-        pipe = Pipe()
-        writer = @async begin
-            write(pipe, input)
-            close(pipe)
+    for registration in registrations
+        package_schema_path = joinpath(package_root, registration["path"])
+        @test isfile(package_schema_path)
+        if isdir(protocol_schemas)
+            protocol_schema_path = joinpath(protocol_schemas, basename(registration["path"]))
+            isfile(protocol_schema_path) || continue
+            @test read(package_schema_path, String) == read(protocol_schema_path, String)
         end
-        status = redirect_stdin(pipe) do
-            run_julia_project_harness_cli(
-                ["search", "ingest", "owner", "tests", "--view", "seeds", root];
-                out=ingest_out,
-            )
-        end
-        wait(writer)
-        status
     end
+end
 
-    guide_rendered = String(take!(guide_out))
-    prime_rendered = String(take!(prime_out))
-    owner_rendered = String(take!(owner_out))
-    text_rendered = String(take!(text_out))
-    policy_rendered = String(take!(policy_out))
-    miss_rendered = String(take!(miss_out))
-    ingest_rendered = String(take!(ingest_out))
-    check_rendered = String(take!(check_out))
+@testset "cli export index packet" begin
+    root = mktempdir()
+    write_cli_project(root)
+    out = IOBuffer()
 
-    @test guide_status == 0
-    @test occursin("[julia-harness-guide]", guide_rendered)
-    @test occursin("julia-project-harness search policy", guide_rendered)
-    @test prime_status == 0
-    @test occursin("[search-prime]", prime_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", prime_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", prime_rendered)
-    @test owner_status == 0
-    @test occursin("[search-owner] q=src/CliExample.jl owner=1", owner_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", owner_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", owner_rendered)
-    @test text_status == 0
-    @test occursin("[search-fzf] q=\"run\"", text_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", text_rendered)
-    @test occursin("test/runtests.jl", text_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", text_rendered)
-    @test policy_status == 0
-    @test occursin("[search-policy] q=JULIA-PROJ-R001 handle=1", policy_rendered)
-    @test occursin("|handle JULIA-PROJ-R001 kind=policy-rule", policy_rendered)
-    @test occursin("|seed owner:src/rules/catalog.jl", policy_rendered)
-    @test occursin("|seed tests:test/unit/rule_catalog.jl,test/unit/project/policy.jl", policy_rendered)
-    @test occursin(
-        "windowSet=owner:src/rules/catalog.jl,tests:test/unit/rule_catalog.jl,tests:test/unit/project/policy.jl",
-        policy_rendered,
-    )
-    @test miss_status == 0
-    @test occursin("status=miss", miss_rendered)
-    @test occursin("|note kind=policy-not-found", miss_rendered)
-    @test ingest_status == 0
-    @test occursin("[search-ingest] owner=1 tests=1 pipes=owner,tests", ingest_rendered)
-    @test occursin("|seed owner:src/CliExample.jl", ingest_rendered)
-    @test occursin("|seed tests:test/runtests.jl", ingest_rendered)
-    @test occursin("windowSet=owner:src/CliExample.jl,tests:test/runtests.jl", ingest_rendered)
-    @test check_status == 0
-    @test check_rendered == "[ok] julia\n"
+    status = run_julia_project_harness_cli(["export", "index", root]; out)
+    packet = JSON3.read(String(take!(out)))
+
+    @test status == 0
+    @test packet.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index"
+    @test packet.schemaVersion == "1"
+    @test packet.protocolId == "agent.semantic-protocols.semantic-language"
+    @test packet.protocolVersion == "1"
+    @test packet.languageId == "julia"
+    @test packet.providerId == "julia-lang-project-harness"
+    @test packet.projectRoot == abspath(root)
+    @test length(packet.facts) > 0
+    @test length(packet.indexes) >= 5
+    @test any(fact -> fact.name == "run" && fact.languageKind == "doc", packet.facts)
+    @test any(fact -> haskey(fact, :qualifiedName), packet.facts)
+    @test any(fact -> haskey(fact, :relations), packet.facts)
+    @test any(fact -> fact.kind == "argument", packet.facts)
+    @test any(index -> index.name == "public-api", packet.indexes)
+    @test all(fact -> !startswith(fact.ownerPath, "/"), packet.facts)
+    @test_throws ErrorException run_julia_harness_export_cli(String[])
 end
 
 @testset "cli verification task output" begin
@@ -298,6 +306,10 @@ end
 @testset "query direct source read code projection" begin
     project_root = normpath(joinpath(@__DIR__, "..", ".."))
     out = IOBuffer()
+    search_out = IOBuffer()
+    exact_out = IOBuffer()
+    read_packet_out = IOBuffer()
+    wide_read_packet_out = IOBuffer()
     status = JuliaLangProjectHarness.run_julia_harness_query_cli(
         [
             "--from-hook",
@@ -309,10 +321,94 @@ end
         ];
         out,
     )
+    exact_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+        [
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/cli/query.jl:1:5",
+            "--code",
+            project_root,
+        ];
+        out=exact_out,
+    )
+    read_packet_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+        [
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/cli/query.jl:1:5",
+            "--code",
+            "--view",
+            "read-packet",
+            "--json",
+            project_root,
+        ];
+        out=read_packet_out,
+    )
+    wide_read_packet_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+        [
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/cli/query.jl:1:80",
+            "--code",
+            "--view",
+            "read-packet",
+            "--json",
+            project_root,
+        ];
+        out=wide_read_packet_out,
+    )
+    search_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+        [
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "**/*.jl",
+            "--term",
+            "run_julia_project_harness_cli",
+            "--surface",
+            "owner,tests",
+            "--view",
+            "seeds",
+            project_root,
+        ];
+        out=search_out,
+    )
     output = String(take!(out))
+    exact_output = String(take!(exact_out))
+    read_packet = JSON3.read(String(take!(read_packet_out)))
+    wide_read_packet = JSON3.read(String(take!(wide_read_packet_out)))
+    search_output = String(take!(search_out))
 
     @test status == 0
     @test occursin("function run_julia_project_harness_cli", output)
     @test !occursin("[search-owner]", output)
     @test !occursin("line=", output)
+    @test exact_status == 0
+    @test exact_output ==
+          "function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)\n" *
+          "    from_hook = nothing\n" *
+          "    selector = nothing\n" *
+          "    terms = String[]\n" *
+          "    surfaces = String[]\n"
+    @test read_packet_status == 0
+    @test read_packet.schemaId == "agent.semantic-protocols.semantic-read-packet"
+    @test read_packet.languageId == "julia"
+    @test read_packet.outputMode == "read-packet"
+    @test read_packet.sourceWindows[1].read == "src/cli/query.jl:1:5"
+    @test read_packet.sourceWindows[1].text == strip(exact_output)
+    @test read_packet.sourceWindows[1].lines[1].number == 1
+    @test read_packet.sourceWindows[1].lines[1].text ==
+          "function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)"
+    @test wide_read_packet_status == 0
+    @test wide_read_packet.readPlan.reason == "wide-selector"
+    @test wide_read_packet.readPlan.frontier[1].id == "W"
+    @test wide_read_packet.readPlan.frontier[1].kind == "window"
+    @test wide_read_packet.readPlan.frontier[1].read == "src/cli/query.jl:1:40"
+    @test wide_read_packet.readPlan.frontier[1].action == "code"
+    @test search_status == 0
+    @test occursin("[search-query] hook=direct-source-read", search_output)
+    @test occursin("|seed owner:src/cli.jl", search_output)
 end
