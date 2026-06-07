@@ -49,7 +49,7 @@ function julia_query_owner_items_packet(
         "queryCoverage" => coverage,
         "candidateItems" => candidates,
         "nativeSyntaxFacts" => [
-            aslp_search_index_fact(pair.first, root)
+            asp_search_index_fact(pair.first, root)
             for pair in selected_pairs
         ],
         "matches" => matches,

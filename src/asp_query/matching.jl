@@ -31,7 +31,7 @@ function julia_query_entry_keys(
     keys = String[
         String(entry.name),
         String(entry.kind),
-        aslp_fact_kind(entry),
+        asp_fact_kind(entry),
         owner_path,
         qualified_name,
         String(entry.detail),
@@ -42,7 +42,7 @@ function julia_query_entry_keys(
 end
 
 function julia_query_entry_match(entry::JuliaSearchIndexEntry, term::AbstractString, owner_path::AbstractString)
-    qualified_name = aslp_qualified_name(entry, owner_path)
+    qualified_name = asp_qualified_name(entry, owner_path)
     lowered_term = lowercase(strip(String(term)))
     keys = julia_query_entry_keys(entry, owner_path, qualified_name)
     lowered_keys = lowercase.(keys)
@@ -68,7 +68,7 @@ function julia_query_matching_entries(
         exact_matches = [pair for pair in term_matches if pair.second == "exact"]
         selected_matches = isempty(exact_matches) ? term_matches : exact_matches
         for pair in selected_matches
-            key = aslp_fact_id(pair.first, owner_path)
+            key = asp_fact_id(pair.first, owner_path)
             key in seen && continue
             push!(seen, key)
             push!(matches, pair)
@@ -106,7 +106,7 @@ function julia_query_candidate_items(
         row = Dict{String,Any}(
             "name" => name,
             "reason" => reason,
-            "location" => aslp_location_row(entry.location, project_root),
+            "location" => asp_location_row(entry.location, project_root),
         )
         isempty(term) || (row["term"] = term)
         candidates[name] = row

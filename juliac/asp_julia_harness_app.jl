@@ -1,4 +1,4 @@
-module AslpJuliaHarnessApp
+module AspJuliaHarnessApp
 
 using JuliaLangProjectHarness
 using PrecompileTools: @compile_workload
@@ -26,9 +26,9 @@ end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    exit(AslpJuliaHarnessApp.run_app(ARGS))
+    exit(AspJuliaHarnessApp.run_app(ARGS))
 end
 
 function (@main)(args::Vector{String})::Cint
-    return AslpJuliaHarnessApp.run_app(args)
+    return AspJuliaHarnessApp.run_app(args)
 end

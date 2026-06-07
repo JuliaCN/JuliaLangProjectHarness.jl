@@ -19,12 +19,63 @@ function render_julia_project_harness_with_options(
              JuliaHarnessFinding[]
     findings = vcat(blocking, advice)
     isempty(findings) && return "[ok] julia\n"
-    render_finding_list(findings)
+    rendered = isempty(blocking) ? "" : render_julia_failure_frontier(report, blocking)
+    if !isempty(advice)
+        rendered *= isempty(rendered) ? "" : "\n"
+        rendered *= render_finding_list(advice)
+    end
+    rendered
 end
 
 function render_finding_list(findings::Vector{JuliaHarnessFinding})
     isempty(findings) && return ""
     join(map(render_finding, findings), "\n")
+end
+
+function render_julia_failure_frontier(
+    report::JuliaHarnessReport,
+    findings::Vector{JuliaHarnessFinding},
+)
+    root = failure_frontier_root(report)
+    lines = String[
+        "[fail] julia blockingFindings=$(length(findings)) parsed=$(parsed_count(report))/$(file_count(report))",
+    ]
+    for finding in first(findings, min(length(findings), 3))
+        selector = failure_frontier_selector(finding)
+        path = isnothing(finding.location.path) ? "<memory>" : slash_path(finding.location.path)
+        push!(
+            lines,
+            "|failureFrontier rule=$(finding.rule_id) severity=$(severity_label(finding.severity)) path=$(path) line=$(finding.location.line) column=$(finding.location.column + 1)",
+        )
+        push!(lines, "|message $(failure_frontier_text(finding.title))")
+        !isempty(finding.summary) &&
+            push!(lines, "|summary $(failure_frontier_text(finding.summary))")
+        !isempty(finding.label) &&
+            push!(lines, "|repair $(failure_frontier_text(finding.label))")
+        if !isnothing(selector)
+            push!(lines, "|hotBlock selector=$(selector) reason=blocking-finding")
+            push!(lines, "|next action=direct-source-read selector=$(selector) root=$(root)")
+        end
+    end
+    if length(findings) > 3
+        push!(lines, "|more blockingFindings=$(length(findings) - 3)")
+    end
+    join(lines, "\n") * "\n"
+end
+
+failure_frontier_text(value::AbstractString) = join(split(String(value)), " ")
+
+function failure_frontier_root(report::JuliaHarnessReport)
+    if !isnothing(report.project_scope)
+        return slash_path(report.project_scope.project_root)
+    end
+    isempty(report.root_paths) ? "." : slash_path(first(report.root_paths))
+end
+
+function failure_frontier_selector(finding::JuliaHarnessFinding)
+    isnothing(finding.location.path) && return nothing
+    line = max(finding.location.line, 1)
+    "$(slash_path(finding.location.path)):$(line):$(line)"
 end
 
 function render_finding(finding::JuliaHarnessFinding)

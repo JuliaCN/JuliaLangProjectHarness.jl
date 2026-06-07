@@ -8,7 +8,7 @@ function julia_search_query_selector_owner(
     path = replace(path, r":[0-9]+([:-][0-9]+)?$" => "")
     isempty(path) && return nothing
     occursin(r"[*?\[\]{}]", path) && return nothing
-    path = isabspath(path) ? aslp_project_path(path, project_root) : normalized_owner_path(path)
+    path = isabspath(path) ? asp_project_path(path, project_root) : normalized_owner_path(path)
     endswith(path, ".jl") || return nothing
     path
 end
@@ -37,11 +37,11 @@ function julia_search_query_entry_matches(
     normalized_term = normalize_search_text(term)
     isempty(normalized_term) && return false
     owner_path = search_entry_owner_path(entry, project_root)
-    qualified_name = aslp_qualified_name(entry, owner_path)
+    qualified_name = asp_qualified_name(entry, owner_path)
     keys = String[
         String(entry.name),
         String(entry.kind),
-        aslp_fact_kind(entry),
+        asp_fact_kind(entry),
         owner_path,
         qualified_name,
         String(entry.detail),

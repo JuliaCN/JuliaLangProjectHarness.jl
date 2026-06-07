@@ -1,0 +1,145 @@
+{
+  "schemaId": "agent.semantic-protocols.semantic-tree-sitter-grammar-profile",
+  "schemaVersion": "1",
+  "grammarId": "tree-sitter-julia",
+  "grammarProfileVersion": "2026-06-06.v1",
+  "dialect": "tree-sitter-query",
+  "upstream": {
+    "repository": "https://github.com/tree-sitter/tree-sitter-julia",
+    "revision": "e0f9dcd180fdcfcfa8d79a3531e11d99e79321d3",
+    "version": "0.25.0"
+  },
+  "aspWorkspace": {
+    "owner": "main-asp",
+    "repository": "https://github.com/tao3k/agent-semantic-protocols",
+    "revision": "4a4770ccdf887742bd57d4751aeecabda6333255",
+    "contractFingerprint": "sha256:bb4278b3d1d3bc44bd6ba8a3a1dd3fb9470c9fcd5d42a842e3427d32c31cf2f6",
+    "queryCorpusValidator": "asp-tree-sitter-validate-julia-query-corpus"
+  },
+  "standardQueries": [
+    {
+      "id": "locals",
+      "path": "tree-sitter/tree-sitter-julia/queries/locals.scm",
+      "source": "tree-sitter-julia",
+      "role": "definition-reference-calibration"
+    },
+    {
+      "id": "injections",
+      "path": "tree-sitter/tree-sitter-julia/queries/injections.scm",
+      "source": "tree-sitter-julia",
+      "role": "docstring-comment-literal-calibration"
+    }
+  ],
+  "queryCorpus": {
+    "path": "tree-sitter/tree-sitter-julia/query-corpus",
+    "validator": "asp-tree-sitter-validate-julia-query-corpus"
+  },
+  "corpusProfilePath": "tree-sitter/tree-sitter-julia/corpus-profile.json",
+  "nativeFactProjection": [
+    {
+      "semanticFact": "item.identity",
+      "nativeFacts": [
+        "JuliaSyntax.SyntaxNode.kind",
+        "JuliaDefinition.name",
+        "JuliaDefinition.kind",
+        "JuliaSymbol.qualified_name"
+      ],
+      "catalogId": "declarations",
+      "captures": [
+        "function.definition",
+        "function.name",
+        "macro.definition",
+        "macro.name",
+        "module.definition",
+        "module.name",
+        "type.definition",
+        "type.name",
+        "constant.definition",
+        "constant.name"
+      ],
+      "projectionMode": "native-to-tree-sitter-captures"
+    },
+    {
+      "semanticFact": "import.binding",
+      "nativeFacts": [
+        "JuliaImport.module",
+        "JuliaImport.names",
+        "JuliaImport.kind"
+      ],
+      "catalogId": "imports",
+      "captures": [
+        "import.declaration",
+        "import.module",
+        "import.name",
+        "using.declaration",
+        "using.module",
+        "using.name"
+      ],
+      "projectionMode": "native-to-tree-sitter-captures"
+    },
+    {
+      "semanticFact": "invocation.call",
+      "nativeFacts": [
+        "JuliaCallEffect.name",
+        "JuliaCallEffect.receiver",
+        "JuliaSyntax.CallExpression"
+      ],
+      "catalogId": "calls",
+      "captures": [
+        "call.expression",
+        "call.target",
+        "call.method"
+      ],
+      "projectionMode": "native-to-tree-sitter-captures"
+    }
+  ],
+  "sourceAuthority": "native-parser-adapter",
+  "adapterModes": [
+    "native-projection",
+    "cached-replay"
+  ],
+  "compatibilityLevels": [
+    "exact",
+    "approximate",
+    "native-only"
+  ],
+  "catalogs": [
+    {
+      "id": "declarations",
+      "path": "tree-sitter/tree-sitter-julia/queries/declarations.scm",
+      "captures": [
+        "function.definition",
+        "function.name",
+        "macro.definition",
+        "macro.name",
+        "module.definition",
+        "module.name",
+        "type.definition",
+        "type.name",
+        "constant.definition",
+        "constant.name"
+      ]
+    },
+    {
+      "id": "imports",
+      "path": "tree-sitter/tree-sitter-julia/queries/imports.scm",
+      "captures": [
+        "import.declaration",
+        "import.module",
+        "import.name",
+        "using.declaration",
+        "using.module",
+        "using.name"
+      ]
+    },
+    {
+      "id": "calls",
+      "path": "tree-sitter/tree-sitter-julia/queries/calls.scm",
+      "captures": [
+        "call.expression",
+        "call.target",
+        "call.method"
+      ]
+    }
+  ]
+}

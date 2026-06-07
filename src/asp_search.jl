@@ -70,7 +70,7 @@ function julia_search_next_action(
 end
 
 function julia_search_location(entry::JuliaSearchIndexEntry, project_root::AbstractString)
-    aslp_location_row(entry.location, project_root)
+    asp_location_row(entry.location, project_root)
 end
 
 function julia_search_hit_row(
@@ -91,7 +91,7 @@ function julia_search_hit_row(
         "surface" => is_julia_test_entry(entry) ? "test-source" : "real-source",
         "realOwner" => !is_julia_test_entry(entry),
         "fields" => Dict{String,Any}(
-            "portableKind" => aslp_fact_kind(entry),
+            "portableKind" => asp_fact_kind(entry),
             "juliaKind" => String(entry.kind),
         ),
     )
@@ -186,7 +186,7 @@ function julia_search_attach_frontier!(
 end
 
 function julia_search_native_facts(entries::Vector{JuliaSearchIndexEntry}, project_root::AbstractString; limit::Int=64)
-    [aslp_search_index_fact(entry, project_root) for entry in entries[1:min(length(entries), limit)]]
+    [asp_search_index_fact(entry, project_root) for entry in entries[1:min(length(entries), limit)]]
 end
 
 function julia_workspace_search_packet(project_root::AbstractString; render_mode::AbstractString="seeds")
@@ -349,7 +349,7 @@ function julia_policy_search_packet(query::AbstractString, project_root::Abstrac
     )
 end
 
-include("aslp_search/query.jl")
+include("asp_search/query.jl")
 
 function render_julia_search_packet_json(
     view::AbstractString;

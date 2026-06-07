@@ -1,0 +1,16 @@
+{
+  "schemaId": "agent.semantic-protocols.julia.microbench-budget",
+  "schemaVersion": "1",
+  "cases": {
+    "julia.query.exact-source-window": {
+      "warmupIterations": 20,
+      "measureIterations": 80,
+      "p95MaxMs": 1
+    },
+    "julia.search.prime-packet-json-render": {
+      "warmupIterations": 10,
+      "measureIterations": 40,
+      "p95MaxMs": 25
+    }
+  }
+}

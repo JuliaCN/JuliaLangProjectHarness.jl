@@ -3,7 +3,7 @@ function julia_query_read_locator(location::AbstractDict)
 end
 
 function julia_query_node_id(entry::JuliaSearchIndexEntry, owner_path::AbstractString)
-    replace(aslp_fact_id(entry, owner_path), r"[^a-zA-Z0-9_.:-]+" => "_")
+    replace(asp_fact_id(entry, owner_path), r"[^a-zA-Z0-9_.:-]+" => "_")
 end
 
 function julia_query_projection_role(entry::JuliaSearchIndexEntry)
@@ -23,7 +23,7 @@ function julia_query_projection_flags(entry::JuliaSearchIndexEntry)
 end
 
 function julia_query_entry_code(entry::JuliaSearchIndexEntry, project_root::AbstractString)
-    location = aslp_location_row(entry.location, project_root)
+    location = asp_location_row(entry.location, project_root)
     compact = strip(render_julia_query_code_selector(julia_query_read_locator(location), project_root))
     if isempty(compact) || startswith(compact, "#")
         fallback = String(entry.detail)
@@ -86,7 +86,7 @@ function julia_query_match_row(
     project_root::AbstractString;
     include_code::Bool,
 )
-    location = aslp_location_row(entry.location, project_root)
+    location = asp_location_row(entry.location, project_root)
     read = julia_query_read_locator(location)
     row = Dict{String,Any}(
         "name" => String(entry.name),
@@ -98,7 +98,7 @@ function julia_query_match_row(
         "truncated" => false,
         "fields" => Dict{String,Any}(
             "juliaKind" => String(entry.kind),
-            "portableKind" => aslp_fact_kind(entry),
+            "portableKind" => asp_fact_kind(entry),
         ),
     )
     include_code && merge!(row, julia_query_projection(entry, project_root, read))

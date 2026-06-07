@@ -8,7 +8,7 @@
   "languageId": "julia",
   "providerId": "julia-lang-project-harness",
   "namespace": "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
-  "binary": "aslp-julia-harness",
+  "binary": "asp-julia-harness",
   "source": {
     "defaultExtensions": [".jl"],
     "defaultConfigFiles": ["Project.toml"],
@@ -23,26 +23,26 @@
   },
   "routes": {
     "guide": {
-      "argv": ["aslp-julia-harness", "guide", "."]
+      "argv": ["asp-julia-harness", "guide", "."]
     },
     "prime": {
-      "argv": ["aslp-julia-harness", "search", "prime", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "prime", "--view", "seeds", "."]
     },
     "owner": {
-      "argv": ["aslp-julia-harness", "search", "owner", "{path}", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "owner", "{path}", "--view", "seeds", "."]
     },
     "fzf": {
-      "argv": ["aslp-julia-harness", "search", "fzf", "{query}", "owner", "tests", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "fzf", "{query}", "owner", "tests", "--view", "seeds", "."]
     },
     "ingest": {
-      "argv": ["aslp-julia-harness", "search", "ingest", "owner", "tests", "--view", "seeds", "."],
+      "argv": ["asp-julia-harness", "search", "ingest", "owner", "tests", "--view", "seeds", "."],
       "stdinMode": "pipe-candidates"
     },
     "checkChanged": {
-      "argv": ["aslp-julia-harness", "check", "--changed", "."]
+      "argv": ["asp-julia-harness", "check", "--changed", "."]
     },
     "exportIndex": {
-      "argv": ["aslp-julia-harness", "export", "index", "."]
+      "argv": ["asp-julia-harness", "export", "index", "."]
     }
   }
 }

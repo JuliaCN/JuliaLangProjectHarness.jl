@@ -186,6 +186,28 @@ end
     @test occursin("benchmark_command=julia", advice)
 end
 
+@testset "verification task index owns package microbench gate" begin
+    root = dirname(dirname(dirname(@__DIR__)))
+    index = build_julia_verification_task_index(root)
+    performance_tasks = [
+        record for record in index.records
+        if record.kind == "performance" &&
+           relpath(record.owner_path, root) == joinpath("test", "perf", "runtests.jl")
+    ]
+
+    @test length(performance_tasks) == 1
+    task = only(performance_tasks)
+    @test task.evidence["benchmark_project"] == "root"
+    @test task.evidence["activation"] == "root_project"
+    @test task.evidence["entry"] == joinpath("test", "perf", "runtests.jl")
+    @test task.command == [
+        "julia",
+        "--project=$(root)",
+        "-e",
+        "cd($(repr(root))) do; include(\"test/perf/runtests.jl\"); end",
+    ]
+end
+
 @testset "verification task index includes package-owned examples project" begin
     root = mktempdir()
     write_example_verification_project(root)

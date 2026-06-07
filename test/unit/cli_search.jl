@@ -71,10 +71,12 @@
         wait(writer)
         status
     end
+    ingest_extra_root_err = IOBuffer()
     ingest_extra_root_status =
         run_julia_project_harness_cli(
             ["search", "ingest", "owner", "tests", "extra", "--view", "seeds", root];
             out=IOBuffer(),
+            err=ingest_extra_root_err,
         )
 
     guide_rendered = String(take!(guide_out))
@@ -90,15 +92,15 @@
 
     @test guide_status == 0
     @test occursin("[julia-harness-guide]", guide_rendered)
-    @test occursin("aslp-julia-harness guide", guide_rendered)
-    @test occursin("aslp-julia-harness agent doctor --json", guide_rendered)
-    @test !occursin("aslp-julia-harness agent guide", guide_rendered)
-    @test occursin("aslp-julia-harness search workspace --view seeds", guide_rendered)
-    @test occursin("aslp-julia-harness query <owner-path> --term", guide_rendered)
-    @test occursin("aslp-julia-harness search policy", guide_rendered)
-    @test occursin("aslp-julia-harness search query --from-hook direct-source-read", guide_rendered)
-    @test !occursin("aslp-julia-harness export index", guide_rendered)
-    @test !occursin("aslp-julia-harness --search", guide_rendered)
+    @test occursin("asp-julia-harness guide", guide_rendered)
+    @test occursin("asp-julia-harness agent doctor --json", guide_rendered)
+    @test !occursin("asp-julia-harness agent guide", guide_rendered)
+    @test occursin("asp-julia-harness search workspace --view seeds", guide_rendered)
+    @test occursin("asp-julia-harness query <owner-path> --term", guide_rendered)
+    @test occursin("asp-julia-harness search policy", guide_rendered)
+    @test occursin("asp-julia-harness search query --from-hook direct-source-read", guide_rendered)
+    @test !occursin("asp-julia-harness export index", guide_rendered)
+    @test !occursin("asp-julia-harness --search", guide_rendered)
     @test !occursin("julia-project-harness", guide_rendered)
     @test workspace_status == 0
     @test occursin("[search-workspace]", workspace_rendered)
@@ -136,6 +138,10 @@
     @test occursin("T=test:path(test/runtests.jl)!tests", ingest_rendered)
     @test occursin("frontier=O.owner,T.tests", ingest_rendered)
     @test ingest_extra_root_status != 0
+    @test occursin(
+        "expected at most one PROJECT_ROOT argument",
+        String(take!(ingest_extra_root_err)),
+    )
     @test check_status == 0
     @test check_rendered == "[ok] julia\n"
 end

@@ -23,9 +23,12 @@ end
     @test JuliaLangProjectHarness.file_count(report) == 1
     @test JuliaLangProjectHarness.parsed_count(report) == 0
     @test !JuliaLangProjectHarness.is_clean(report)
+    @test startswith(rendered, "[fail] julia blockingFindings=1 parsed=0/1")
     @test occursin("JULIA-SYN-R001", rendered)
-    @test occursin("Julia source does not parse", rendered)
-    @test occursin("Contract:", rendered)
+    @test occursin("|failureFrontier rule=JULIA-SYN-R001 severity=error", rendered)
+    @test occursin("|hotBlock selector=", rendered)
+    @test occursin("invalid.jl:1:1 reason=blocking-finding", rendered)
+    @test occursin("|next action=direct-source-read selector=", rendered)
 end
 
 @testset "runner rejects missing roots" begin

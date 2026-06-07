@@ -1,0 +1,47 @@
+{
+  "corpusRoot": "test/corpus",
+  "files": [
+    {
+      "caseCount": 0,
+      "lineCount": 202,
+      "path": "test/corpus/collections.txt",
+      "sha256": "d0ca31b5ca78872b529b0a9ebd47e76136eb3c975f87739cb26cd6162d36538f"
+    },
+    {
+      "caseCount": 0,
+      "lineCount": 692,
+      "path": "test/corpus/definitions.txt",
+      "sha256": "f74298bb3f311966b78359b96c2162142455d6c39ef787aa0ed5774e37a7f0f1"
+    },
+    {
+      "caseCount": 0,
+      "lineCount": 678,
+      "path": "test/corpus/expressions.txt",
+      "sha256": "308c8fbaaf7b78398ea2a2aebc79cc0dcb0efe09d3676250f392f37489b518e6"
+    },
+    {
+      "caseCount": 0,
+      "lineCount": 216,
+      "path": "test/corpus/literals.txt",
+      "sha256": "3c99cb3e524213c3d814fd1f5df78cb1003f79b439c6651199849e8c1686008e"
+    },
+    {
+      "caseCount": 0,
+      "lineCount": 278,
+      "path": "test/corpus/operators.txt",
+      "sha256": "d551b9820b89ac3909d0d96fb3b0a6f9ac30019a94c6859e306cc4d7c5cd1650"
+    },
+    {
+      "caseCount": 0,
+      "lineCount": 474,
+      "path": "test/corpus/statements.txt",
+      "sha256": "5b0924974eba97ccc0756bdfd73e59001623e532ed961261138b380d7309dfc8"
+    }
+  ],
+  "schemaVersion": "1",
+  "source": {
+    "repository": "https://github.com/tree-sitter/tree-sitter-julia",
+    "revision": "e0f9dcd180fdcfcfa8d79a3531e11d99e79321d3",
+    "version": "0.25.0"
+  }
+}

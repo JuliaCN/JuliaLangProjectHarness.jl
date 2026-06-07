@@ -4,7 +4,7 @@ const JULIA_AGENT_REGISTRY_PROTOCOL_ID = "agent.semantic-protocols.semantic-lang
 const JULIA_AGENT_REGISTRY_PROTOCOL_VERSION = "1"
 const JULIA_AGENT_PROVIDER_NAMESPACE =
     "agent.semantic-protocols.languages.julia.julia-lang-project-harness"
-const JULIA_AGENT_BINARY = "aslp-julia-harness"
+const JULIA_AGENT_BINARY = "asp-julia-harness"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("parser-compact-case.v1.schema.json", "agent.semantic-protocols.parser-compact-case"),
@@ -17,11 +17,13 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
     ("semantic-behavior-snapshot.v1.schema.json", "agent.semantic-protocols.semantic-behavior-snapshot"),
     ("semantic-compact-graph-render.v1.schema.json", "agent.semantic-protocols.semantic-compact-graph-render"),
+    ("semantic-codeql-evidence.v1.schema.json", "agent.semantic-protocols.semantic-codeql-evidence"),
     ("semantic-determinism-readiness.v1.schema.json", "agent.semantic-protocols.semantic-determinism-readiness"),
     ("semantic-dev-active-context.v1.schema.json", "agent.semantic-protocols.dev-active-context"),
     ("semantic-dev-command-log.v1.schema.json", "agent.semantic-protocols.dev-command-log"),
     ("semantic-evidence-graph.v1.schema.json", "agent.semantic-protocols.semantic-evidence-graph"),
     ("semantic-finder-tools.v1.schema.json", "agent.semantic-protocols.semantic-finder-tools"),
+    ("semantic-flow-lite.v1.schema.json", "agent.semantic-protocols.semantic-flow-lite"),
     ("semantic-formal-proof-pilot.v1.schema.json", "agent.semantic-protocols.semantic-formal-proof-pilot"),
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
     ("semantic-handle.v1.schema.json", "agent.semantic-protocols.semantic-handle"),
@@ -30,6 +32,7 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-native-syntax-fact-index.v1.schema.json", "agent.semantic-protocols.semantic-native-syntax-fact-index"),
     ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
     ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
+    ("semantic-relation-plan.v1.schema.json", "agent.semantic-protocols.semantic-relation-plan"),
     ("semantic-review-packet.v1.schema.json", "agent.semantic-protocols.semantic-review-packet"),
     ("semantic-sandtable-receipt.v1.schema.json", "agent.semantic-protocols.semantic-sandtable-receipt"),
     ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),

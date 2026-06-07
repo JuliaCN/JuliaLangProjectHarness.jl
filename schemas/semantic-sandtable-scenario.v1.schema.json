@@ -73,8 +73,18 @@
         "type": "string"
       }
     },
+    "skipUnlessEnv": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/envName"
+      }
+    },
     "budgets": {
       "$ref": "#/$defs/budgets"
+    },
+    "execution": {
+      "$ref": "#/$defs/execution"
     },
     "steps": {
       "type": "array",
@@ -175,6 +185,13 @@
             "$ref": "#/$defs/intentCase"
           }
         },
+        "deepQuestionCases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/deepQuestionCase"
+          }
+        },
         "recordedAt": {
           "type": "string",
           "minLength": 1
@@ -182,6 +199,9 @@
         "receiptPath": {
           "type": "string",
           "minLength": 1
+        },
+        "failureFrontierComparison": {
+          "$ref": "#/$defs/failureFrontierComparison"
         },
         "editBoundary": {
           "enum": ["before-edit", "after-search", "none", "unknown"]
@@ -256,6 +276,99 @@
         }
       }
     },
+    "deepQuestionCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "question", "stepIds", "queryTerms", "audit"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stepIds": {
+          "$ref": "#/$defs/stringList"
+        },
+        "queryTerms": {
+          "$ref": "#/$defs/stringList"
+        },
+        "workdirSubdir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "audit": {
+          "$ref": "#/$defs/deepQuestionAudit"
+        },
+        "expectedAspFlow": {
+          "$ref": "#/$defs/expectedAspFlow"
+        }
+      }
+    },
+    "expectedAspFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalCommands", "requiredStages", "forbiddenStages"],
+      "properties": {
+        "canonicalCommands": {
+          "$ref": "#/$defs/stringList"
+        },
+        "requiredStages": {
+          "$ref": "#/$defs/pipeFlowStageList"
+        },
+        "forbiddenStages": {
+          "$ref": "#/$defs/pipeFlowStageList"
+        },
+        "notes": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "deepQuestionAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxAspCommands",
+        "maxSearchCommands",
+        "maxQueryCommands",
+        "maxRepeatedCommands"
+      ],
+      "properties": {
+        "maxAspCommands": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxSearchCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxQueryCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxRepeatedCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requiresGraphSignals": {
+          "type": "boolean"
+        },
+        "requiresQuerySet": {
+          "type": "boolean"
+        },
+        "requiresHookEvents": {
+          "type": "boolean"
+        },
+        "requiresComplexPipeFlow": {
+          "type": "boolean"
+        },
+        "requiresTokenCost": {
+          "type": "boolean"
+        }
+      }
+    },
     "evidenceMetrics": {
       "type": "object",
       "additionalProperties": false,
@@ -273,6 +386,26 @@
           "minimum": 0
         },
         "recordedStderrBytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "aspCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "searchCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "queryCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "directReadCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repeatedCommands": {
           "type": "integer",
           "minimum": 0
         },
@@ -370,6 +503,121 @@
         }
       }
     },
+    "failureFrontierComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expectedHotBlocks"
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "baselineReceiptPath",
+            "candidateReceiptPath"
+          ]
+        },
+        {
+          "required": [
+            "baselineTracePath",
+            "candidateTracePath"
+          ]
+        }
+      ],
+      "properties": {
+        "baselineReceiptPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidateReceiptPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineTracePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidateTracePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineTraceSessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidateTraceSessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "traceLanguageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "traceProviderId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projectName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projectSource": {
+          "enum": [
+            "checkout",
+            "registry",
+            "fixture",
+            "unknown"
+          ]
+        },
+        "intent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "editBoundary": {
+          "enum": [
+            "before-edit",
+            "after-edit"
+          ]
+        },
+        "recordedAt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedHotBlocks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "thresholds": {
+          "$ref": "#/$defs/failureFrontierThresholds"
+        }
+      }
+    },
+    "failureFrontierThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minCommandReduction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxDirectSourceReadCode": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDuplicateSelectors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxSameFileWindowFanout": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
     "workdir": {
       "type": "object",
       "additionalProperties": false,
@@ -422,10 +670,52 @@
         }
       }
     },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["sequential", "parallel"]
+        },
+        "maxConcurrentSteps": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
     "step": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "command"],
+      "required": ["id"],
+      "oneOf": [
+        {
+          "required": ["command"],
+          "not": {
+            "anyOf": [
+              {"required": ["agentCli"]},
+              {"required": ["agentSdk"]}
+            ]
+          }
+        },
+        {
+          "required": ["agentCli"],
+          "not": {
+            "anyOf": [
+              {"required": ["command"]},
+              {"required": ["agentSdk"]}
+            ]
+          }
+        },
+        {
+          "required": ["agentSdk"],
+          "not": {
+            "anyOf": [
+              {"required": ["command"]},
+              {"required": ["agentCli"]}
+            ]
+          }
+        }
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -440,7 +730,9 @@
             "performance",
             "security",
             "hook-replay",
-            "wrapper"
+            "wrapper",
+            "agent-cli",
+            "agent-sdk"
           ]
         },
         "coverage": {
@@ -451,6 +743,12 @@
         },
         "command": {
           "$ref": "#/$defs/argv"
+        },
+        "agentCli": {
+          "$ref": "#/$defs/agentCli"
+        },
+        "agentSdk": {
+          "$ref": "#/$defs/agentSdk"
         },
         "stdin": {
           "type": "string"
@@ -480,12 +778,140 @@
         }
       }
     },
+    "agentCli": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["client", "binary", "prompt", "outputFormat"],
+      "properties": {
+        "client": {
+          "enum": ["claude"]
+        },
+        "binary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outputFormat": {
+          "enum": ["text", "json", "stream-json"]
+        },
+        "inputFormat": {
+          "enum": ["text", "stream-json"]
+        },
+        "includePartialMessages": {
+          "type": "boolean"
+        },
+        "includeHookEvents": {
+          "type": "boolean"
+        },
+        "verbose": {
+          "type": "boolean"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "env": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/envName"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "requiredEnv": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/envName"
+          }
+        }
+      }
+    },
+    "agentSdk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["client", "prompt", "outputFormat"],
+      "properties": {
+        "client": {
+          "enum": ["claude"]
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outputFormat": {
+          "enum": ["text", "json", "stream-json"]
+        },
+        "includePartialMessages": {
+          "type": "boolean"
+        },
+        "includeHookEvents": {
+          "type": "boolean"
+        },
+        "verbose": {
+          "type": "boolean"
+        },
+        "allowedTools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "disallowedTools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "requireAspBashCommands": {
+          "type": "boolean"
+        },
+        "useRepoClaudeSettings": {
+          "type": "boolean"
+        },
+        "maxTurns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "env": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/envName"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "requiredEnv": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/envName"
+          }
+        }
+      }
+    },
     "expect": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "exitCode": {
           "type": "integer"
+        },
+        "allowNonZeroExit": {
+          "type": "boolean"
         },
         "lineProtocol": {
           "type": "boolean"
@@ -524,6 +950,9 @@
         "guideQuality": {
           "$ref": "#/$defs/guideQuality"
         },
+        "pipeFlow": {
+          "$ref": "#/$defs/pipeFlowExpectation"
+        },
         "maxStdoutLinesWarn": {
           "type": "integer",
           "minimum": 1
@@ -540,6 +969,69 @@
           "type": "integer",
           "minimum": 1
         }
+      }
+    },
+    "pipeFlowExpectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAspCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxSearchCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxQueryCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxDirectReadCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxRepeatedCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxSearchPrimeCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minQuerySelectorCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requireComplexPipeFlow": {
+          "type": "boolean"
+        },
+        "requireTokenCost": {
+          "type": "boolean"
+        },
+        "requiredStages": {
+          "$ref": "#/$defs/pipeFlowStageList"
+        },
+        "forbiddenStages": {
+          "$ref": "#/$defs/pipeFlowStageList"
+        }
+      }
+    },
+    "pipeFlowStageList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "search-prime",
+          "search-fzf",
+          "search-reasoning",
+          "search-fzf-or-reasoning",
+          "query-selector",
+          "treesitter-query",
+          "direct-read",
+          "repeated-commands",
+          "repeated-prime"
+        ]
       }
     },
     "guideQuality": {
@@ -613,6 +1105,10 @@
       "items": {
         "type": "string"
       }
+    },
+    "envName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$"
     },
     "coverageList": {
       "type": "array",

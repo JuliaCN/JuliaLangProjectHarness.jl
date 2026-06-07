@@ -5,6 +5,7 @@ struct JuliaSearchCliOptions
     render_view::String
     project_root::String
     json::Bool
+    workspace::Bool
 end
 
 const JULIA_SEARCH_TEST_TOKEN_STOPWORDS = Set([
@@ -24,6 +25,7 @@ function parse_julia_search_args(args::Vector{String})
     render_view = "graph"
     project_root = nothing
     json = false
+    workspace = false
     index = 1
     while index <= length(args)
         arg = args[index]
@@ -32,6 +34,8 @@ function parse_julia_search_args(args::Vector{String})
             push!(pipes, arg)
         elseif arg == "--json"
             json = true
+        elseif arg == "--workspace"
+            workspace = true
         elseif arg == "--view"
             index += 1
             index <= length(args) || error("--view requires a render mode")
@@ -44,24 +48,24 @@ function parse_julia_search_args(args::Vector{String})
         end
         index += 1
     end
-    JuliaSearchCliOptions(pipes, render_view, something(project_root, pwd()), json)
+    JuliaSearchCliOptions(pipes, render_view, something(project_root, pwd()), json, workspace)
 end
 
 function julia_harness_agent_guide(project_root::AbstractString)
     root = abspath(String(project_root))
     """
     [julia-harness-guide] project=$(root)
-    |cmd aslp-julia-harness guide $(root)
-    |cmd aslp-julia-harness agent doctor --json $(root)
-    |cmd aslp-julia-harness search workspace --view seeds $(root)
-    |cmd aslp-julia-harness search prime --view seeds $(root)
-    |cmd aslp-julia-harness search owner <owner-path> items --view seeds $(root)
-    |cmd aslp-julia-harness query <owner-path> --term <symbol-or-prefix> [--names-only|--code|--json] $(root)
-    |cmd aslp-julia-harness search policy <rule-id-or-alias> owner tests --view seeds $(root)
-    |cmd aslp-julia-harness search fzf <query> owner tests --view seeds $(root)
-    |cmd aslp-julia-harness search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds $(root)
-    |pipe <candidate-lines> | aslp-julia-harness search ingest owner tests --view seeds $(root)
-    |cmd aslp-julia-harness check --changed $(root)
+    |cmd asp-julia-harness guide $(root)
+    |cmd asp-julia-harness agent doctor --json $(root)
+    |cmd asp-julia-harness search workspace --view seeds $(root)
+    |cmd asp-julia-harness search prime --view seeds $(root)
+    |cmd asp-julia-harness search owner <owner-path> items --view seeds $(root)
+    |cmd asp-julia-harness query <owner-path> --term <symbol-or-prefix> [--names-only|--code|--json] $(root)
+    |cmd asp-julia-harness search policy <rule-id-or-alias> owner tests --view seeds $(root)
+    |cmd asp-julia-harness search fzf <query> owner tests --view seeds $(root)
+    |cmd asp-julia-harness search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds $(root)
+    |pipe <candidate-lines> | asp-julia-harness search ingest owner tests --view seeds $(root)
+    |cmd asp-julia-harness check --changed $(root)
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
     """
 end

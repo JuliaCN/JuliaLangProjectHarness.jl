@@ -67,8 +67,9 @@ end
     json_out = IOBuffer()
     snapshot_out = IOBuffer()
 
-    json_status = run_julia_project_harness_cli(["--json", root]; out=json_out)
-    snapshot_status = run_julia_project_harness_cli(["--agent-snapshot", root]; out=snapshot_out)
+    json_status = run_julia_project_harness_cli(["--json", root]; out = json_out)
+    snapshot_status =
+        run_julia_project_harness_cli(["--agent-snapshot", root]; out = snapshot_out)
 
     @test json_status == 0
     @test occursin("\"files\"", String(take!(json_out)))
@@ -100,9 +101,12 @@ end
     json_out = IOBuffer()
     doctor_out = IOBuffer()
 
-    compact_status = run_julia_project_harness_cli(["agent", "registry", root]; out=compact_out)
-    json_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=json_out)
-    doctor_status = run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out=doctor_out)
+    compact_status =
+        run_julia_project_harness_cli(["agent", "registry", root]; out = compact_out)
+    json_status =
+        run_julia_project_harness_cli(["agent", "registry", "--json", root]; out = json_out)
+    doctor_status =
+        run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = doctor_out)
     registry = JSON3.read(String(take!(json_out)))
     doctor_registry = JSON3.read(String(take!(doctor_out)))
     language = only(registry.languages)
@@ -116,7 +120,7 @@ end
     @test registry.protocolId == "agent.semantic-protocols.semantic-language"
     @test language.languageId == "julia"
     @test language.providerId == "julia-lang-project-harness"
-    @test language.binary == "aslp-julia-harness"
+    @test language.binary == "asp-julia-harness"
     @test "search/prime" in language.methods
     @test "search/fzf" in language.methods
     @test "search/query" in language.methods
@@ -126,27 +130,35 @@ end
     @test !("agent/guide" in language.methods)
     @test "agent/doctor" in language.methods
     @test "agent/registry" in language.methods
-    @test any(schema -> schema.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index", language.schemas)
-    @test any(schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json", language.schemas)
+    @test any(
+        schema ->
+            schema.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index",
+        language.schemas,
+    )
+    @test any(
+        schema -> schema.path == "schemas/semantic-language-registry.v1.schema.json",
+        language.schemas,
+    )
     @test any(
         descriptor ->
             descriptor.method == "search/policy" &&
-                "agent.semantic-protocols.semantic-handle" in descriptor.outputSchemaIds,
+            "agent.semantic-protocols.semantic-handle" in descriptor.outputSchemaIds,
         language.methodDescriptors,
     )
     @test any(
         descriptor ->
             descriptor.method == "search/query" &&
-                descriptor.supportsJson == true &&
-                "--from-hook" in descriptor.requiredOptions &&
-                "agent.semantic-protocols.semantic-native-syntax-fact-index" in descriptor.outputSchemaIds,
+            descriptor.supportsJson == true &&
+            "--from-hook" in descriptor.requiredOptions &&
+            "agent.semantic-protocols.semantic-native-syntax-fact-index" in
+            descriptor.outputSchemaIds,
         language.methodDescriptors,
     )
     @test any(
         descriptor ->
             descriptor.method == "query/owner-items" &&
-                descriptor.supportsJson == true &&
-                "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
+            descriptor.supportsJson == true &&
+            "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
         language.methodDescriptors,
     )
 end
@@ -158,19 +170,22 @@ end
 
     @test any(
         registration ->
-            registration["schemaId"] == "agent.semantic-protocols.semantic-language-registry",
+            registration["schemaId"] ==
+            "agent.semantic-protocols.semantic-language-registry",
         registrations,
     )
     @test any(
         registration ->
-            registration["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index",
+            registration["schemaId"] ==
+            "agent.semantic-protocols.semantic-native-syntax-fact-index",
         registrations,
     )
     for registration in registrations
         package_schema_path = joinpath(package_root, registration["path"])
         @test isfile(package_schema_path)
         if isdir(protocol_schemas)
-            protocol_schema_path = joinpath(protocol_schemas, basename(registration["path"]))
+            protocol_schema_path =
+                joinpath(protocol_schemas, basename(registration["path"]))
             isfile(protocol_schema_path) || continue
             @test read(package_schema_path, String) == read(protocol_schema_path, String)
         end
@@ -217,15 +232,17 @@ end
     bad_receipt_out = IOBuffer()
 
     status = run_julia_project_harness_cli(["--verification-tasks", root]; out)
-    json_status = run_julia_project_harness_cli(["--verification-tasks-json", root]; out=json_out)
-    profile_status = run_julia_project_harness_cli(["--verification-profile", root]; out=profile_out)
+    json_status =
+        run_julia_project_harness_cli(["--verification-tasks-json", root]; out = json_out)
+    profile_status =
+        run_julia_project_harness_cli(["--verification-profile", root]; out = profile_out)
     profile_json_status = run_julia_project_harness_cli(
         ["--verification-profile-json", root];
-        out=profile_json_out,
+        out = profile_json_out,
     )
     template_status = run_julia_project_harness_cli(
         ["--verification-receipt-template", root];
-        out=template_out,
+        out = template_out,
     )
     index = build_julia_verification_task_index(root)
     security = only(record for record in index.records if record.kind == "security")
@@ -246,15 +263,15 @@ end
     )
     receipt_status = run_julia_project_harness_cli(
         ["--verification-receipts", receipt_path, root];
-        out=receipt_out,
+        out = receipt_out,
     )
     receipt_json_status = run_julia_project_harness_cli(
         ["--verification-receipts-json", receipt_path, root];
-        out=receipt_json_out,
+        out = receipt_json_out,
     )
     bad_receipt_status = run_julia_project_harness_cli(
         ["--verification-receipts", bad_receipt_path, root];
-        out=bad_receipt_out,
+        out = bad_receipt_out,
     )
 
     @test status == 0
@@ -265,7 +282,10 @@ end
     @test occursin("kind=stress", task_rendered)
     @test occursin("fingerprint=stress", task_rendered)
     @test occursin("requires=attack_classes,authorization_boundary,result", task_rendered)
-    @test occursin("requires=scenario,load_steps,p50_ms,p99_ms,threshold,result", task_rendered)
+    @test occursin(
+        "requires=scenario,load_steps,p50_ms,p99_ms,threshold,result",
+        task_rendered,
+    )
     @test json_status == 0
     json_rendered = String(take!(json_out))
     @test occursin("\"records\"", json_rendered)
@@ -279,11 +299,17 @@ end
     @test occursin("\"receipts\"", template_rendered)
     @test occursin("\"scenario\":\"\"", template_rendered)
     @test receipt_status == 0
-    @test occursin("VerificationReceiptReview: count=2 accepted=2 incomplete=0", String(take!(receipt_out)))
+    @test occursin(
+        "VerificationReceiptReview: count=2 accepted=2 incomplete=0",
+        String(take!(receipt_out)),
+    )
     @test receipt_json_status == 0
     @test occursin("\"reviews\"", String(take!(receipt_json_out)))
     @test bad_receipt_status == 1
-    @test occursin("missing=load_steps,p50_ms,p99_ms,threshold,result", String(take!(bad_receipt_out)))
+    @test occursin(
+        "missing=load_steps,p50_ms,p99_ms,threshold,result",
+        String(take!(bad_receipt_out)),
+    )
 end
 
 @testset "cli verification task output includes docs build" begin
@@ -311,114 +337,4 @@ end
     @test status == 2
     @test isempty(String(take!(out)))
     @test occursin("expected only one output mode", String(take!(err)))
-end
-@testset "query direct source read code projection" begin
-    project_root = normpath(joinpath(@__DIR__, "..", ".."))
-    out = IOBuffer()
-    search_out = IOBuffer()
-    exact_out = IOBuffer()
-    read_packet_out = IOBuffer()
-    wide_read_packet_out = IOBuffer()
-    status = JuliaLangProjectHarness.run_julia_harness_query_cli(
-        [
-            "--from-hook",
-            "direct-source-read",
-            "--selector",
-            "src/cli.jl:40-70",
-            "--code",
-            project_root,
-        ];
-        out,
-    )
-    exact_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
-        [
-            "--from-hook",
-            "direct-source-read",
-            "--selector",
-            "src/cli/query.jl:1:5",
-            "--code",
-            project_root,
-        ];
-        out=exact_out,
-    )
-    read_packet_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
-        [
-            "--from-hook",
-            "direct-source-read",
-            "--selector",
-            "src/cli/query.jl:1:5",
-            "--code",
-            "--view",
-            "read-packet",
-            "--json",
-            project_root,
-        ];
-        out=read_packet_out,
-    )
-    wide_read_packet_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
-        [
-            "--from-hook",
-            "direct-source-read",
-            "--selector",
-            "src/cli/query.jl:1:80",
-            "--code",
-            "--view",
-            "read-packet",
-            "--json",
-            project_root,
-        ];
-        out=wide_read_packet_out,
-    )
-    search_status = JuliaLangProjectHarness.run_julia_harness_query_cli(
-        [
-            "--from-hook",
-            "direct-source-read",
-            "--selector",
-            "**/*.jl",
-            "--term",
-            "run_julia_project_harness_cli",
-            "--surface",
-            "owner,tests",
-            "--view",
-            "seeds",
-            project_root,
-        ];
-        out=search_out,
-    )
-    output = String(take!(out))
-    exact_output = String(take!(exact_out))
-    read_packet = JSON3.read(String(take!(read_packet_out)))
-    wide_read_packet = JSON3.read(String(take!(wide_read_packet_out)))
-    search_output = String(take!(search_out))
-
-    @test status == 0
-    @test occursin("function run_julia_project_harness_cli", output)
-    @test !occursin("[search-owner]", output)
-    @test !occursin("line=", output)
-    @test exact_status == 0
-    @test exact_output ==
-          "function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)\n" *
-          "    from_hook = nothing\n" *
-          "    selector = nothing\n" *
-          "    terms = String[]\n" *
-          "    surfaces = String[]\n"
-    @test read_packet_status == 0
-    @test read_packet.schemaId == "agent.semantic-protocols.semantic-read-packet"
-    @test read_packet.languageId == "julia"
-    @test read_packet.outputMode == "read-packet"
-    @test read_packet.sourceWindows[1].read == "src/cli/query.jl:1:5"
-    @test read_packet.sourceWindows[1].text == strip(exact_output)
-    @test read_packet.sourceWindows[1].lines[1].number == 1
-    @test read_packet.sourceWindows[1].lines[1].text ==
-          "function run_julia_harness_query_cli(args::Vector{String}; out::IO=stdout)"
-    @test wide_read_packet_status == 0
-    @test wide_read_packet.readPlan.reason == "wide-selector"
-    @test wide_read_packet.readPlan.frontier[1].id == "W"
-    @test wide_read_packet.readPlan.frontier[1].kind == "window"
-    @test wide_read_packet.readPlan.frontier[1].read == "src/cli/query.jl:1:40"
-    @test wide_read_packet.readPlan.frontier[1].action == "code"
-    @test search_status == 0
-    @test occursin("[search-query]", search_output)
-    @test occursin("selector=**/*.jl", search_output)
-    @test occursin("O=owner:path(src/cli.jl)!owner", search_output)
 end

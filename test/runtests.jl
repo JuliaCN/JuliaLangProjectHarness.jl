@@ -10,6 +10,7 @@ using Test
     include("unit/moshi_extension.jl")
     include("unit/verification.jl")
     include("unit/cli.jl")
+    include("unit/cli_direct_read.jl")
     include("unit/cli_search.jl")
     include("unit/cli_search_json.jl")
     include("unit/cli_query.jl")

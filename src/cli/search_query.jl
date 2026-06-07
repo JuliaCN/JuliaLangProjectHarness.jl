@@ -8,6 +8,7 @@ struct JuliaSearchQueryCliOptions
     render_view::String
     project_root::String
     json::Bool
+    workspace::Bool
     intent::Union{Nothing,String}
 end
 
@@ -19,6 +20,7 @@ function parse_julia_search_query_args(args::Vector{String})
     render_view = "seeds"
     project_root = pwd()
     json = false
+    workspace = false
     intent = nothing
     positionals = String[]
     index = 1
@@ -51,6 +53,9 @@ function parse_julia_search_query_args(args::Vector{String})
         elseif arg == "--json"
             json = true
             index += 1
+        elseif arg == "--workspace"
+            workspace = true
+            index += 1
         elseif arg in ("owner", "tests", "items")
             push!(pipes, arg)
             index += 1
@@ -73,6 +78,7 @@ function parse_julia_search_query_args(args::Vector{String})
         render_view,
         project_root,
         json,
+        workspace,
         intent,
     )
     validate_julia_search_query_options(options)
