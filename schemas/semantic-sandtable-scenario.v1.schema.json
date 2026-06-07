@@ -995,6 +995,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "maxSearchPipeCommands": {
+          "type": "integer",
+          "minimum": 0
+        },
         "maxSearchPrimeCommands": {
           "type": "integer",
           "minimum": 0
@@ -1022,6 +1026,7 @@
       "uniqueItems": true,
       "items": {
         "enum": [
+          "search-pipe",
           "search-prime",
           "search-fzf",
           "search-reasoning",
