@@ -166,8 +166,16 @@ end
 @testset "package-local semantic schemas stay synchronized when protocol root is present" begin
     package_root = normpath(joinpath(@__DIR__, "..", ".."))
     protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
+    schema_dir = joinpath(package_root, "schemas")
     registrations = julia_schema_registrations()
+    registered_paths = Set(registration["path"] for registration in registrations)
+    package_schema_paths = Set(
+        "schemas/$file_name"
+        for file_name in readdir(schema_dir)
+        if endswith(file_name, ".json")
+    )
 
+    @test registered_paths == package_schema_paths
     @test any(
         registration ->
             registration["schemaId"] ==
