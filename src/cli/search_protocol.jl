@@ -35,7 +35,11 @@ function parse_julia_search_args(args::Vector{String})
         elseif arg == "--json"
             json = true
         elseif arg == "--workspace"
+            index += 1
+            index <= length(args) || error("--workspace requires a project root")
             workspace = true
+            isnothing(project_root) || error("expected at most one PROJECT_ROOT argument")
+            project_root = args[index]
         elseif arg == "--view"
             index += 1
             index <= length(args) || error("--view requires a render mode")
@@ -55,17 +59,20 @@ function julia_harness_agent_guide(project_root::AbstractString)
     root = abspath(String(project_root))
     """
     [julia-harness-guide] project=$(root)
-    |cmd asp-julia-harness guide $(root)
-    |cmd asp-julia-harness agent doctor --json $(root)
-    |cmd asp-julia-harness search workspace --view seeds $(root)
-    |cmd asp-julia-harness search prime --view seeds $(root)
-    |cmd asp-julia-harness search owner <owner-path> items --view seeds $(root)
-    |cmd asp-julia-harness query <owner-path> --term <symbol-or-prefix> [--names-only|--code|--json] $(root)
-    |cmd asp-julia-harness search policy <rule-id-or-alias> owner tests --view seeds $(root)
-    |cmd asp-julia-harness search fzf <query> owner tests --view seeds $(root)
-    |cmd asp-julia-harness search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds $(root)
-    |pipe <candidate-lines> | asp-julia-harness search ingest owner tests --view seeds $(root)
-    |cmd asp-julia-harness check --changed $(root)
+    |cmd asp julia guide .
+    |cmd asp julia agent doctor --json .
+    |cmd asp julia search workspace --view seeds .
+    |cmd asp julia search prime --view seeds .
+    |cmd asp julia search owner <owner-path> items --view seeds .
+    |cmd asp julia query <owner-path> --term <symbol-or-prefix> --workspace <workspace-root> [--names-only|--code|--json]
+    |cmd asp julia query --from-hook direct-source-read --selector <path:start-end> --workspace <workspace-root> --code
+    |cmd asp julia search policy <rule-id-or-alias> owner tests --view seeds .
+    |cmd asp julia search fzf <query> owner tests --view seeds .
+    |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds --workspace <workspace-root>
+    |pipe <candidate-lines> | asp julia search ingest owner tests --view seeds .
+    |cmd asp julia check --changed .
+    |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
+    |rule query --code is pure code; search/read-plan returns locators/frontier, not inline code
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
     """
 end

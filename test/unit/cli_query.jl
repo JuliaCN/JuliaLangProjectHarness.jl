@@ -6,11 +6,28 @@
     names_out = IOBuffer()
 
     compact_status = run_julia_project_harness_cli(
-        ["query", "src/CliExample.jl", "--term", "run", "--code", root];
+        [
+            "query",
+            "src/CliExample.jl",
+            "--term",
+            "run",
+            "--workspace",
+            root,
+            "--code",
+        ];
         out = compact_out,
     )
     json_status = run_julia_project_harness_cli(
-        ["query", "src/CliExample.jl", "--term", "run", "--code", "--json", root];
+        [
+            "query",
+            "src/CliExample.jl",
+            "--term",
+            "run",
+            "--workspace",
+            root,
+            "--code",
+            "--json",
+        ];
         out = json_out,
     )
     names_status = run_julia_project_harness_cli(
@@ -44,6 +61,17 @@
     @test names_status == 0
     @test occursin("status=miss", names_rendered)
     @test occursin("|candidate", names_rendered)
+    trailing_root_err = IOBuffer()
+    trailing_root_status = run_julia_project_harness_cli(
+        ["query", "src/CliExample.jl", "--term", "run", "--code", root];
+        out = IOBuffer(),
+        err = trailing_root_err,
+    )
+    @test trailing_root_status == 2
+    @test occursin(
+        "query --code does not accept a trailing PROJECT_ROOT",
+        String(take!(trailing_root_err)),
+    )
     @test_throws ErrorException julia_query_owner_items_packet(
         "src/CliExample.jl",
         String[];
@@ -68,10 +96,10 @@ end
             "--from-hook",
             "direct-source-read",
             "--workspace",
+            root,
             "--selector",
             "src/CliExample.jl:1:2",
             "--code",
-            root,
         ];
         out = out,
     )

@@ -14,8 +14,9 @@ using Test
             "direct-source-read",
             "--selector",
             "src/cli.jl:40-70",
-            "--code",
+            "--workspace",
             project_root,
+            "--code",
         ];
         out,
     )
@@ -25,8 +26,9 @@ using Test
             "direct-source-read",
             "--selector",
             "src/cli/query.jl:1:5",
-            "--code",
+            "--workspace",
             project_root,
+            "--code",
         ];
         out = exact_out,
     )
@@ -36,11 +38,12 @@ using Test
             "direct-source-read",
             "--selector",
             "src/cli/query.jl:1:5",
+            "--workspace",
+            project_root,
             "--code",
             "--view",
             "read-packet",
             "--json",
-            project_root,
         ];
         out = read_packet_out,
     )
@@ -50,11 +53,12 @@ using Test
             "direct-source-read",
             "--selector",
             "src/cli/query.jl:1:80",
+            "--workspace",
+            project_root,
             "--code",
             "--view",
             "read-packet",
             "--json",
-            project_root,
         ];
         out = wide_read_packet_out,
     )
@@ -110,4 +114,24 @@ using Test
     @test occursin("[search-query]", search_output)
     @test occursin("selector=**/*.jl", search_output)
     @test occursin("O=owner:path(src/cli.jl)!owner", search_output)
+
+    trailing_root_err = IOBuffer()
+    trailing_root_status = JuliaLangProjectHarness.run_julia_project_harness_cli(
+        [
+            "query",
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/cli/query.jl:1:5",
+            "--code",
+            project_root,
+        ];
+        out = IOBuffer(),
+        err = trailing_root_err,
+    )
+    @test trailing_root_status == 2
+    @test occursin(
+        "query --code does not accept a trailing PROJECT_ROOT",
+        String(take!(trailing_root_err)),
+    )
 end

@@ -20,6 +20,8 @@ include("search_index/origin.jl")
 include("search_index/verification.jl")
 include("search_render.jl")
 include("asp_export.jl")
+include("semantic_graph_project_facts.jl")
+include("semantic_graph_facts.jl")
 include("agent_registry.jl")
 include("asp_query.jl")
 include("agent_snapshot.jl")
@@ -89,6 +91,7 @@ export JuliaDiagnosticSeverity,
     render_julia_project_harness_agent_snapshot,
     render_julia_project_harness_json,
     render_julia_index_export_json,
+    render_julia_semantic_graph_facts_json,
     render_julia_agent_registry,
     render_julia_agent_registry_json,
     render_julia_query_owner_items,

@@ -82,6 +82,15 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_search_graph("ingest"; project_root=options.project_root, render_mode=options.render_view, stdin_text=stdin_text))
+    elseif view == "semantic-facts"
+        length(args) >= 2 || error("search semantic-facts requires a query")
+        query = args[2]
+        options = parse_julia_search_args(args[3:end])
+        options.json || error("search semantic-facts requires --json")
+        stdin_text = read(stdin, String)
+        print(out, render_julia_semantic_graph_facts_json(options.project_root, query, stdin_text))
+        print(out, "\n")
+        return 0
     elseif view == "query"
         options = parse_julia_search_query_args(args[2:end])
         if options.json

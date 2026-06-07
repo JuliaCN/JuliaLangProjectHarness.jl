@@ -10,6 +10,7 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
     json = false
     names_only = false
     workspace = false
+    workspace_root = nothing
     match_limit = 25
     positionals = String[]
     index = 1
@@ -58,8 +59,10 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
             names_only = true
             index += 1
         elseif arg == "--workspace"
+            index == length(args) && error("--workspace requires a project root")
             workspace = true
-            index += 1
+            workspace_root = args[index+1]
+            index += 2
         elseif arg == "--limit"
             index == length(args) && error("--limit requires an integer")
             match_limit = Base.parse(Int, args[index+1])
@@ -83,6 +86,7 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
             surfaces,
             positionals;
             workspace,
+            workspace_root,
             out,
         )
     end
@@ -94,12 +98,13 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
             terms,
             surfaces,
             render_view,
-            code_only,
-            json,
-            positionals;
-            workspace,
-            out,
-        )
+        code_only,
+        json,
+        positionals;
+        workspace,
+        workspace_root,
+        out,
+    )
     end
     run_julia_harness_owner_items_query_cli(
         positionals,
@@ -109,6 +114,7 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
         json,
         names_only,
         match_limit;
+        workspace_root,
         out,
     )
 end
@@ -122,6 +128,7 @@ function run_julia_harness_flow_lite_query_cli(
     surfaces::Vector{String},
     positionals::Vector{String};
     workspace::Bool = false,
+    workspace_root = nothing,
     out::IO,
 )
     isnothing(where_expr) && error("query --catalog flow-lite requires --where")
@@ -135,7 +142,10 @@ function run_julia_harness_flow_lite_query_cli(
         error("query --view cannot be combined with --catalog flow-lite")
     length(positionals) <= 1 ||
         error("query --catalog flow-lite accepts at most one project root")
-    project_root = isempty(positionals) ? pwd() : first(positionals)
+    !isnothing(workspace_root) && !isempty(positionals) && error(
+        "query accepts project root via --workspace or positional PROJECT_ROOT, not both",
+    )
+    project_root = query_project_root(positionals, workspace_root)
     where = parse_julia_flow_lite_where(String(where_expr))
     result = julia_flow_lite_project_result(project_root, where)
     if json
@@ -180,13 +190,20 @@ function run_julia_harness_hook_query_cli(
     json::Bool,
     positionals::Vector{String};
     workspace::Bool = false,
+    workspace_root = nothing,
     out::IO,
 )
     from_hook == "direct-source-read" || error("unsupported query hook route: $(from_hook)")
     isnothing(selector) && error("--from-hook requires --selector")
     length(positionals) <= 1 ||
         error("query direct-source-read expects at most one PROJECT_ROOT")
-    project_root = isempty(positionals) ? pwd() : first(positionals)
+    !isnothing(workspace_root) && !isempty(positionals) && error(
+        "query accepts project root via --workspace or positional PROJECT_ROOT, not both",
+    )
+    code_only && !isempty(positionals) && error(
+        "query --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT",
+    )
+    project_root = query_project_root(positionals, workspace_root)
     if json
         render_view == "read-packet" ||
             error("query direct-source-read --json requires --view read-packet")
@@ -201,7 +218,6 @@ function run_julia_harness_hook_query_cli(
         return run_julia_harness_search_cli(
             vcat(
                 ["query", "--from-hook", from_hook, "--selector", selector],
-                workspace ? ["--workspace"] : String[],
                 map(term -> ["--term", term], terms)...,
                 surfaces,
                 ["--view", render_view, project_root],
@@ -222,13 +238,24 @@ function run_julia_harness_owner_items_query_cli(
     json::Bool,
     names_only::Bool,
     match_limit::Int;
+    workspace_root = nothing,
     out::IO,
 )
     isempty(positionals) && error("query/owner-items requires an owner path")
     length(positionals) <= 2 ||
         error("query/owner-items expects OWNER_PATH and optional PROJECT_ROOT")
     owner_path = first(positionals)
-    project_root = length(positionals) == 2 ? positionals[2] : pwd()
+    positional_project_root = length(positionals) == 2 ? positionals[2] : nothing
+    !isnothing(workspace_root) && !isnothing(positional_project_root) && error(
+        "query accepts project root via --workspace or positional PROJECT_ROOT, not both",
+    )
+    code_only && !isnothing(positional_project_root) && error(
+        "query --code does not accept a trailing PROJECT_ROOT; use --workspace PROJECT_ROOT",
+    )
+    project_root = query_project_root(
+        isnothing(positional_project_root) ? String[] : [positional_project_root],
+        workspace_root,
+    )
     render_view == "names" && (names_only = true)
     render_view == "code" && (code_only = true)
     if json
@@ -258,6 +285,13 @@ function run_julia_harness_owner_items_query_cli(
         )
     end
     return 0
+end
+
+function query_project_root(positionals::Vector{String}, workspace_root)
+    if !isnothing(workspace_root)
+        return String(workspace_root)
+    end
+    return isempty(positionals) ? pwd() : first(positionals)
 end
 
 function normalize_julia_query_surfaces(value::String)::Vector{String}

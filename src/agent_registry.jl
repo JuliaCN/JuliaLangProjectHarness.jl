@@ -8,6 +8,8 @@ const JULIA_AGENT_BINARY = "asp-julia-harness"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
+    ("semantic-fact-graph.v1.schema.json", "agent.semantic-protocols.semantic-fact-graph"),
+    ("semantic-fact-ontology.v1.schema.json", "agent.semantic-protocols.semantic-fact-ontology"),
     ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),
     ("semantic-type-surface.v1.schema.json", "agent.semantic-protocols.semantic-type-surface"),
     ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
@@ -32,6 +34,7 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-assurance-case.v1.schema.json", "agent.semantic-protocols.semantic-assurance-case"),
     ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
     ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
+    ("agent-quality-signal.v1.schema.json", "agent.semantic-protocols.agent-quality-signal"),
 ]
 
 function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")
@@ -48,7 +51,10 @@ function julia_search_method_descriptor(
     requires_query::Bool,
     accepts_stdin::Bool=false,
     supports_json::Bool=true,
+    supports_compact::Bool=true,
     output_schema_ids::Vector{String}=["agent.semantic-protocols.semantic-search-packet"],
+    output_modes::Vector{String}=String[],
+    packet_schemas::Vector{String}=String[],
     accepted_pipes::Vector{String}=String[],
     required_options::Vector{String}=String[],
     supports_query_set::Bool=false,
@@ -63,9 +69,11 @@ function julia_search_method_descriptor(
         "requiresQuery" => requires_query,
         "acceptsStdin" => accepts_stdin,
         "supportsPackageScope" => true,
-        "supportsCompact" => true,
+        "supportsCompact" => supports_compact,
         "supportsJson" => supports_json,
     )
+    isempty(output_modes) || (descriptor["outputModes"] = output_modes)
+    isempty(packet_schemas) || (descriptor["packetSchemas"] = packet_schemas)
     isempty(accepted_pipes) || (descriptor["acceptedPipes"] = accepted_pipes)
     isempty(required_options) || (descriptor["requiredOptions"] = required_options)
     supports_query_set && (descriptor["supportsQuerySet"] = true)
@@ -80,7 +88,7 @@ function julia_query_method_descriptor()
         "command" => "query",
         "input" => "hook-selector",
         "requiredOptions" => ["--from-hook", "--selector"],
-        "outputModes" => ["compact", "code", "read-packet"],
+        "outputModes" => ["frontier", "code", "read-packet"],
         "outputSchemaIds" => [
             "agent.semantic-protocols.semantic-query-packet",
             "agent.semantic-protocols.semantic-read-packet",
@@ -96,7 +104,7 @@ function julia_query_owner_items_method_descriptor()
         "command" => "query",
         "input" => "owner-path",
         "requiredOptions" => ["--term"],
-        "outputModes" => ["compact", "json", "code", "names"],
+        "outputModes" => ["frontier", "json", "code", "names"],
         "outputSchemaIds" => ["agent.semantic-protocols.semantic-query-packet"],
         "supportsCompact" => true,
         "supportsJson" => true,
@@ -196,6 +204,20 @@ function julia_agent_method_descriptors()
             capabilities=[
                 julia_agent_capability("external-candidate-ingest"; namespace="semantic"),
                 julia_agent_capability("owner-grouped-ingest"; namespace="semantic"),
+            ],
+        ),
+        julia_search_method_descriptor(
+            "search/semantic-facts",
+            "semantic-facts";
+            requires_query=true,
+            accepts_stdin=true,
+            supports_compact=false,
+            output_schema_ids=["agent.semantic-protocols.semantic-fact-graph"],
+            output_modes=["json"],
+            packet_schemas=["semantic-fact-graph.v1", "semantic-fact-ontology.v1"],
+            capabilities=[
+                julia_agent_capability("graph-turbo-provider-facts"; namespace="semantic"),
+                julia_agent_capability("julia-syntax-field-type-collection-facts"),
             ],
         ),
         julia_query_owner_items_method_descriptor(),

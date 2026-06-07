@@ -1,13 +1,45 @@
 @testset "cli search json packets" begin
     root = mktempdir()
     write_cli_project(root)
+    write(
+        joinpath(root, "Project.toml"),
+        """
+        name = "CliExample"
+        uuid = "11111111-1111-1111-1111-111111111111"
+        version = "0.1.0"
+
+        [deps]
+        JSON3 = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
+
+        [extras]
+        Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+        [compat]
+        JSON3 = "1"
+        """,
+    )
     workspace_out = IOBuffer()
     prime_out = IOBuffer()
     fzf_out = IOBuffer()
     query_out = IOBuffer()
     policy_out = IOBuffer()
     ingest_out = IOBuffer()
+    semantic_out = IOBuffer()
     registry_out = IOBuffer()
+
+    write(
+        joinpath(root, "src", "SemanticModels.jl"),
+        join(
+            [
+                "struct Catalog",
+                "    names::Vector{String}",
+                "    by_id::Dict{String,Int}",
+                "    score::Int",
+                "end",
+            ],
+            "\n",
+        ),
+    )
 
     workspace_status = run_julia_project_harness_cli(
         ["search", "workspace", "--view", "seeds", "--json", root];
@@ -59,6 +91,21 @@
         wait(writer)
         status
     end
+    semantic_status = let input = "src/SemanticModels.jl:2:names\n",
+        pipe = Pipe()
+        writer = @async begin
+            write(pipe, input)
+            close(pipe)
+        end
+        status = redirect_stdin(pipe) do
+            run_julia_project_harness_cli(
+                ["search", "semantic-facts", "Vector collection fields", "--json", root];
+                out=semantic_out,
+            )
+        end
+        wait(writer)
+        status
+    end
     registry_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=registry_out)
 
     workspace_packet = JSON3.read(String(take!(workspace_out)))
@@ -67,6 +114,7 @@
     query_packet = JSON3.read(String(take!(query_out)))
     policy_packet = JSON3.read(String(take!(policy_out)))
     ingest_packet = JSON3.read(String(take!(ingest_out)))
+    semantic_packet = JSON3.read(String(take!(semantic_out)))
     registry = JSON3.read(String(take!(registry_out)))
     language = only(registry.languages)
 
@@ -104,7 +152,134 @@
     @test ingest_packet.method == "search/ingest"
     @test ingest_packet.inputDetection.source == "path-list"
     @test any(action -> action.target == "src/CliExample.jl", ingest_packet.nextActions)
+    @test semantic_status == 0
+    @test semantic_packet.schemaId == "agent.semantic-protocols.semantic-fact-graph"
+    @test semantic_packet.languageId == "julia"
+    @test semantic_packet.providerId == "julia-lang-project-harness"
+    @test semantic_packet.query == "Vector collection fields"
+    semantic_field_nodes = [
+        node for node in semantic_packet.nodes
+        if node.kind == "field" && node.value == "names: Vector{String}"
+    ]
+    @test length(semantic_field_nodes) == 1
+    semantic_field = only(semantic_field_nodes)
+    @test semantic_field.role == "struct-field"
+    @test semantic_field.fields.languageId == "julia"
+    @test semantic_field.fields.providerId == "julia-lang-project-harness"
+    @test semantic_field.fields.semanticFactKind == "field"
+    @test semantic_field.fields.provenance == "parser"
+    @test semantic_field.fields.confidence == "exact"
+    @test semantic_field.fields.freshness == "fresh"
+    @test semantic_field.fields.containerKind == "struct"
+    @test semantic_field.fields.containerName == "Catalog"
+    @test semantic_field.fields.fieldName == "names"
+    @test semantic_field.fields.typeValue == "Vector{String}"
+    @test semantic_field.fields.elementShape == "collection"
+    @test semantic_field.fields.contextLocator == "src/SemanticModels.jl:1:5"
+    @test semantic_field.fields.collectionKind == "array"
+    @test semantic_field.fields.collectionFamily == "sequence"
+    @test semantic_field.fields.collectionImpl == "array"
+    @test semantic_field.fields.field.ownerKind == "struct"
+    @test semantic_field.fields.field.name == "names"
+    @test semantic_field.fields.field.ownerPath == "src/SemanticModels.jl"
+    @test collect(semantic_field.fields.field.access) == ["read", "append", "validate"]
+    semantic_type = only([
+        node for node in semantic_packet.nodes
+        if node.kind == "type" && node.value == "Vector{String}"
+    ])
+    @test semantic_type.fields.semanticFactKind == "type"
+    @test semantic_type.fields.type.name == "Vector{String}"
+    semantic_collection = only([
+        node for node in semantic_packet.nodes
+        if node.kind == "collection" && node.value == "array"
+    ])
+    @test semantic_collection.fields.languageId == "julia"
+    @test semantic_collection.fields.providerId == "julia-lang-project-harness"
+    @test semantic_collection.fields.semanticFactKind == "collection"
+    @test semantic_collection.fields.collectionFamily == "sequence"
+    @test semantic_collection.fields.collectionImpl == "array"
+    @test semantic_collection.fields.collection.family == "sequence"
+    @test semantic_collection.fields.collection.impl == "array"
+    @test collect(semantic_collection.fields.collection.mutation) == ["append", "insert", "remove"]
+    @test any(edge -> edge.relation == "has_type", semantic_packet.edges)
+    @test any(edge -> edge.relation == "collection_of", semantic_packet.edges)
+    @test any(
+        node ->
+            node.kind == "package" &&
+                node.value == "CliExample" &&
+                node.action == "package" &&
+                node.fields.semanticFactKind == "package" &&
+                node.fields.manifestPath == "Project.toml",
+        semantic_packet.nodes,
+    )
+    semantic_package = only([
+        node for node in semantic_packet.nodes
+        if node.kind == "package" && node.value == "CliExample"
+    ])
+    @test any(
+        edge ->
+            edge.source == semantic_field.id &&
+                edge.target == semantic_package.id &&
+                edge.relation == "belongs_to",
+        semantic_packet.edges,
+    )
+    @test any(
+        node ->
+            node.kind == "build" &&
+                node.action == "build" &&
+                node.fields.semanticFactKind == "build" &&
+                node.fields.command == "julia --project=. -e 'using Pkg; Pkg.test()'",
+        semantic_packet.nodes,
+    )
+    @test any(
+        node ->
+            node.kind == "dependency" &&
+                node.value == "JSON3" &&
+                node.action == "deps" &&
+                node.fields.semanticFactKind == "dependency" &&
+                node.fields.dependencyKind == "normal" &&
+                node.fields.versionReq == "1",
+        semantic_packet.nodes,
+    )
+    @test any(
+        node ->
+            node.kind == "dependency" &&
+                node.value == "Test" &&
+                node.fields.dependencyKind == "dev",
+        semantic_packet.nodes,
+    )
+    @test any(
+        node ->
+            node.kind == "test" &&
+                node.path == "test/runtests.jl" &&
+                node.action == "tests" &&
+                node.fields.semanticFactKind == "test" &&
+                node.fields.functionCount == 2,
+        semantic_packet.nodes,
+    )
+    @test any(edge -> edge.relation == "builds", semantic_packet.edges)
+    @test any(edge -> edge.relation == "depends_on", semantic_packet.edges)
+    @test any(edge -> edge.relation == "tests", semantic_packet.edges)
+    @test any(edge -> edge.relation == "belongs_to", semantic_packet.edges)
     @test registry_status == 0
+    @test any(
+        schema ->
+            schema.schemaId == "agent.semantic-protocols.agent-quality-signal" &&
+                schema.path == "schemas/agent-quality-signal.v1.schema.json",
+        language.schemas,
+    )
+    @test any(
+        schema ->
+            schema.schemaId == "agent.semantic-protocols.semantic-fact-graph" &&
+                schema.path == "schemas/semantic-fact-graph.v1.schema.json",
+        language.schemas,
+    )
+    @test any(
+        schema ->
+            schema.schemaId == "agent.semantic-protocols.semantic-fact-ontology" &&
+                schema.path == "schemas/semantic-fact-ontology.v1.schema.json",
+        language.schemas,
+    )
     @test any(
         descriptor -> startswith(descriptor.method, "search/") && descriptor.supportsJson == true,
         language.methodDescriptors,
@@ -121,6 +296,16 @@
             descriptor.method == "search/query" &&
                 descriptor.supportsQuerySet == true &&
                 "fuzzy-set" in descriptor.acceptedQuerySetSelectors,
+        language.methodDescriptors,
+    )
+    @test any(
+        descriptor ->
+                descriptor.method == "search/semantic-facts" &&
+                descriptor.acceptsStdin == true &&
+                length(descriptor.outputModes) == 1 &&
+                only(descriptor.outputModes) == "json" &&
+                collect(descriptor.outputSchemaIds) == ["agent.semantic-protocols.semantic-fact-graph"] &&
+                collect(descriptor.packetSchemas) == ["semantic-fact-graph.v1", "semantic-fact-ontology.v1"],
         language.methodDescriptors,
     )
 end
