@@ -264,8 +264,8 @@
     @test registry_status == 0
     @test any(
         schema ->
-            schema.schemaId == "agent.semantic-protocols.agent-quality-signal" &&
-                schema.path == "schemas/agent-quality-signal.v1.schema.json",
+            schema.schemaId == "agent.semantic-protocols.software-criterion-catalog" &&
+                schema.path == "schemas/software-criterion-catalog.v1.schema.json",
         language.schemas,
     )
     @test any(

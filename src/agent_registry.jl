@@ -34,7 +34,7 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-assurance-case.v1.schema.json", "agent.semantic-protocols.semantic-assurance-case"),
     ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
     ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
-    ("agent-quality-signal.v1.schema.json", "agent.semantic-protocols.agent-quality-signal"),
+    ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
 ]
 
 function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")
