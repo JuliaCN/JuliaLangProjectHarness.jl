@@ -138,12 +138,12 @@ function render_julia_query_owner_items(
             lines,
             "|item $(match["name"]) kind=$(match["kind"]) visibility=$(match["visibility"]) read=$(match["read"])",
         )
-        if haskey(match, "code")
-            push!(
-                lines,
-                "|code read=$(match["read"]) syntax=semantic-outline truncated=false text=\"$(compact_cli_value(match["code"]))\"",
-            )
-        end
+    end
+    if code
+        push!(
+            lines,
+            "|note kind=asp-owned-code message=\"query --code source extraction is owned by ASP exact owner query; compact provider output keeps locators only\"",
+        )
     end
     for candidate in packet["candidateItems"]
         term = haskey(candidate, "term") ? candidate["term"] : "-"

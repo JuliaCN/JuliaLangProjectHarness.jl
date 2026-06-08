@@ -4,6 +4,8 @@
     compact_out = IOBuffer()
     json_out = IOBuffer()
     names_out = IOBuffer()
+    names_hit_out = IOBuffer()
+    json_names_out = IOBuffer()
 
     compact_status = run_julia_project_harness_cli(
         [
@@ -34,15 +36,35 @@
         ["query", "src/CliExample.jl", "--term", "missing", "--names-only", root];
         out = names_out,
     )
+    names_hit_status = run_julia_project_harness_cli(
+        ["query", "src/CliExample.jl", "--term", "run", "--workspace", root, "--names-only"];
+        out = names_hit_out,
+    )
+    json_names_status = run_julia_project_harness_cli(
+        [
+            "query",
+            "src/CliExample.jl",
+            "--term",
+            "run",
+            "--workspace",
+            root,
+            "--names-only",
+            "--json",
+        ];
+        out = json_names_out,
+    )
     compact_rendered = String(take!(compact_out))
     packet = JSON3.read(String(take!(json_out)))
     names_rendered = String(take!(names_out))
+    names_hit_rendered = String(take!(names_hit_out))
+    names_packet = JSON3.read(String(take!(json_names_out)))
 
     @test compact_status == 0
     @test occursin("[query-owner-items] owner=src/CliExample.jl", compact_rendered)
     @test occursin("|query term=run status=hit match=exact", compact_rendered)
     @test occursin("|item run kind=", compact_rendered)
-    @test occursin("|code read=src/CliExample.jl:", compact_rendered)
+    @test !occursin("|code read=src/CliExample.jl:", compact_rendered)
+    @test occursin("kind=asp-owned-code", compact_rendered)
     @test json_status == 0
     @test packet.schemaId == "agent.semantic-protocols.semantic-query-packet"
     @test packet.protocolId == "agent.semantic-protocols.semantic-language"
@@ -61,6 +83,21 @@
     @test names_status == 0
     @test occursin("status=miss", names_rendered)
     @test occursin("|candidate", names_rendered)
+    @test names_hit_status == 0
+    @test occursin("mode=names", names_hit_rendered)
+    @test occursin("|query term=run status=hit match=exact", names_hit_rendered)
+    @test occursin("|item run kind=", names_hit_rendered)
+    @test !occursin("|code", names_hit_rendered)
+    @test json_names_status == 0
+    @test names_packet.method == "query/owner-items"
+    @test names_packet.ownerPath == "src/CliExample.jl"
+    @test names_packet.outputMode == "names"
+    @test names_packet.queryCoverage[1].status == "hit"
+    @test names_packet.queryCoverage[1].match == "exact"
+    @test any(
+        match -> match.name == "run" && !haskey(match, :code) && !haskey(match, :projection),
+        names_packet.matches,
+    )
     trailing_root_err = IOBuffer()
     trailing_root_status = run_julia_project_harness_cli(
         ["query", "src/CliExample.jl", "--term", "run", "--code", root];

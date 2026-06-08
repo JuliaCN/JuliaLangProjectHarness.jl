@@ -19,4 +19,5 @@ using Test
     include("unit/config.jl")
     include("unit/rule_catalog.jl")
     include("unit/rule_visibility.jl")
+    include("unit/harness_rules.jl")
 end

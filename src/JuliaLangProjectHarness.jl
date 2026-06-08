@@ -22,6 +22,7 @@ include("search_render.jl")
 include("asp_export.jl")
 include("semantic_graph_project_facts.jl")
 include("semantic_graph_facts.jl")
+include("harness_rules.jl")
 include("agent_registry.jl")
 include("asp_query.jl")
 include("agent_snapshot.jl")
@@ -76,6 +77,7 @@ export JuliaDiagnosticSeverity,
     julia_modularity_rules,
     julia_project_policy_rules,
     julia_project_search_index,
+    julia_harness_rules_markdown,
     julia_agent_registry_packet,
     julia_index_export_packet,
     julia_query_owner_items_packet,
@@ -90,6 +92,7 @@ export JuliaDiagnosticSeverity,
     render_julia_project_harness_advice,
     render_julia_project_harness_agent_snapshot,
     render_julia_project_harness_json,
+    render_julia_harness_rules_markdown,
     render_julia_index_export_json,
     render_julia_semantic_graph_facts_json,
     render_julia_agent_registry,
@@ -115,6 +118,7 @@ export JuliaDiagnosticSeverity,
     run_julia_project_harness,
     search_julia_index,
     search_julia_lang,
-    search_julia_project
+    search_julia_project,
+    write_julia_harness_rules_to_unit_tests
 
 end
