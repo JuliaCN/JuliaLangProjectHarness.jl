@@ -251,6 +251,7 @@ function julia_flow_lite_packet(
             "functionRange" => "$(result["functionStart"]):$(result["functionEnd"])",
             "scannedFiles" => result["scannedFiles"],
             "scannedFunctions" => result["scannedFunctions"],
+            "fileHashes" => Any[],
             "rawSourceStored" => false,
         ),
     )

@@ -232,6 +232,7 @@ end
     @test packet.path[2].role == "sink"
     @test packet.path[2].line == 8
     @test packet.fields.rawSourceStored == false
+    @test packet.fields.fileHashes == []
     @test packet.fields.where["scope.fn"] == "collect_tool_actions"
     @test packet.fields.scannedFiles >= 1
 
