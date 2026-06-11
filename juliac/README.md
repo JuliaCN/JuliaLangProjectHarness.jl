@@ -11,6 +11,20 @@ julia --project=juliac -e 'using Pkg; Pkg.instantiate()'
 ASP_JULIA_BUILD_DIR=build/juliac julia --project=juliac juliac/compile.jl
 ```
 
+The install path should call the provider-owned build wrapper instead of
+depending on an untracked local executable:
+
+```sh
+ASP_JULIA_BUILD_DIR=build/juliac-asp-local juliac/build_provider.sh
+```
+
+`build_provider.sh` first attempts the JuliaC build. If JuliaC fails and
+`ASP_JULIA_ALLOW_WRAPPER_FALLBACK` is not `0`, it writes an executable wrapper
+with the same `asp-julia-harness` command surface that dispatches through the
+Julia project runtime. This keeps activation reproducible on machines where
+the JuliaC compile is too expensive or unavailable. Set `JULIA` to override
+the Julia command used by the build attempt and by the generated wrapper.
+
 Smoke:
 
 ```sh
