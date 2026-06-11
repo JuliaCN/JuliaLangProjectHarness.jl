@@ -14,6 +14,7 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-dependency-topology.v1.schema.json", "agent.semantic-protocols.semantic-dependency-topology"),
     ("semantic-type-surface.v1.schema.json", "agent.semantic-protocols.semantic-type-surface"),
     ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
+    ("semantic-content-compaction.v1.schema.json", "agent.semantic-protocols.semantic-content-compaction"),
     ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
     ("semantic-source-location.v1.schema.json", "agent.semantic-protocols.semantic-source-location"),
     ("semantic-tree-sitter-provenance.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-provenance"),
