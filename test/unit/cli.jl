@@ -34,6 +34,41 @@ function write_cli_project(root::AbstractString)
     )
 end
 
+function write_cli_dependency_project(root::AbstractString)
+    write_cli_project(root)
+    write(
+        joinpath(root, "Project.toml"),
+        """
+        name = "CliExample"
+        uuid = "11111111-1111-1111-1111-111111111111"
+        version = "0.1.0"
+
+        [deps]
+        JSON3 = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
+
+        [extras]
+        Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+        [compat]
+        JSON3 = "1"
+        """,
+    )
+    write(
+        joinpath(root, "src", "CliExample.jl"),
+        """
+        module CliExample
+        using JSON3
+        export run, parse_json
+        \"\"\"Run a value through the CLI fixture.\"\"\"
+        run(value) = helper(value)
+        helper(value) = string(value)
+        \"\"\"Parse JSON text through JSON3 for dependency search fixtures.\"\"\"
+        parse_json(text) = JSON3.read(text)
+        end
+        """,
+    )
+end
+
 function write_cli_docs_project(root::AbstractString)
     write_cli_project(root)
     mkpath(joinpath(root, "docs", "src"))

@@ -1,26 +1,10 @@
 @testset "cli search json packets" begin
     root = mktempdir()
-    write_cli_project(root)
-    write(
-        joinpath(root, "Project.toml"),
-        """
-        name = "CliExample"
-        uuid = "11111111-1111-1111-1111-111111111111"
-        version = "0.1.0"
-
-        [deps]
-        JSON3 = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
-
-        [extras]
-        Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-        [compat]
-        JSON3 = "1"
-        """,
-    )
+    write_cli_dependency_project(root)
     workspace_out = IOBuffer()
     prime_out = IOBuffer()
     fzf_out = IOBuffer()
+    deps_out = IOBuffer()
     query_out = IOBuffer()
     policy_out = IOBuffer()
     ingest_out = IOBuffer()
@@ -52,6 +36,10 @@
     fzf_status = run_julia_project_harness_cli(
         ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--json", root];
         out=fzf_out,
+    )
+    deps_status = run_julia_project_harness_cli(
+        ["search", "deps", "JSON3::read", "owner", "tests", "--view", "seeds", "--json", root];
+        out=deps_out,
     )
     query_status = run_julia_project_harness_cli(
         [
@@ -111,6 +99,7 @@
     workspace_packet = JSON3.read(String(take!(workspace_out)))
     prime_packet = JSON3.read(String(take!(prime_out)))
     fzf_packet = JSON3.read(String(take!(fzf_out)))
+    deps_packet = JSON3.read(String(take!(deps_out)))
     query_packet = JSON3.read(String(take!(query_out)))
     policy_packet = JSON3.read(String(take!(policy_out)))
     ingest_packet = JSON3.read(String(take!(ingest_out)))
@@ -134,6 +123,22 @@
     @test fzf_packet.query == "run"
     @test any(hit -> hit.symbol == "run", fzf_packet.hits)
     @test any(action -> action.target == "src/CliExample.jl", fzf_packet.nextActions)
+    @test deps_status == 0
+    @test deps_packet.method == "search/deps"
+    @test deps_packet.view == "deps"
+    @test deps_packet.query == "JSON3::read"
+    @test only(deps_packet.querySet).kind == "dependency"
+    @test only(deps_packet.querySet).fields.dependency == "JSON3"
+    @test only(deps_packet.querySet).fields.apiQuery == "read"
+    @test only(deps_packet.queryCoverage).status == "hit"
+    @test any(node -> node.kind == "dependency" && node.fields.name == "JSON3", deps_packet.nodes)
+    @test any(hit -> hit.ownerPath == "src/CliExample.jl" && occursin("read", hit.symbol), deps_packet.hits)
+    @test any(action -> action.target == "src/CliExample.jl", deps_packet.nextActions)
+    @test deps_packet.cache.rawSourceStored == false
+    dependency_cache_paths = [hash.path for hash in deps_packet.cache.fileHashes]
+    @test "Project.toml" in dependency_cache_paths
+    @test "src/CliExample.jl" in dependency_cache_paths
+    @test all(hash -> occursin(r"^[a-f0-9]{64}$", hash.sha256), deps_packet.cache.fileHashes)
     @test query_status == 0
     @test query_packet.method == "search/query"
     @test query_packet.view == "query"
@@ -289,6 +294,13 @@
             descriptor.method == "search/workspace" &&
                 descriptor.view == "workspace" &&
                 descriptor.requiresQuery == false,
+        language.methodDescriptors,
+    )
+    @test any(
+        descriptor ->
+            descriptor.method == "search/deps" &&
+                descriptor.view == "deps" &&
+                descriptor.requiresQuery == true,
         language.methodDescriptors,
     )
     @test any(

@@ -168,6 +168,17 @@ function julia_agent_method_descriptors()
             ],
         ),
         julia_search_method_descriptor(
+            "search/deps",
+            "deps";
+            requires_query=true,
+            accepted_pipes=["owner", "tests"],
+            capabilities=[
+                julia_agent_capability("dependency-usage-search"; namespace="semantic"),
+                julia_agent_capability("provider-owned-cache-file-hashes"; namespace="semantic"),
+                julia_agent_capability("julia-dependency-search-index"),
+            ],
+        ),
+        julia_search_method_descriptor(
             "search/query",
             "query";
             requires_query=true,

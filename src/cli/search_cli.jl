@@ -64,6 +64,25 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_search_graph("fzf"; project_root=options.project_root, render_mode=options.render_view, query=query))
+    elseif view == "deps"
+        length(args) >= 2 || error("search deps requires a dependency query")
+        query = args[2]
+        options = parse_julia_search_args(args[3:end])
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    "deps";
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    query,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_search_graph("deps"; project_root=options.project_root, render_mode=options.render_view, query=query))
     elseif view == "ingest"
         options = parse_julia_search_args(args[2:end])
         stdin_text = read(stdin, String)

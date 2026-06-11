@@ -1,4 +1,5 @@
 using Pkg
+using SHA
 using TOML
 
 """Run the JuliaSyntax harness over explicit Julia source roots.
