@@ -79,6 +79,15 @@
     @test packet.outputMode == "code"
     @test packet.matchCount >= 1
     @test any(match -> match.name == "run" && haskey(match, :projection), packet.matches)
+    run_projection_matches = filter(
+        match -> match.name == "run" && haskey(match, :projection),
+        packet.matches,
+    )
+    @test !isempty(run_projection_matches)
+    @test all(
+        match -> all(action -> !haskey(action, :argv), match.projection.expandActions),
+        run_projection_matches,
+    )
     @test any(fact -> fact.name == "run", packet.nativeSyntaxFacts)
     @test names_status == 0
     @test occursin("status=miss", names_rendered)
