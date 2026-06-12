@@ -25,6 +25,7 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-flow-lite.v1.schema.json", "agent.semantic-protocols.semantic-flow-lite"),
     ("semantic-codeql-evidence.v1.schema.json", "agent.semantic-protocols.semantic-codeql-evidence"),
     ("semantic-handle.v1.schema.json", "agent.semantic-protocols.semantic-handle"),
+    ("semantic-structural-index.v1.schema.json", "agent.semantic-protocols.semantic-structural-index"),
     ("semantic-language-registry.v1.schema.json", "agent.semantic-protocols.semantic-language-registry"),
     ("semantic-native-syntax-fact-index.v1.schema.json", "agent.semantic-protocols.semantic-native-syntax-fact-index"),
     ("semantic-verification-receipt.v1.schema.json", "agent.semantic-protocols.semantic-verification-receipt"),

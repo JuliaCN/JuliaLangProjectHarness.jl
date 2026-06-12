@@ -55,7 +55,9 @@ function parse_julia_search_query_args(args::Vector{String})
             index += 1
         elseif arg == "--workspace"
             workspace = true
-            index += 1
+            index == length(args) && error("--workspace requires a workspace root")
+            project_root = args[index + 1]
+            index += 2
         elseif arg in ("owner", "tests", "items")
             push!(pipes, arg)
             index += 1
@@ -66,8 +68,8 @@ function parse_julia_search_query_args(args::Vector{String})
             index += 1
         end
     end
-    length(positionals) <= 1 || error("search query expects at most one PROJECT_ROOT")
-    !isempty(positionals) && (project_root = first(positionals))
+    isempty(positionals) ||
+        error("search query does not accept positional WORKSPACE; use --workspace <workspace-root>")
     normalized_terms = julia_query_terms(terms)
     isempty(pipes) && append!(pipes, ["owner", "tests"])
     options = JuliaSearchQueryCliOptions(

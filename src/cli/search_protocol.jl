@@ -30,15 +30,14 @@ function parse_julia_search_args(args::Vector{String})
     while index <= length(args)
         arg = args[index]
         if arg in ("owner", "tests", "items")
-            isnothing(project_root) || error("expected pipes before PROJECT_ROOT")
+            isnothing(project_root) || error("expected pipes before --workspace")
             push!(pipes, arg)
         elseif arg == "--json"
             json = true
         elseif arg == "--workspace"
             index += 1
-            index <= length(args) || error("--workspace requires a project root")
+            index <= length(args) || error("--workspace requires a workspace root")
             workspace = true
-            isnothing(project_root) || error("expected at most one PROJECT_ROOT argument")
             project_root = args[index]
         elseif arg == "--view"
             index += 1
@@ -47,8 +46,7 @@ function parse_julia_search_args(args::Vector{String})
         elseif startswith(arg, "--")
             error("unknown search option: $(arg)")
         else
-            isnothing(project_root) || error("expected at most one PROJECT_ROOT argument")
-            project_root = arg
+            error("search does not accept positional WORKSPACE; use --workspace <workspace-root>")
         end
         index += 1
     end
@@ -57,6 +55,7 @@ end
 
 function julia_harness_agent_guide(project_root::AbstractString)
     root = abspath(String(project_root))
+    workspace = "--workspace <workspace-root>"
     """
     [julia-harness-guide] project=$(root)
     |cmd asp julia guide .
@@ -75,7 +74,7 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
     |rule query --code is pure code; search/read-plan returns locators/frontier, not inline code
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
-    """
+    """ |> text -> replace(text, "--view seeds ." => "--view seeds $(workspace)")
 end
 
 function render_julia_workspace_search(project_root::AbstractString)

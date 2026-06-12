@@ -74,6 +74,7 @@ using Test
             "owner,tests",
             "--view",
             "seeds",
+            "--workspace",
             project_root,
         ];
         out = search_out,
@@ -131,7 +132,7 @@ using Test
     )
     @test trailing_root_status == 2
     @test occursin(
-        "query --code does not accept a trailing PROJECT_ROOT",
+        "query direct-source-read does not accept positional WORKSPACE",
         String(take!(trailing_root_err)),
     )
 end

@@ -26,19 +26,30 @@
     )
 
     workspace_status = run_julia_project_harness_cli(
-        ["search", "workspace", "--view", "seeds", "--json", root];
+        ["search", "workspace", "--view", "seeds", "--json", "--workspace", root];
         out=workspace_out,
     )
     prime_status = run_julia_project_harness_cli(
-        ["search", "prime", "--view", "seeds", "--json", root];
+        ["search", "prime", "--view", "seeds", "--json", "--workspace", root];
         out=prime_out,
     )
     fzf_status = run_julia_project_harness_cli(
-        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--json", root];
+        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--json", "--workspace", root];
         out=fzf_out,
     )
     deps_status = run_julia_project_harness_cli(
-        ["search", "deps", "JSON3::read", "owner", "tests", "--view", "seeds", "--json", root];
+        [
+            "search",
+            "deps",
+            "JSON3::read",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--json",
+            "--workspace",
+            root,
+        ];
         out=deps_out,
     )
     query_status = run_julia_project_harness_cli(
@@ -56,12 +67,24 @@
             "--view",
             "seeds",
             "--json",
+            "--workspace",
             root,
         ];
         out=query_out,
     )
     policy_status = run_julia_project_harness_cli(
-        ["search", "policy", "JULIA-PROJ-R001", "owner", "tests", "--view", "seeds", "--json", root];
+        [
+            "search",
+            "policy",
+            "JULIA-PROJ-R001",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--json",
+            "--workspace",
+            root,
+        ];
         out=policy_out,
     )
     ingest_status = let input = "src/CliExample.jl:1:module CliExample\ntest/runtests.jl:3:@testset \"run\" begin\n",
@@ -72,7 +95,17 @@
         end
         status = redirect_stdin(pipe) do
             run_julia_project_harness_cli(
-                ["search", "ingest", "owner", "tests", "--view", "seeds", "--json", root];
+                [
+                    "search",
+                    "ingest",
+                    "owner",
+                    "tests",
+                    "--view",
+                    "seeds",
+                    "--json",
+                    "--workspace",
+                    root,
+                ];
                 out=ingest_out,
             )
         end
@@ -87,7 +120,14 @@
         end
         status = redirect_stdin(pipe) do
             run_julia_project_harness_cli(
-                ["search", "semantic-facts", "Vector collection fields", "--json", root];
+                [
+                    "search",
+                    "semantic-facts",
+                    "Vector collection fields",
+                    "--json",
+                    "--workspace",
+                    root,
+                ];
                 out=semantic_out,
             )
         end

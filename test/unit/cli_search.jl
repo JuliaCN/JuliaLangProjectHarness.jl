@@ -15,23 +15,33 @@
 
     guide_status = run_julia_project_harness_cli(["guide", root]; out=guide_out)
     workspace_status = run_julia_project_harness_cli(
-        ["search", "workspace", "--view", "seeds", root];
+        ["search", "workspace", "--view", "seeds", "--workspace", root];
         out=workspace_out,
     )
     prime_status = run_julia_project_harness_cli(
-        ["search", "prime", "--view", "seeds", root];
+        ["search", "prime", "--view", "seeds", "--workspace", root];
         out=prime_out,
     )
     owner_status = run_julia_project_harness_cli(
-        ["search", "owner", "src/CliExample.jl", "--view", "seeds", root];
+        ["search", "owner", "src/CliExample.jl", "--view", "seeds", "--workspace", root];
         out=owner_out,
     )
     text_status = run_julia_project_harness_cli(
-        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", root];
+        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--workspace", root];
         out=text_out,
     )
     deps_status = run_julia_project_harness_cli(
-        ["search", "deps", "JSON3::read", "owner", "tests", "--view", "seeds", root];
+        [
+            "search",
+            "deps",
+            "JSON3::read",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            root,
+        ];
         out=deps_out,
     )
     query_status = run_julia_project_harness_cli(
@@ -48,16 +58,37 @@
             "owner,tests",
             "--view",
             "seeds",
+            "--workspace",
             root,
         ];
         out=query_out,
     )
     policy_status = run_julia_project_harness_cli(
-        ["search", "policy", "JULIA-PROJ-R001", "owner", "tests", "--view", "seeds", root];
+        [
+            "search",
+            "policy",
+            "JULIA-PROJ-R001",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            root,
+        ];
         out=policy_out,
     )
     miss_status = run_julia_project_harness_cli(
-        ["search", "policy", "JULIA-UNKNOWN-R999", "owner", "tests", "--view", "seeds", root];
+        [
+            "search",
+            "policy",
+            "JULIA-UNKNOWN-R999",
+            "owner",
+            "tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            root,
+        ];
         out=miss_out,
     )
     check_status = run_julia_project_harness_cli(["check", "--changed", root]; out=check_out)
@@ -69,7 +100,7 @@
         end
         status = redirect_stdin(pipe) do
             run_julia_project_harness_cli(
-                ["search", "ingest", "owner", "tests", "--view", "seeds", root];
+                ["search", "ingest", "owner", "tests", "--view", "seeds", "--workspace", root];
                 out=ingest_out,
             )
         end
@@ -79,7 +110,17 @@
     ingest_extra_root_err = IOBuffer()
     ingest_extra_root_status =
         run_julia_project_harness_cli(
-            ["search", "ingest", "owner", "tests", "extra", "--view", "seeds", root];
+            [
+                "search",
+                "ingest",
+                "owner",
+                "tests",
+                "extra",
+                "--view",
+                "seeds",
+                "--workspace",
+                root,
+            ];
             out=IOBuffer(),
             err=ingest_extra_root_err,
         )
@@ -129,7 +170,7 @@
     @test occursin("Q=query:term(run)!fzf", text_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)!owner", text_rendered)
     @test deps_status == 0
-    @test occursin("[search-deps] q=JSON3::read", deps_rendered)
+    @test occursin("[search-dependency] q=JSON3::read", deps_rendered)
     @test occursin("view=deps", deps_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)!owner", deps_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", deps_rendered)
@@ -154,7 +195,7 @@
     @test occursin("frontier=O.owner,T.tests", ingest_rendered)
     @test ingest_extra_root_status != 0
     @test occursin(
-        "expected at most one PROJECT_ROOT argument",
+        "search does not accept positional WORKSPACE",
         String(take!(ingest_extra_root_err)),
     )
     @test check_status == 0

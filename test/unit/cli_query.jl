@@ -33,7 +33,15 @@
         out = json_out,
     )
     names_status = run_julia_project_harness_cli(
-        ["query", "src/CliExample.jl", "--term", "missing", "--names-only", root];
+        [
+            "query",
+            "src/CliExample.jl",
+            "--term",
+            "missing",
+            "--names-only",
+            "--workspace",
+            root,
+        ];
         out = names_out,
     )
     names_hit_status = run_julia_project_harness_cli(
@@ -115,8 +123,19 @@
     )
     @test trailing_root_status == 2
     @test occursin(
-        "query --code does not accept a trailing PROJECT_ROOT",
+        "query/owner-items does not accept positional WORKSPACE",
         String(take!(trailing_root_err)),
+    )
+    missing_owner_err = IOBuffer()
+    missing_owner_status = run_julia_project_harness_cli(
+        ["query", "--term", "run", "--names-only", "--workspace", root];
+        out = IOBuffer(),
+        err = missing_owner_err,
+    )
+    @test missing_owner_status == 2
+    @test occursin(
+        "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --view seeds --workspace <workspace-root>`",
+        String(take!(missing_owner_err)),
     )
     @test_throws ErrorException julia_query_owner_items_packet(
         "src/CliExample.jl",
@@ -191,6 +210,7 @@ end
             "flow-lite",
             "--where",
             "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
+            "--workspace",
             root,
         ];
         out = compact_out,
@@ -203,6 +223,7 @@ end
             "--where",
             "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
             "--json",
+            "--workspace",
             root,
         ];
         out = json_out,
@@ -254,6 +275,7 @@ end
             "--where",
             "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
             "--code",
+            "--workspace",
             root,
         ];
         out = IOBuffer(),
@@ -270,6 +292,7 @@ end
             "flow-lite",
             "--where",
             "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions guard.eq=is_safe",
+            "--workspace",
             root,
         ];
         out = IOBuffer(),
