@@ -38,6 +38,7 @@ include("verification/advice.jl")
 include("verification/context.jl")
 include("verification/profile_index.jl")
 include("moshi_extension.jl")
+include("evidence_graph.jl")
 include("cli/search_protocol.jl")
 include("cli/search_query.jl")
 include("cli/search_cli.jl")
@@ -97,6 +98,8 @@ export JuliaDiagnosticSeverity,
     render_julia_semantic_graph_facts_json,
     render_julia_agent_registry,
     render_julia_agent_registry_json,
+    render_julia_evidence_analysis_request_json,
+    render_julia_evidence_graph_json,
     render_julia_query_owner_items,
     render_julia_query_owner_items_json,
     render_julia_rule_visibility,

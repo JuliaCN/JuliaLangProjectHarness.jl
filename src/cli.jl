@@ -161,6 +161,8 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
         return run_julia_harness_search_cli(args[2:end]; out)
     elseif command == "check"
         return run_julia_harness_check_cli(args[2:end]; out)
+    elseif command == "evidence"
+        return run_julia_harness_evidence_cli(args[2:end]; out)
     elseif command == "export"
         return run_julia_harness_export_cli(args[2:end]; out)
     end
@@ -256,11 +258,13 @@ end
 
 function julia_harness_cli_usage()
     """
-    julia-project-harness [guide | agent doctor --json | search policy RULE owner tests --view seeds | --json | --agent-snapshot | --advice | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
+    julia-project-harness [guide | agent doctor --json | search policy RULE owner tests --view seeds | evidence graph --json | evidence analyze --json | --json | --agent-snapshot | --advice | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
 
     Compact text is the default agent-facing repair surface.
     Use guide to print provider-owned agent commands.
     Use search policy RULE owner tests --view seeds to resolve policy handles.
+    Use evidence graph --json to emit a semantic-evidence-graph packet.
+    Use evidence analyze --json to emit a graph-turbo evidence-quality request.
     Use --agent-snapshot to emit a low-noise project summary.
     Use --verification-tasks to emit agent-runnable verification duties.
     Use --verification-receipt-template to emit a JSON receipt skeleton.

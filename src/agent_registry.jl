@@ -8,6 +8,7 @@ const JULIA_AGENT_BINARY = "asp-julia-harness"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
+    ("semantic-graph-turbo-request.v1.schema.json", "agent.semantic-protocols.semantic-graph-turbo-request"),
     ("semantic-fact-graph.v1.schema.json", "agent.semantic-protocols.semantic-fact-graph"),
     ("semantic-fact-ontology.v1.schema.json", "agent.semantic-protocols.semantic-fact-ontology"),
     ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),
@@ -128,6 +129,31 @@ function julia_check_method_descriptor()
     )
 end
 
+function julia_evidence_method_descriptors()
+    [
+        Dict{String,Any}(
+            "method" => "evidence/graph",
+            "command" => "evidence",
+            "input" => "provider project root",
+            "outputSchemaIds" => ["agent.semantic-protocols.semantic-evidence-graph"],
+            "supportsCompact" => true,
+            "supportsJson" => true,
+        ),
+        Dict{String,Any}(
+            "method" => "evidence/analyze",
+            "command" => "evidence",
+            "input" => "provider project root",
+            "outputSchemaIds" => [
+                "agent.semantic-protocols.semantic-graph-turbo-request",
+            ],
+            "packetSchemas" => ["semantic-graph-turbo-request.v1"],
+            "clients" => ["asp-graph-turbo"],
+            "supportsCompact" => true,
+            "supportsJson" => true,
+        ),
+    ]
+end
+
 function julia_agent_method_descriptors()
     [
         julia_search_method_descriptor(
@@ -238,6 +264,7 @@ function julia_agent_method_descriptors()
         julia_query_owner_items_method_descriptor(),
         julia_query_method_descriptor(),
         julia_check_method_descriptor(),
+        julia_evidence_method_descriptors()...,
         Dict{String,Any}(
             "method" => "agent/doctor",
             "command" => "agent",

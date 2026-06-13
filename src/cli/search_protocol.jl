@@ -62,10 +62,14 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |cmd asp julia agent doctor --json .
     |cmd asp julia search workspace --view seeds .
     |cmd asp julia search prime --view seeds .
+    |cmd asp julia search pipe <query> --view seeds .
     |cmd asp julia search owner <owner-path> items --view seeds .
     |cmd asp julia query <owner-path> --term <symbol-or-prefix> --workspace <workspace-root> [--names-only|--code|--json]
+    |cmd asp julia query --selector <path:start-end> --workspace <workspace-root> --code
     |cmd asp julia query --from-hook direct-source-read --selector <path:start-end> --workspace <workspace-root> --code
     |cmd asp julia search policy <rule-id-or-alias> owner tests --view seeds .
+    |cmd asp julia evidence graph --json .
+    |cmd asp julia evidence analyze --json .
     |cmd asp julia search fzf <query> owner tests --view seeds .
     |cmd asp julia search deps <dependency[@version][::api]> owner tests --view seeds .
     |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds --workspace <workspace-root>
