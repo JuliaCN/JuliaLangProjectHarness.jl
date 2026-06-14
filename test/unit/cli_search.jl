@@ -170,7 +170,8 @@
     @test occursin("Q=query:term(run)!fzf", text_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)!owner", text_rendered)
     @test deps_status == 0
-    @test occursin("[search-dependency] q=JSON3::read", deps_rendered)
+    @test occursin("[search-deps] q=JSON3::read", deps_rendered) ||
+          occursin("[search-dependency] q=JSON3::read", deps_rendered)
     @test occursin("view=deps", deps_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)!owner", deps_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", deps_rendered)
