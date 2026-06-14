@@ -42,7 +42,7 @@ end
     analysis = JSON3.read(String(take!(analysis_out)))
     registry = JSON3.read(String(take!(registry_out)))
     guide = String(take!(guide_out))
-    language = only(registry.languages)
+    language = only(filter(language -> language.languageId == "julia", registry.languages))
 
     @test graph_status == 0
     @test graph.schemaId == "agent.semantic-protocols.semantic-evidence-graph"

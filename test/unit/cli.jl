@@ -144,7 +144,9 @@ end
         run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = doctor_out)
     registry = JSON3.read(String(take!(json_out)))
     doctor_registry = JSON3.read(String(take!(doctor_out)))
-    language = only(registry.languages)
+    language = only(filter(language -> language.languageId == "julia", registry.languages))
+    gerbil_language =
+        only(filter(language -> language.languageId == "gerbil-scheme", registry.languages))
 
     @test compact_status == 0
     @test occursin("[julia-agent-registry]", String(take!(compact_out)))
@@ -156,6 +158,12 @@ end
     @test language.languageId == "julia"
     @test language.providerId == "julia-lang-project-harness"
     @test language.binary == "asp-julia-harness"
+    @test gerbil_language.providerId == "gerbil-scheme-harness"
+    @test gerbil_language.binary == "gerbil-scheme-harness"
+    @test collect(gerbil_language.providerCommandPrefix) == ["gerbil-scheme-harness"]
+    @test "search/prime" in gerbil_language.methods
+    @test "query/direct-source-read" in gerbil_language.methods
+    @test "guide" in gerbil_language.methods
     @test "search/prime" in language.methods
     @test "search/fzf" in language.methods
     @test "search/query" in language.methods

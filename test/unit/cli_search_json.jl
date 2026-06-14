@@ -145,7 +145,7 @@
     ingest_packet = JSON3.read(String(take!(ingest_out)))
     semantic_packet = JSON3.read(String(take!(semantic_out)))
     registry = JSON3.read(String(take!(registry_out)))
-    language = only(registry.languages)
+    language = only(filter(language -> language.languageId == "julia", registry.languages))
 
     @test workspace_status == 0
     @test workspace_packet.method == "search/workspace"

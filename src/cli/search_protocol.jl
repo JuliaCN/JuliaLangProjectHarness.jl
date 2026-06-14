@@ -72,11 +72,20 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |cmd asp julia evidence analyze --json .
     |cmd asp julia search fzf <query> owner tests --view seeds .
     |cmd asp julia search deps <dependency[@version][::api]> owner tests --view seeds .
+    |cmd asp julia search env [term ...] --view seeds .
+    |cmd asp julia search runtime-source [term ...] --view seeds .
+    |cmd asp julia search lang [term ...] --view seeds .
+    |cmd asp julia search std [term ...] --view seeds .
+    |cmd asp julia search capability [term ...] --view seeds .
+    |cmd asp julia search extension <extension> [term ...] --view seeds .
+    |cmd asp julia search pattern <feature-or-extension> [term ...] --view seeds .
+    |cmd asp julia search compare <axis> [left right] --view seeds .
     |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds --workspace <workspace-root>
     |pipe <candidate-lines> | asp julia search ingest owner tests --view seeds .
     |cmd asp julia check --changed .
     |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
     |rule query --code is pure code; search/read-plan returns locators/frontier, not inline code
+    |rule provider-knowledge-axes env/lang/std/pattern/runtime-source return facts or explicit frontier gaps; do not fill missing facts from memory
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
     """ |> text -> replace(text, "--view seeds ." => "--view seeds $(workspace)")
 end

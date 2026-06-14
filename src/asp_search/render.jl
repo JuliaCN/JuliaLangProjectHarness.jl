@@ -24,6 +24,8 @@ function render_julia_search_packet_json(
     elseif view == "deps"
         isnothing(query) && error("search deps JSON requires a dependency query")
         julia_dependency_search_packet(query, project_root; render_mode)
+    elseif view in ["env", "runtime-source", "lang", "std", "capability", "extension", "pattern", "compare"]
+        julia_knowledge_search_packet(view, isnothing(query) ? String[] : String.(split(String(query))), project_root; render_mode)
     elseif view == "ingest"
         julia_ingest_search_packet(stdin_text, project_root; render_mode)
     elseif view == "policy"

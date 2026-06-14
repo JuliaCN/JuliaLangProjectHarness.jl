@@ -298,6 +298,7 @@ function julia_fzf_search_packet(query::AbstractString, project_root::AbstractSt
     )
 end
 
+include("asp_search/knowledge.jl")
 include("asp_search/deps.jl")
 include("asp_search/ingest.jl")
 include("asp_search/policy.jl")

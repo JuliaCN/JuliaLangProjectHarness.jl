@@ -1,158 +1,5 @@
-const JULIA_AGENT_REGISTRY_ID = "agent.semantic-protocols.semantic-language-registry"
-const JULIA_AGENT_REGISTRY_VERSION = "1"
-const JULIA_AGENT_REGISTRY_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
-const JULIA_AGENT_REGISTRY_PROTOCOL_VERSION = "1"
-const JULIA_AGENT_PROVIDER_NAMESPACE =
-    "agent.semantic-protocols.languages.julia.julia-lang-project-harness"
-const JULIA_AGENT_BINARY = "asp-julia-harness"
-
-const JULIA_AGENT_SCHEMA_FILES = [
-    ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
-    ("semantic-graph-turbo-request.v1.schema.json", "agent.semantic-protocols.semantic-graph-turbo-request"),
-    ("semantic-fact-graph.v1.schema.json", "agent.semantic-protocols.semantic-fact-graph"),
-    ("semantic-fact-ontology.v1.schema.json", "agent.semantic-protocols.semantic-fact-ontology"),
-    ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),
-    ("semantic-dependency-topology.v1.schema.json", "agent.semantic-protocols.semantic-dependency-topology"),
-    ("semantic-type-surface.v1.schema.json", "agent.semantic-protocols.semantic-type-surface"),
-    ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
-    ("semantic-org-elements-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-org-elements-query-packet"),
-    ("semantic-content-compaction.v1.schema.json", "agent.semantic-protocols.semantic-content-compaction"),
-    ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
-    ("semantic-source-location.v1.schema.json", "agent.semantic-protocols.semantic-source-location"),
-    ("semantic-tree-sitter-provenance.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-provenance"),
-    ("semantic-tree-sitter-query.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-query"),
-    ("semantic-tree-sitter-grammar-profile.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-grammar-profile"),
-    ("semantic-relation-plan.v1.schema.json", "agent.semantic-protocols.semantic-relation-plan"),
-    ("semantic-flow-lite.v1.schema.json", "agent.semantic-protocols.semantic-flow-lite"),
-    ("semantic-codeql-evidence.v1.schema.json", "agent.semantic-protocols.semantic-codeql-evidence"),
-    ("semantic-handle.v1.schema.json", "agent.semantic-protocols.semantic-handle"),
-    ("semantic-structural-index.v1.schema.json", "agent.semantic-protocols.semantic-structural-index"),
-    ("semantic-language-registry.v1.schema.json", "agent.semantic-protocols.semantic-language-registry"),
-    ("semantic-native-syntax-fact-index.v1.schema.json", "agent.semantic-protocols.semantic-native-syntax-fact-index"),
-    ("semantic-verification-receipt.v1.schema.json", "agent.semantic-protocols.semantic-verification-receipt"),
-    ("semantic-behavior-snapshot.v1.schema.json", "agent.semantic-protocols.semantic-behavior-snapshot"),
-    ("semantic-determinism-readiness.v1.schema.json", "agent.semantic-protocols.semantic-determinism-readiness"),
-    ("semantic-dev-command-log.v1.schema.json", "agent.semantic-protocols.semantic-dev-command-log"),
-    ("semantic-formal-proof-pilot.v1.schema.json", "agent.semantic-protocols.semantic-formal-proof-pilot"),
-    ("semantic-review-packet.v1.schema.json", "agent.semantic-protocols.semantic-review-packet"),
-    ("semantic-evidence-graph.v1.schema.json", "agent.semantic-protocols.semantic-evidence-graph"),
-    ("semantic-assurance-case.v1.schema.json", "agent.semantic-protocols.semantic-assurance-case"),
-    ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
-    ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
-    ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
-]
-
-function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")
-    Dict(
-        "languageId" => JULIA_INDEX_EXPORT_LANGUAGE_ID,
-        "namespace" => String(namespace),
-        "name" => String(name),
-    )
-end
-
-function julia_search_method_descriptor(
-    method::AbstractString,
-    view::AbstractString;
-    requires_query::Bool,
-    accepts_stdin::Bool=false,
-    supports_json::Bool=true,
-    supports_compact::Bool=true,
-    output_schema_ids::Vector{String}=["agent.semantic-protocols.semantic-search-packet"],
-    output_modes::Vector{String}=String[],
-    packet_schemas::Vector{String}=String[],
-    accepted_pipes::Vector{String}=String[],
-    required_options::Vector{String}=String[],
-    supports_query_set::Bool=false,
-    accepted_query_set_selectors::Vector{String}=String[],
-    capabilities::Vector{Dict{String,String}}=Dict{String,String}[],
-)
-    descriptor = Dict{String,Any}(
-        "method" => String(method),
-        "command" => "search",
-        "view" => String(view),
-        "outputSchemaIds" => output_schema_ids,
-        "requiresQuery" => requires_query,
-        "acceptsStdin" => accepts_stdin,
-        "supportsPackageScope" => true,
-        "supportsCompact" => supports_compact,
-        "supportsJson" => supports_json,
-    )
-    isempty(output_modes) || (descriptor["outputModes"] = output_modes)
-    isempty(packet_schemas) || (descriptor["packetSchemas"] = packet_schemas)
-    isempty(accepted_pipes) || (descriptor["acceptedPipes"] = accepted_pipes)
-    isempty(required_options) || (descriptor["requiredOptions"] = required_options)
-    supports_query_set && (descriptor["supportsQuerySet"] = true)
-    isempty(accepted_query_set_selectors) || (descriptor["acceptedQuerySetSelectors"] = accepted_query_set_selectors)
-    isempty(capabilities) || (descriptor["capabilities"] = capabilities)
-    descriptor
-end
-
-function julia_query_method_descriptor()
-    Dict{String,Any}(
-        "method" => "query/direct-source-read",
-        "command" => "query",
-        "input" => "hook-selector",
-        "requiredOptions" => ["--from-hook", "--selector"],
-        "outputModes" => ["frontier", "code", "read-packet"],
-        "outputSchemaIds" => [
-            "agent.semantic-protocols.semantic-query-packet",
-            "agent.semantic-protocols.semantic-read-packet",
-        ],
-        "supportsCompact" => true,
-        "supportsJson" => true,
-    )
-end
-
-function julia_query_owner_items_method_descriptor()
-    Dict{String,Any}(
-        "method" => "query/owner-items",
-        "command" => "query",
-        "input" => "owner-path",
-        "requiredOptions" => ["--term"],
-        "outputModes" => ["frontier", "json", "code", "names"],
-        "outputSchemaIds" => ["agent.semantic-protocols.semantic-query-packet"],
-        "supportsCompact" => true,
-        "supportsJson" => true,
-        "capabilities" => [
-            julia_agent_capability("owner-local-item-query"; namespace="semantic"),
-            julia_agent_capability("julia-owner-item-query"),
-        ],
-    )
-end
-
-function julia_check_method_descriptor()
-    Dict{String,Any}(
-        "method" => "check/changed",
-        "command" => "check",
-        "supportsCompact" => true,
-        "supportsJson" => false,
-    )
-end
-
-function julia_evidence_method_descriptors()
-    [
-        Dict{String,Any}(
-            "method" => "evidence/graph",
-            "command" => "evidence",
-            "input" => "provider project root",
-            "outputSchemaIds" => ["agent.semantic-protocols.semantic-evidence-graph"],
-            "supportsCompact" => true,
-            "supportsJson" => true,
-        ),
-        Dict{String,Any}(
-            "method" => "evidence/analyze",
-            "command" => "evidence",
-            "input" => "provider project root",
-            "outputSchemaIds" => [
-                "agent.semantic-protocols.semantic-graph-turbo-request",
-            ],
-            "packetSchemas" => ["semantic-graph-turbo-request.v1"],
-            "clients" => ["asp-graph-turbo"],
-            "supportsCompact" => true,
-            "supportsJson" => true,
-        ),
-    ]
-end
+include("agent_registry/core.jl")
+include("agent_registry/knowledge.jl")
 
 function julia_agent_method_descriptors()
     [
@@ -205,6 +52,7 @@ function julia_agent_method_descriptors()
                 julia_agent_capability("julia-dependency-search-index"),
             ],
         ),
+        julia_knowledge_search_method_descriptors()...,
         julia_search_method_descriptor(
             "search/query",
             "query";
@@ -291,9 +139,14 @@ end
 
 """Return package-local schema registrations advertised by the Julia provider."""
 function julia_schema_registrations()
+    schema_registrations(JULIA_AGENT_SCHEMA_FILES)
+end
+
+"""Return package-local schema registrations for a provider language entry."""
+function schema_registrations(schema_files)
     package_root = normpath(joinpath(@__DIR__, ".."))
     registrations = Dict{String,String}[]
-    for (file_name, schema_id) in JULIA_AGENT_SCHEMA_FILES
+    for (file_name, schema_id) in schema_files
         path = joinpath("schemas", file_name)
         isfile(joinpath(package_root, path)) || continue
         push!(
@@ -306,6 +159,83 @@ function julia_schema_registrations()
         )
     end
     registrations
+end
+
+function gerbil_scheme_agent_method_descriptors()
+    [
+        julia_search_method_descriptor(
+            "search/prime",
+            "prime";
+            requires_query=false,
+            supports_json=false,
+            packet_schemas=["semantic-search-packet.v1"],
+        ),
+        julia_search_method_descriptor(
+            "search/owner",
+            "owner";
+            requires_query=true,
+            supports_json=false,
+            packet_schemas=["semantic-search-packet.v1"],
+        ),
+        julia_search_method_descriptor(
+            "search/fzf",
+            "fzf";
+            requires_query=true,
+            supports_json=false,
+            packet_schemas=["semantic-search-packet.v1"],
+        ),
+        julia_search_method_descriptor(
+            "search/ingest",
+            "ingest";
+            requires_query=true,
+            accepts_stdin=true,
+            supports_json=false,
+            packet_schemas=["semantic-search-packet.v1"],
+        ),
+        Dict{String,Any}(
+            "method" => "query/direct-source-read",
+            "command" => "query",
+            "supportsJson" => false,
+            "supportsCompact" => true,
+            "packetSchemas" => ["semantic-query-packet.v1", "semantic-read-packet.v1"],
+            "queryInputForms" => ["selector"],
+            "codeOutput" => Dict(
+                "mode" => "pure-code",
+                "multiMatch" => "deny",
+                "requires" => ["exact-selector"],
+            ),
+            "outputSchemaIds" => ["agent.semantic-protocols.semantic-query-packet"],
+        ),
+        Dict{String,Any}(
+            "method" => "check/changed",
+            "command" => "check",
+            "supportsJson" => false,
+            "supportsCompact" => true,
+            "outputSchemaIds" => ["agent.semantic-protocols.semantic-verification-receipt"],
+        ),
+        Dict{String,Any}(
+            "method" => "guide",
+            "command" => "guide",
+            "supportsJson" => false,
+            "supportsCompact" => true,
+        ),
+    ]
+end
+
+function gerbil_scheme_agent_registration()
+    descriptors = gerbil_scheme_agent_method_descriptors()
+    methods = sort!(unique(String(descriptor["method"]) for descriptor in descriptors))
+    Dict(
+        "languageId" => "gerbil-scheme",
+        "providerId" => "gerbil-scheme-harness",
+        "binary" => GERBIL_SCHEME_AGENT_BINARY,
+        "providerCommandPrefix" => [GERBIL_SCHEME_AGENT_BINARY],
+        "namespace" => GERBIL_SCHEME_AGENT_PROVIDER_NAMESPACE,
+        "displayName" => "Gerbil Scheme Harness",
+        "methods" => methods,
+        "methodDescriptors" => descriptors,
+        "schemas" => schema_registrations(GERBIL_SCHEME_AGENT_SCHEMA_FILES),
+    )
 end
 
 """Build the Julia semantic-language registry packet for client discovery."""
@@ -331,6 +261,7 @@ function julia_agent_registry_packet(project_root::AbstractString=pwd())
                 "methodDescriptors" => descriptors,
                 "schemas" => julia_schema_registrations(),
             ),
+            gerbil_scheme_agent_registration(),
         ],
     )
 end
@@ -343,6 +274,6 @@ end
 """Render a compact Julia provider registry status line."""
 function render_julia_agent_registry(project_root::AbstractString=pwd())
     packet = julia_agent_registry_packet(project_root)
-    language = only(packet["languages"])
-    "[julia-agent-registry] status=ok provider=$(language["providerId"]) methods=$(length(language["methods"])) schemas=$(length(language["schemas"])) project=$(packet["projectRoot"])\n"
+    julia_language = only(filter(language -> language["languageId"] == JULIA_INDEX_EXPORT_LANGUAGE_ID, packet["languages"]))
+    "[julia-agent-registry] status=ok provider=$(julia_language["providerId"]) methods=$(length(julia_language["methods"])) schemas=$(length(julia_language["schemas"])) languages=$(length(packet["languages"])) project=$(packet["projectRoot"])\n"
 end

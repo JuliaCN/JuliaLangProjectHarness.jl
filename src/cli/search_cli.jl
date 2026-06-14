@@ -83,6 +83,25 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_search_graph("deps"; project_root=options.project_root, render_mode=options.render_view, query=query))
+    elseif view in ["env", "runtime-source", "lang", "std", "capability", "extension", "pattern", "compare"]
+        terms, rest = split_julia_knowledge_axis_args(args[2:end])
+        options = parse_julia_search_args(rest)
+        query = join(terms, " ")
+        if options.json
+            print(
+                out,
+                render_julia_search_packet_json(
+                    view;
+                    project_root=options.project_root,
+                    render_mode=options.render_view,
+                    query,
+                ),
+            )
+            print(out, "\n")
+            return 0
+        end
+        options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
+        print(out, render_julia_search_graph(view; project_root=options.project_root, render_mode=options.render_view, query=query))
     elseif view == "ingest"
         options = parse_julia_search_args(args[2:end])
         stdin_text = read(stdin, String)
@@ -157,4 +176,12 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         error("unknown search view: $(view)")
     end
     0
+end
+
+function split_julia_knowledge_axis_args(args::Vector{String})
+    option_start = findfirst(arg -> startswith(arg, "--"), args)
+    if isnothing(option_start)
+        return args, String[]
+    end
+    return args[1:option_start - 1], args[option_start:end]
 end
