@@ -1,0 +1,87 @@
+name: Release provider binary
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to publish assets to"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-14
+            target: aarch64-apple-darwin
+    env:
+      BINARY: asp-julia-harness
+      GH_TOKEN: ${{ github.token }}
+      JULIA_PKG_PRECOMPILE_AUTO: "0"
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      TARGET: ${{ matrix.target }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.12"
+
+      - name: Cache Julia artifacts
+        uses: actions/cache@v5
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-release-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-release-${{ env.cache-name }}-
+            ${{ runner.os }}-
+
+      - name: Resolve JuliaC build project
+        run: julia --project=juliac -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+
+      - name: Build compiled harness
+        run: ASP_JULIA_BUILD_DIR="$PWD/package" julia --project=juliac juliac/compile.jl
+
+      - name: Package provider binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "package/${BINARY}"
+          asset="${BINARY}-${TARGET}.tar.gz"
+          tar -czf "$asset" -C package .
+          python - "$asset" <<'PY'
+          import hashlib
+          import pathlib
+          import sys
+
+          asset = pathlib.Path(sys.argv[1])
+          digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+          pathlib.Path(f"{asset}.sha256").write_text(f"{digest}  {asset.name}\n")
+          PY
+
+      - name: Publish release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 \
+            || gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes "Provider binary release $RELEASE_TAG" \
+            || gh release view "$RELEASE_TAG" >/dev/null
+          gh release upload "$RELEASE_TAG" "${BINARY}-${TARGET}.tar.gz" "${BINARY}-${TARGET}.tar.gz.sha256" --clobber
