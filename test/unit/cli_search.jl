@@ -140,9 +140,9 @@
     @test guide_status == 0
     @test occursin("[julia-harness-guide]", guide_rendered)
     @test occursin("asp julia guide", guide_rendered)
-    @test occursin("asp julia agent doctor --json", guide_rendered)
+    @test occursin("asp julia agent doctor --workspace . --json", guide_rendered)
     @test !occursin("asp julia agent guide", guide_rendered)
-    @test occursin("asp julia search workspace --view seeds", guide_rendered)
+    @test occursin("asp julia search workspace --workspace . --view seeds", guide_rendered)
     @test occursin("asp julia query <owner-path> --term", guide_rendered)
     @test occursin("--workspace <workspace-root>", guide_rendered)
     @test occursin("asp julia search policy", guide_rendered)

@@ -28,8 +28,8 @@ const JULIA_KNOWLEDGE_AXIS_DETAILS = Dict{String,Dict{String,String}}(
     ),
     "extension" => Dict(
         "authority" => "ecosystem-extension",
-        "summary" => "Package or extension-specific Julia ecosystem evidence.",
-        "next" => "search deps <package>",
+        "summary" => "Package or extension-specific Julia ecosystem evidence; dependency search is manifest-first and import-usage backed.",
+        "next" => "search dependency <package[@version][::api]>",
     ),
     "pattern" => Dict(
         "authority" => "executable-pattern",
@@ -121,6 +121,7 @@ function julia_knowledge_facts(axis::String, terms::Vector{String}, project_root
     elseif axis == "capability"
         return julia_filter_knowledge_facts([
             julia_knowledge_fact("owner-items", axis; command="search owner <path> items"),
+            julia_knowledge_fact("dependency", axis; command="search dependency <dependency[@version][::api]>"),
             julia_knowledge_fact("deps", axis; command="search deps <dependency[@version][::api]>"),
             julia_knowledge_fact("query", axis; command="query <owner-path> --term <symbol>"),
         ], terms, project_root)

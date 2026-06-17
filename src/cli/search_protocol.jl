@@ -55,39 +55,38 @@ end
 
 function julia_harness_agent_guide(project_root::AbstractString)
     root = abspath(String(project_root))
-    workspace = "--workspace <workspace-root>"
     """
     [julia-harness-guide] project=$(root)
-    |cmd asp julia guide .
-    |cmd asp julia agent doctor --json .
-    |cmd asp julia search workspace --view seeds .
-    |cmd asp julia search prime --view seeds .
-    |cmd asp julia search pipe <query> --view seeds .
-    |cmd asp julia search owner <owner-path> items --view seeds .
+    |cmd asp julia guide --workspace .
+    |cmd asp julia agent doctor --workspace . --json
+    |cmd asp julia search workspace --workspace . --view seeds
+    |cmd asp julia search prime --workspace . --view seeds
+    |cmd asp julia search pipe <query> --workspace . --view seeds
+    |cmd asp julia search owner <owner-path> items --workspace . --view seeds
     |cmd asp julia query <owner-path> --term <symbol-or-prefix> --workspace <workspace-root> [--names-only|--code|--json]
     |cmd asp julia query --selector <path:start-end> --workspace <workspace-root> --code
     |cmd asp julia query --from-hook direct-source-read --selector <path:start-end> --workspace <workspace-root> --code
-    |cmd asp julia search policy <rule-id-or-alias> owner tests --view seeds .
+    |cmd asp julia search policy <rule-id-or-alias> owner tests --workspace . --view seeds
     |cmd asp julia evidence graph --json .
     |cmd asp julia evidence analyze --json .
-    |cmd asp julia search fzf <query> owner tests --view seeds .
-    |cmd asp julia search deps <dependency[@version][::api]> owner tests --view seeds .
-    |cmd asp julia search env [term ...] --view seeds .
-    |cmd asp julia search runtime-source [term ...] --view seeds .
-    |cmd asp julia search lang [term ...] --view seeds .
-    |cmd asp julia search std [term ...] --view seeds .
-    |cmd asp julia search capability [term ...] --view seeds .
-    |cmd asp julia search extension <extension> [term ...] --view seeds .
-    |cmd asp julia search pattern <feature-or-extension> [term ...] --view seeds .
-    |cmd asp julia search compare <axis> [left right] --view seeds .
-    |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --view seeds --workspace <workspace-root>
-    |pipe <candidate-lines> | asp julia search ingest owner tests --view seeds .
+    |cmd asp julia search fzf <query> owner tests --workspace . --view seeds
+    |cmd asp julia search deps <dependency[@version][::api]> owner tests --workspace . --view seeds
+    |cmd asp julia search env [term ...] --workspace . --view seeds
+    |cmd asp julia search runtime-source [term ...] --workspace . --view seeds
+    |cmd asp julia search lang [term ...] --workspace . --view seeds
+    |cmd asp julia search std [term ...] --workspace . --view seeds
+    |cmd asp julia search capability [term ...] --workspace . --view seeds
+    |cmd asp julia search extension <extension> [term ...] --workspace . --view seeds
+    |cmd asp julia search pattern <feature-or-extension> [term ...] --workspace . --view seeds
+    |cmd asp julia search compare <axis> [left right] --workspace . --view seeds
+    |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --workspace <workspace-root> --view seeds
+    |pipe <candidate-lines> | asp julia search ingest owner tests --workspace . --view seeds
     |cmd asp julia check --changed .
     |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
     |rule query --code is pure code; search/read-plan returns locators/frontier, not inline code
     |rule provider-knowledge-axes env/lang/std/pattern/runtime-source return facts or explicit frontier gaps; do not fill missing facts from memory
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
-    """ |> text -> replace(text, "--view seeds ." => "--view seeds $(workspace)")
+    """
 end
 
 function render_julia_workspace_search(project_root::AbstractString)

@@ -237,7 +237,7 @@ function run_julia_harness_owner_items_query_cli(
     if isempty(positionals)
         if names_only && !isempty(terms)
             error(
-                "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --view seeds --workspace <workspace-root>`",
+                "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --workspace <workspace-root> --view seeds`",
             )
         end
         error("query/owner-items requires an owner path")

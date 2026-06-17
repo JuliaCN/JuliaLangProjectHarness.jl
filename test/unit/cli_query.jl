@@ -134,7 +134,7 @@
     )
     @test missing_owner_status == 2
     @test occursin(
-        "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --view seeds --workspace <workspace-root>`",
+        "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --workspace <workspace-root> --view seeds`",
         String(take!(missing_owner_err)),
     )
     @test_throws ErrorException julia_query_owner_items_packet(

@@ -30,7 +30,7 @@ Smoke:
 ```sh
 build/juliac/asp-julia-harness guide .
 build/juliac/asp-julia-harness agent doctor --json .
-build/juliac/asp-julia-harness search fzf parser owner tests --view seeds .
+build/juliac/asp-julia-harness search fzf parser owner tests --workspace . --view seeds
 build/juliac/asp-julia-harness export index .
 ```
 
