@@ -13,7 +13,7 @@
     "defaultExtensions": [".jl"],
     "defaultConfigFiles": ["Project.toml"],
     "defaultSourceRoots": ["src", "test", "docs", "examples", "benchmark"],
-    "defaultIgnoredPathPrefixes": [".git", "build", "Manifest.toml"]
+    "defaultIgnoredPathPrefixes": [".devenv", ".git", "build", "Manifest.toml"]
   },
   "policy": {
     "directSourceRead": "block",
@@ -23,26 +23,29 @@
   },
   "routes": {
     "guide": {
-      "argv": ["asp-julia-harness", "guide", "."]
+      "argv": ["asp-julia-harness", "guide", "{projectRoot}"]
     },
     "prime": {
-      "argv": ["asp-julia-harness", "search", "prime", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "prime", "--workspace", "{projectRoot}", "--view", "seeds"]
     },
     "owner": {
-      "argv": ["asp-julia-harness", "search", "owner", "{path}", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "owner", "{path}", "--workspace", "{projectRoot}", "--view", "seeds"]
     },
     "fzf": {
-      "argv": ["asp-julia-harness", "search", "fzf", "{query}", "owner", "tests", "--view", "seeds", "."]
+      "argv": ["asp-julia-harness", "search", "fzf", "{query}", "owner", "tests", "--workspace", "{projectRoot}", "--view", "seeds"]
+    },
+    "query": {
+      "argv": ["asp-julia-harness", "search", "query", "--from-hook", "direct-source-read", "--selector", "{selector}", "{termArgs}", "--surface", "owners,tests", "--workspace", "{projectRoot}", "--view", "seeds"]
     },
     "ingest": {
-      "argv": ["asp-julia-harness", "search", "ingest", "owner", "tests", "--view", "seeds", "."],
+      "argv": ["asp-julia-harness", "search", "ingest", "owner", "tests", "--workspace", "{projectRoot}", "--view", "seeds"],
       "stdinMode": "pipe-candidates"
     },
     "checkChanged": {
-      "argv": ["asp-julia-harness", "check", "--changed", "."]
+      "argv": ["asp-julia-harness", "check", "--changed", "{projectRoot}"]
     },
     "exportIndex": {
-      "argv": ["asp-julia-harness", "export", "index", "."]
+      "argv": ["asp-julia-harness", "export", "index", "{projectRoot}"]
     }
   }
 }

@@ -7,7 +7,7 @@ const JULIA_AGENT_PROVIDER_NAMESPACE =
 const JULIA_AGENT_BINARY = "asp-julia-harness"
 const GERBIL_SCHEME_AGENT_PROVIDER_NAMESPACE =
     "agent.semantic-protocols.languages.gerbil-scheme.gerbil-scheme-harness"
-const GERBIL_SCHEME_AGENT_BINARY = "gerbil-scheme-harness"
+const GERBIL_SCHEME_AGENT_BINARY = "gslph"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),

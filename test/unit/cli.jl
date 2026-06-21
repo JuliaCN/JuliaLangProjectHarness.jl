@@ -159,8 +159,8 @@ end
     @test language.providerId == "julia-lang-project-harness"
     @test language.binary == "asp-julia-harness"
     @test gerbil_language.providerId == "gerbil-scheme-harness"
-    @test gerbil_language.binary == "gerbil-scheme-harness"
-    @test collect(gerbil_language.providerCommandPrefix) == ["gerbil-scheme-harness"]
+    @test gerbil_language.binary == "gslph"
+    @test collect(gerbil_language.providerCommandPrefix) == ["gslph"]
     @test "search/prime" in gerbil_language.methods
     @test "query/direct-source-read" in gerbil_language.methods
     @test "guide" in gerbil_language.methods
