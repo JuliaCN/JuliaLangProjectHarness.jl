@@ -145,8 +145,6 @@ end
     registry = JSON3.read(String(take!(json_out)))
     doctor_registry = JSON3.read(String(take!(doctor_out)))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
-    gerbil_language =
-        only(filter(language -> language.languageId == "gerbil-scheme", registry.languages))
 
     @test compact_status == 0
     @test occursin("[julia-agent-registry]", String(take!(compact_out)))
@@ -155,15 +153,11 @@ end
     @test registry.registryId == "agent.semantic-protocols.semantic-language-registry"
     @test doctor_registry.registryId == registry.registryId
     @test registry.protocolId == "agent.semantic-protocols.semantic-language"
+    @test count(language -> language.languageId == "julia", registry.languages) == 1
+    @test !any(language -> language.languageId == "gerbil-scheme", registry.languages)
     @test language.languageId == "julia"
     @test language.providerId == "julia-lang-project-harness"
     @test language.binary == "asp-julia-harness"
-    @test gerbil_language.providerId == "gerbil-scheme-harness"
-    @test gerbil_language.binary == "gslph"
-    @test collect(gerbil_language.providerCommandPrefix) == ["gslph"]
-    @test "search/prime" in gerbil_language.methods
-    @test "query/direct-source-read" in gerbil_language.methods
-    @test "guide" in gerbil_language.methods
     @test "search/prime" in language.methods
     @test "search/fzf" in language.methods
     @test "search/query" in language.methods

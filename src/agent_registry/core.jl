@@ -5,9 +5,6 @@ const JULIA_AGENT_REGISTRY_PROTOCOL_VERSION = "1"
 const JULIA_AGENT_PROVIDER_NAMESPACE =
     "agent.semantic-protocols.languages.julia.julia-lang-project-harness"
 const JULIA_AGENT_BINARY = "asp-julia-harness"
-const GERBIL_SCHEME_AGENT_PROVIDER_NAMESPACE =
-    "agent.semantic-protocols.languages.gerbil-scheme.gerbil-scheme-harness"
-const GERBIL_SCHEME_AGENT_BINARY = "gslph"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
@@ -18,7 +15,6 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-dependency-topology.v1.schema.json", "agent.semantic-protocols.semantic-dependency-topology"),
     ("semantic-type-surface.v1.schema.json", "agent.semantic-protocols.semantic-type-surface"),
     ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
-    ("semantic-org-elements-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-org-elements-query-packet"),
     ("semantic-content-compaction.v1.schema.json", "agent.semantic-protocols.semantic-content-compaction"),
     ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
     ("semantic-source-location.v1.schema.json", "agent.semantic-protocols.semantic-source-location"),
@@ -43,12 +39,6 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
     ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
     ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
-]
-
-const GERBIL_SCHEME_AGENT_SCHEMA_FILES = [
-    ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),
-    ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
-    ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
 ]
 
 function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")

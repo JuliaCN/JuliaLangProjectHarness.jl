@@ -161,83 +161,6 @@ function schema_registrations(schema_files)
     registrations
 end
 
-function gerbil_scheme_agent_method_descriptors()
-    [
-        julia_search_method_descriptor(
-            "search/prime",
-            "prime";
-            requires_query=false,
-            supports_json=false,
-            packet_schemas=["semantic-search-packet.v1"],
-        ),
-        julia_search_method_descriptor(
-            "search/owner",
-            "owner";
-            requires_query=true,
-            supports_json=false,
-            packet_schemas=["semantic-search-packet.v1"],
-        ),
-        julia_search_method_descriptor(
-            "search/fzf",
-            "fzf";
-            requires_query=true,
-            supports_json=false,
-            packet_schemas=["semantic-search-packet.v1"],
-        ),
-        julia_search_method_descriptor(
-            "search/ingest",
-            "ingest";
-            requires_query=true,
-            accepts_stdin=true,
-            supports_json=false,
-            packet_schemas=["semantic-search-packet.v1"],
-        ),
-        Dict{String,Any}(
-            "method" => "query/direct-source-read",
-            "command" => "query",
-            "supportsJson" => false,
-            "supportsCompact" => true,
-            "packetSchemas" => ["semantic-query-packet.v1", "semantic-read-packet.v1"],
-            "queryInputForms" => ["selector"],
-            "codeOutput" => Dict(
-                "mode" => "pure-code",
-                "multiMatch" => "deny",
-                "requires" => ["exact-selector"],
-            ),
-            "outputSchemaIds" => ["agent.semantic-protocols.semantic-query-packet"],
-        ),
-        Dict{String,Any}(
-            "method" => "check/changed",
-            "command" => "check",
-            "supportsJson" => false,
-            "supportsCompact" => true,
-            "outputSchemaIds" => ["agent.semantic-protocols.semantic-verification-receipt"],
-        ),
-        Dict{String,Any}(
-            "method" => "guide",
-            "command" => "guide",
-            "supportsJson" => false,
-            "supportsCompact" => true,
-        ),
-    ]
-end
-
-function gerbil_scheme_agent_registration()
-    descriptors = gerbil_scheme_agent_method_descriptors()
-    methods = sort!(unique(String(descriptor["method"]) for descriptor in descriptors))
-    Dict(
-        "languageId" => "gerbil-scheme",
-        "providerId" => "gerbil-scheme-harness",
-        "binary" => GERBIL_SCHEME_AGENT_BINARY,
-        "providerCommandPrefix" => [GERBIL_SCHEME_AGENT_BINARY],
-        "namespace" => GERBIL_SCHEME_AGENT_PROVIDER_NAMESPACE,
-        "displayName" => "Gerbil Scheme Harness",
-        "methods" => methods,
-        "methodDescriptors" => descriptors,
-        "schemas" => schema_registrations(GERBIL_SCHEME_AGENT_SCHEMA_FILES),
-    )
-end
-
 """Build the Julia semantic-language registry packet for client discovery."""
 function julia_agent_registry_packet(project_root::AbstractString=pwd())
     descriptors = julia_agent_method_descriptors()
@@ -261,7 +184,6 @@ function julia_agent_registry_packet(project_root::AbstractString=pwd())
                 "methodDescriptors" => descriptors,
                 "schemas" => julia_schema_registrations(),
             ),
-            gerbil_scheme_agent_registration(),
         ],
     )
 end
