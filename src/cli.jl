@@ -159,6 +159,8 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
         return 0
     elseif command == "search"
         return run_julia_harness_search_cli(args[2:end]; out)
+    elseif command == "batch"
+        return run_julia_harness_batch_cli(args[2:end]; out)
     elseif command == "check"
         return run_julia_harness_check_cli(args[2:end]; out)
     elseif command == "evidence"
@@ -167,6 +169,27 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
         return run_julia_harness_export_cli(args[2:end]; out)
     end
     nothing
+end
+
+function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
+    isempty(args) || error("batch does not accept positional arguments")
+    status = 0
+    for (index, line) in enumerate(split(read(stdin, String), '\n'))
+        isempty(strip(line)) && continue
+        step_args = String.(split(line, '\t'; keepempty=false))
+        buffer = IOBuffer()
+        started = time_ns()
+        step_status = run_julia_project_harness_protocol_cli(step_args; out=buffer)
+        elapsed_ms = round(Int, (time_ns() - started) / 1_000_000)
+        isnothing(step_status) && error("batch step $(index) must be a protocol command")
+        step_output = String(take!(buffer))
+        println(out, "%%ASP_JULIA_BATCH_STEP\t$(index)\t$(step_status)\t$(sizeof(step_output))\t$(elapsed_ms)")
+        print(out, step_output)
+        endswith(step_output, "\n") || println(out)
+        println(out, "%%ASP_JULIA_BATCH_END\t$(index)")
+        status = max(status, step_status)
+    end
+    status
 end
 
 function run_julia_harness_check_cli(args::Vector{String}; out=stdout)

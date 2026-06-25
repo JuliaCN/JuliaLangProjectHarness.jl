@@ -46,9 +46,9 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_search_graph("owner"; project_root=options.project_root, render_mode=options.render_view, owner_path=owner_path))
     elseif view == "fzf"
-        length(args) >= 2 || error("search fzf requires a query")
-        query = args[2]
-        options = parse_julia_search_args(args[3:end])
+        query_terms, rest = parse_julia_fzf_search_args(args[2:end])
+        query = join(query_terms, " ")
+        options = parse_julia_search_args(rest)
         if options.json
             print(
                 out,
@@ -57,13 +57,14 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
                     project_root=options.project_root,
                     render_mode=options.render_view,
                     query,
+                    query_set=query_terms,
                 ),
             )
             print(out, "\n")
             return 0
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
-        print(out, render_julia_search_graph("fzf"; project_root=options.project_root, render_mode=options.render_view, query=query))
+        print(out, render_julia_search_graph("fzf"; project_root=options.project_root, render_mode=options.render_view, query=query, query_set=query_terms))
     elseif view in ["dependency", "deps"]
         length(args) >= 2 || error("search deps requires a dependency query")
         query = args[2]
@@ -176,6 +177,30 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         error("unknown search view: $(view)")
     end
     0
+end
+
+function parse_julia_fzf_search_args(args::Vector{String})
+    isempty(args) && error("search fzf requires a query")
+    if first(args) != "--query-set"
+        return String[args[1]], args[2:end]
+    end
+    query_terms = String[]
+    rest_start = length(args) + 1
+    index = 1
+    while index <= length(args)
+        arg = args[index]
+        if arg == "--query-set"
+            index += 1
+            index <= length(args) || error("--query-set requires a query")
+            push!(query_terms, args[index])
+        else
+            rest_start = index
+            break
+        end
+        index += 1
+    end
+    isempty(query_terms) && error("search fzf requires at least one --query-set")
+    query_terms, args[rest_start:end]
 end
 
 function split_julia_knowledge_axis_args(args::Vector{String})

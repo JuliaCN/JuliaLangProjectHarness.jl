@@ -99,6 +99,51 @@ function run_julia_microbench(action::Function, case_name::AbstractString)
     @test stats.p95 <= config.p95_max_ms || error(julia_microbench_failure(case_name, stats, config.p95_max_ms))
 end
 
+function julia_dataframes_fixture_root()
+    env_root = get(ENV, "SANDTABLE_JULIA_DATAFRAMES_ROOT", "")
+    if !isempty(env_root) && isdir(env_root) && isfile(joinpath(env_root, "src", "DataFrames.jl"))
+        return env_root
+    end
+
+    package_root = joinpath(homedir(), ".julia", "packages", "DataFrames")
+    isdir(package_root) || return nothing
+    candidates = [
+        joinpath(package_root, entry)
+        for entry in readdir(package_root)
+        if isdir(joinpath(package_root, entry)) &&
+            isfile(joinpath(package_root, entry, "src", "DataFrames.jl"))
+    ]
+    isempty(candidates) && return nothing
+    last(sort(candidates))
+end
+
+function julia_batch_step_elapsed_ms(batch_output::AbstractString)
+    elapsed = Int[]
+    for line in split(String(batch_output), '\n')
+        startswith(line, "%%ASP_JULIA_BATCH_STEP\t") || continue
+        fields = split(line, '\t')
+        length(fields) >= 5 || continue
+        push!(elapsed, parse(Int, fields[5]))
+    end
+    elapsed
+end
+
+function run_julia_batch_with_stdin(batch_input::AbstractString)
+    input_path = tempname()
+    write(input_path, String(batch_input))
+    out = IOBuffer()
+    status = try
+        open(input_path, "r") do input
+            redirect_stdin(input) do
+                JuliaLangProjectHarness.run_julia_harness_batch_cli(String[]; out)
+            end
+        end
+    finally
+        isfile(input_path) && rm(input_path; force=true)
+    end
+    status, String(take!(out))
+end
+
 @testset "microbench: query/search provider internals" begin
     root = mktempdir()
     write_julia_microbench_project(root)
@@ -127,5 +172,61 @@ end
             project_root=root,
             render_mode="seeds",
         )
+    end
+end
+
+@testset "DataFrames query and batch provider internals" begin
+    dataframes_root = julia_dataframes_fixture_root()
+    if dataframes_root === nothing
+        @info "skip DataFrames provider internals: local DataFrames checkout not found"
+    else
+        selector = "src/DataFrames.jl:1:40"
+        query_output = JuliaLangProjectHarness.render_julia_query_code_selector(
+            selector,
+            dataframes_root,
+        )
+        @test occursin("module DataFrames", query_output)
+        @test occursin("using Tables: ByRow", query_output)
+
+        cli_out = IOBuffer()
+        cli_status = run_julia_project_harness_cli(
+            [
+                "query",
+                "--from-hook",
+                "direct-source-read",
+                "--workspace",
+                dataframes_root,
+                "--selector",
+                selector,
+                "--code",
+            ];
+            out=cli_out,
+        )
+        cli_rendered = String(take!(cli_out))
+        @test cli_status == 0
+        @test occursin("module DataFrames", cli_rendered)
+
+        batch_input = join(
+            [
+                "search\tprime\t--view\tseeds\t--workspace\t.",
+                "search\towner\tsrc/DataFrames.jl\t--view\tseeds\t--workspace\t.",
+                "search\tdeps\tTables\t--view\tseeds\t--workspace\t.",
+                "search\tfzf\t--query-set\tgroupby\t--query-set\tDataFrame\t--query-set\ttransform\towner\ttests\t--view\tseeds\t--workspace\t.",
+            ],
+            "\n",
+        ) * "\n"
+
+        cd(dataframes_root) do
+            warmup_status, _ = run_julia_batch_with_stdin(batch_input)
+            @test warmup_status == 0
+            batch_status, batch_rendered = run_julia_batch_with_stdin(batch_input)
+            elapsed = julia_batch_step_elapsed_ms(batch_rendered)
+            @test batch_status == 0
+            @test length(elapsed) == 4
+            @test maximum(elapsed) <= 20
+            @test occursin("[search-owner]", batch_rendered)
+            @test occursin("src/DataFrames.jl", batch_rendered)
+            @test occursin("[search-fzf]", batch_rendered)
+        end
     end
 end

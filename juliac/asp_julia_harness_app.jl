@@ -13,8 +13,10 @@ end
 @compile_workload begin
     if isfile(joinpath(PACKAGE_ROOT, "Project.toml"))
         run_cli(["agent", "guide", PACKAGE_ROOT]; out=devnull, err=devnull)
-        run_cli(["search", "prime", "--view", "seeds", PACKAGE_ROOT]; out=devnull, err=devnull)
-        run_cli(["search", "fzf", "parser", "owner", "tests", "--view", "seeds", PACKAGE_ROOT]; out=devnull, err=devnull)
+        run_cli(["search", "prime", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
+        run_cli(["search", "owner", "src/JuliaLangProjectHarness.jl", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
+        run_cli(["search", "deps", "JSON3", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
+        run_cli(["search", "fzf", "--query-set", "parser", "--query-set", "module", "--query-set", "render", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
         JuliaLangProjectHarness.julia_index_export_packet(PACKAGE_ROOT)
     end
 end

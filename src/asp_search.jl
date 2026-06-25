@@ -144,7 +144,8 @@ end
 
 function julia_search_window_targets(owners::Vector{String}, tests::Vector{String})
     targets = Dict{String,Any}[]
-    for owner in search_window_owner_paths(owners)[1:min(length(search_window_owner_paths(owners)), 8)]
+    window_owners = search_window_owner_paths(owners)
+    for owner in window_owners[1:min(length(window_owners), 8)]
         push!(targets, Dict{String,Any}("kind" => "owner", "target" => owner))
     end
     remaining = 8 - length(targets)
@@ -188,6 +189,8 @@ end
 function julia_search_native_facts(entries::Vector{JuliaSearchIndexEntry}, project_root::AbstractString; limit::Int=64)
     [asp_search_index_fact(entry, project_root) for entry in entries[1:min(length(entries), limit)]]
 end
+
+include("asp_search/fast_frontier.jl")
 
 function julia_workspace_search_packet(project_root::AbstractString; render_mode::AbstractString="seeds")
     entries = julia_project_search_index(project_root)
