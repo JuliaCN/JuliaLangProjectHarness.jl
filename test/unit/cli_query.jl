@@ -71,6 +71,9 @@
     @test occursin("[query-owner-items] owner=src/CliExample.jl", compact_rendered)
     @test occursin("|query term=run status=hit match=exact", compact_rendered)
     @test occursin("|item run kind=", compact_rendered)
+    @test occursin("structuralSelector=julia://src/CliExample.jl#item/", compact_rendered)
+    @test occursin("displayLineRange=", compact_rendered)
+    @test occursin("sourceLocatorHint=src/CliExample.jl:", compact_rendered)
     @test !occursin("|code read=src/CliExample.jl:", compact_rendered)
     @test occursin("kind=asp-owned-code", compact_rendered)
     @test json_status == 0
@@ -87,6 +90,12 @@
     @test packet.outputMode == "code"
     @test packet.matchCount >= 1
     @test any(match -> match.name == "run" && haskey(match, :projection), packet.matches)
+    @test any(
+        match -> startswith(match.structuralSelector, "julia://src/CliExample.jl#item/") &&
+                 startswith(match.sourceLocatorHint, "src/CliExample.jl:") &&
+                 !isempty(match.displayLineRange),
+        packet.matches,
+    )
     run_projection_matches = filter(
         match -> match.name == "run" && haskey(match, :projection),
         packet.matches,
@@ -104,6 +113,9 @@
     @test occursin("mode=names", names_hit_rendered)
     @test occursin("|query term=run status=hit match=exact", names_hit_rendered)
     @test occursin("|item run kind=", names_hit_rendered)
+    @test occursin("structuralSelector=julia://src/CliExample.jl#item/", names_hit_rendered)
+    @test occursin("displayLineRange=", names_hit_rendered)
+    @test occursin("sourceLocatorHint=src/CliExample.jl:", names_hit_rendered)
     @test !occursin("|code", names_hit_rendered)
     @test json_names_status == 0
     @test names_packet.method == "query/owner-items"
@@ -113,6 +125,12 @@
     @test names_packet.queryCoverage[1].match == "exact"
     @test any(
         match -> match.name == "run" && !haskey(match, :code) && !haskey(match, :projection),
+        names_packet.matches,
+    )
+    @test any(
+        match -> startswith(match.structuralSelector, "julia://src/CliExample.jl#item/") &&
+                 startswith(match.sourceLocatorHint, "src/CliExample.jl:") &&
+                 !isempty(match.displayLineRange),
         names_packet.matches,
     )
     trailing_root_err = IOBuffer()

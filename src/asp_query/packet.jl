@@ -136,7 +136,7 @@ function render_julia_query_owner_items(
     for match in packet["matches"]
         push!(
             lines,
-            "|item $(match["name"]) kind=$(match["kind"]) visibility=$(match["visibility"]) read=$(match["read"])",
+            "|item $(match["name"]) kind=$(match["kind"]) visibility=$(match["visibility"]) structuralSelector=$(match["structuralSelector"]) displayLineRange=$(match["displayLineRange"]) sourceLocatorHint=$(match["sourceLocatorHint"]) read=$(match["read"])",
         )
     end
     if code

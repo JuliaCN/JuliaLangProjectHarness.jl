@@ -163,26 +163,34 @@
     @test occursin("T=test:path(test/runtests.jl)!tests", prime_rendered)
     @test owner_status == 0
     @test occursin("[search-owner] q=src/CliExample.jl view=owner", owner_rendered)
-    @test occursin("O=owner:path(src/CliExample.jl)!owner", owner_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)", owner_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", owner_rendered)
     @test text_status == 0
     @test occursin("[search-fzf] q=run view=fzf", text_rendered)
     @test occursin("Q=query:term(run)!fzf", text_rendered)
-    @test occursin("O=owner:path(src/CliExample.jl)!owner", text_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)", text_rendered)
     @test deps_status == 0
     @test occursin("[search-deps] q=JSON3::read", deps_rendered) ||
           occursin("[search-dependency] q=JSON3::read", deps_rendered)
     @test occursin("view=deps", deps_rendered)
-    @test occursin("O=owner:path(src/CliExample.jl)!owner", deps_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)", deps_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", deps_rendered)
     @test occursin("JSON3", deps_rendered)
     @test query_status == 0
     @test occursin("[search-query] q=run", query_rendered)
     @test occursin("selector=**/*.jl", query_rendered)
-    @test occursin("O=owner:path(src/CliExample.jl)!owner", query_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)", query_rendered)
+    @test occursin(
+        "@julia://src/CliExample.jl#item/owner/src/CliExample.jl!owner",
+        query_rendered,
+    )
     @test policy_status == 0
     @test occursin("[search-policy] q=JULIA-PROJ-R001 view=policy", policy_rendered)
-    @test occursin("O=owner:path(src/rules/catalog.jl)!owner", policy_rendered)
+    @test occursin("O=owner:path(src/rules/catalog.jl)", policy_rendered)
+    @test occursin(
+        "@julia://src/rules/catalog.jl#item/owner/src/rules/catalog.jl!owner",
+        policy_rendered,
+    )
     @test occursin("T=test:path(test/unit/rule_catalog.jl)!tests", policy_rendered)
     @test occursin("T2=test:path(test/unit/project/policy.jl)!tests", policy_rendered)
     @test miss_status == 0
@@ -191,7 +199,11 @@
     @test occursin("rank= frontier=", miss_rendered)
     @test ingest_status == 0
     @test occursin("[search-ingest]", ingest_rendered)
-    @test occursin("O=owner:path(src/CliExample.jl)!owner", ingest_rendered)
+    @test occursin("O=owner:path(src/CliExample.jl)", ingest_rendered)
+    @test occursin(
+        "@julia://src/CliExample.jl#item/owner/src/CliExample.jl!owner",
+        ingest_rendered,
+    )
     @test occursin("T=test:path(test/runtests.jl)!tests", ingest_rendered)
     @test occursin("frontier=O.owner,T.tests", ingest_rendered)
     @test ingest_extra_root_status != 0

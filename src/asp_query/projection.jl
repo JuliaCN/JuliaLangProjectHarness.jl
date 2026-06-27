@@ -2,6 +2,10 @@ function julia_query_read_locator(location::AbstractDict)
     "$(location["path"]):$(location["lineRange"])"
 end
 
+function julia_query_structural_selector(entry::JuliaSearchIndexEntry, location::AbstractDict)
+    "julia://$(location["path"])#item/$(entry.kind)/$(entry.name)"
+end
+
 function julia_query_node_id(entry::JuliaSearchIndexEntry, owner_path::AbstractString)
     replace(asp_fact_id(entry, owner_path), r"[^a-zA-Z0-9_.:-]+" => "_")
 end
@@ -76,17 +80,24 @@ function julia_query_match_row(
 )
     location = asp_location_row(entry.location, project_root)
     read = julia_query_read_locator(location)
+    structural_selector = julia_query_structural_selector(entry, location)
     row = Dict{String,Any}(
         "name" => String(entry.name),
         "kind" => String(entry.kind),
         "visibility" => "public" in entry.tags ? "public" : "unknown",
         "doc" => String(entry.kind) == "doc",
         "location" => location,
+        "structuralSelector" => structural_selector,
+        "displayLineRange" => location["lineRange"],
+        "sourceLocatorHint" => read,
         "read" => read,
         "truncated" => false,
         "fields" => Dict{String,Any}(
             "juliaKind" => String(entry.kind),
             "portableKind" => asp_fact_kind(entry),
+            "structuralSelector" => structural_selector,
+            "displayLineRange" => location["lineRange"],
+            "sourceLocatorHint" => read,
         ),
     )
     include_code && merge!(row, julia_query_projection(entry, project_root, read))
