@@ -21,4 +21,5 @@ using Test
     include("unit/rule_catalog.jl")
     include("unit/rule_visibility.jl")
     include("unit/harness_rules.jl")
+    include("unit/scenario_benchmark.jl")
 end

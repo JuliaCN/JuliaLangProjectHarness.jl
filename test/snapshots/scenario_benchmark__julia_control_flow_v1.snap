@@ -1,0 +1,19 @@
+schema = "schemas/semantic-scenario-benchmark.v1.schema.json"
+agent_policy_id_schema = "schemas/semantic-agent-policy-id.v1.schema.json"
+language = "julia"
+scenario_id = "julia-control-flow-v1"
+scenario_path = "test/unit/scenarios/software_criteria/control_flow_v1/scenario.toml"
+benchmark_path = "test/unit/scenarios/software_criteria/control_flow_v1/benchmark.toml"
+policy_ids = ["JULIA-AGENT-CONTROL-FLOW-001"]
+inputs = "test/unit/scenarios/software_criteria/control_flow_v1/inputs"
+expected = "test/unit/scenarios/software_criteria/control_flow_v1/expect"
+harness = "julia-test"
+test = "test/unit/scenarios/software_criteria/control_flow_v1"
+policy_trigger = "julia-test scenario fixture reads inputs/src/criterion.jl and compares expect/findings.json plus expect/rendered.txt"
+expected_rule_ids = ["JULIA-AGENT-PROJECT-014"]
+expected_criteria = [
+  "control-flow.decision-stack",
+  "control-flow.broad-linear-phase",
+]
+input_expected_comparison = "expected fixture exposes branch shape and broad accumulation before agent edits; observed policy receipts catch two low-quality input patterns."
+snapshot_role = "scenario-benchmark-policy-trigger-contract"

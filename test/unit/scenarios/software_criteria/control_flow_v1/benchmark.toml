@@ -1,0 +1,22 @@
+harness = "julia-test"
+test = "test/unit/scenarios/software_criteria/control_flow_v1"
+snapshot = "software_criteria/control_flow_v1"
+target_total = "30ms"
+max_total = "120ms"
+observed_total = "21ms"
+regression_budget = "25ms"
+memory_budget_bytes = 16777216
+observed_memory_bytes = 8388608
+target_rationale = "Julia control-flow policy fixtures should stay small enough for snapshot-level agent quality gates."
+
+[observed_timings]
+parse = "7ms"
+policy = "10ms"
+snapshot = "4ms"
+
+[input_expected_comparison]
+input_total = "21ms"
+expected_total = "8ms"
+input_memory_bytes = 8388608
+expected_memory_bytes = 6291456
+interpretation = "expected fixture exposes branch shape and broad accumulation before agent edits; observed policy receipts catch two low-quality input patterns."

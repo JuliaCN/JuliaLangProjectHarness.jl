@@ -1,8 +1,0 @@
-id = "julia-json-boundary-v1"
-title = "Julia harness exposes JSON-only provider packets"
-policy_ids = ["JULIA-AGENT-JSON-BOUNDARY-001"]
-agent_goal = "Keep the Julia harness benchmark surface focused on structured JSON packets consumed by ASP Rust/client rendering."
-reference_repositories = ["JuliaLang/julia"]
-reference_patterns = ["CLI provider output separates machine JSON contracts from downstream human rendering"]
-inputs = "inputs"
-expected = "expected"

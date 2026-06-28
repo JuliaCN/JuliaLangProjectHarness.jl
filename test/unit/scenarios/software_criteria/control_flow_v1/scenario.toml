@@ -1,0 +1,23 @@
+id = "julia-control-flow-v1"
+title = "Julia control-flow policy findings are reproducible"
+policy_ids = ["JULIA-AGENT-CONTROL-FLOW-001"]
+agent_goal = "Force agents to expose nested public algorithm shape and split broad loops before editing Julia behavior."
+reference_repositories = ["JuliaLang/julia"]
+reference_patterns = [
+  "Public method shape is explicit through guard clauses or dispatch",
+  "Broad accumulation loops are split into named algorithm phases",
+]
+inputs = "inputs"
+expected = "expect"
+
+[policy_trigger]
+kind = "software-criterion"
+trigger = "julia-test scenario fixture reads inputs/src/criterion.jl and compares expect/findings.json plus expect/rendered.txt"
+evidence = "expect/findings.json"
+expected_rule_ids = ["JULIA-AGENT-PROJECT-014"]
+expected_criteria = [
+  "control-flow.decision-stack",
+  "control-flow.broad-linear-phase",
+]
+agent_failure_mode = "AI agent leaves nested public branches and broad accumulation loops in place, causing redundant low-quality edits."
+expected_resolution = "Expose branch shape through dispatch or guard clauses and split broad loops into named helper phases."

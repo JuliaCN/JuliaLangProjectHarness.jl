@@ -1,0 +1,16 @@
+[
+  {
+    "rule_id": "JULIA-AGENT-PROJECT-014",
+    "softwareCriteria": "control-flow.decision-stack",
+    "summary": "nested_route hides public algorithm shape behind nested branches.",
+    "line": 6,
+    "label": "make this public algorithm shape explicit"
+  },
+  {
+    "rule_id": "JULIA-AGENT-PROJECT-014",
+    "softwareCriteria": "control-flow.broad-linear-phase",
+    "summary": "summarize_orders mixes counting, grouping, and accumulation in one public loop.",
+    "line": 27,
+    "label": "split this broad function into named algorithm steps"
+  }
+]
