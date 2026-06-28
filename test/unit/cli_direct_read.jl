@@ -115,7 +115,7 @@ using Test
     @test occursin("[search-query]", search_output)
     @test occursin("selector=**/*.jl", search_output)
     @test occursin("O=owner:path(src/cli.jl)", search_output)
-    @test occursin("@julia://src/cli.jl#item/owner/src/cli.jl!owner", search_output)
+    @test occursin("frontier=O.owner", search_output)
 
     trailing_root_err = IOBuffer()
     trailing_root_status = JuliaLangProjectHarness.run_julia_project_harness_cli(
