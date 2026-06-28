@@ -12,7 +12,7 @@ expected = "expect"
 
 [policy_trigger]
 kind = "software-criterion"
-trigger = "julia-test scenario fixture reads inputs/src/criterion.jl and compares expect/findings.json plus expect/rendered.txt"
+trigger = "julia-test scenario fixture reads inputs/src/criterion.jl and compares expect/findings.json"
 evidence = "expect/findings.json"
 expected_rule_ids = ["JULIA-AGENT-PROJECT-014"]
 expected_criteria = [

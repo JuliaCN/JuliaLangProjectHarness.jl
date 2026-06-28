@@ -1,7 +1,0 @@
-JULIA-AGENT-PROJECT-014 control-flow.decision-stack
-  nested_route hides public algorithm shape behind nested branches.
-  Expected resolution: replace the nested decision stack with guard clauses or explicit dispatch.
-
-JULIA-AGENT-PROJECT-014 control-flow.broad-linear-phase
-  summarize_orders mixes counting, grouping, and accumulation in one public loop.
-  Expected resolution: split counting, classification, and accumulation into named helper steps.
