@@ -12,6 +12,7 @@
         rule_id, sentence = parts
         push!(rule_ids, rule_id)
         @test startswith(rule_id, "AGENT-JL-R") ||
+              startswith(rule_id, "JULIA-AGENT-PROJECT") ||
               startswith(rule_id, "JULIA-MOD-R") ||
               startswith(rule_id, "JULIA-PROJ-R")
         @test endswith(sentence, ".")
