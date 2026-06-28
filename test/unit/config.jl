@@ -42,21 +42,21 @@ end
     root = mktempdir()
     write_config_project(root)
     config = default_julia_harness_config()
-    push!(config.disabled_rules, "JULIA-PROJ-R014")
+    push!(config.disabled_rules, "JULIA-AGENT-PROJECT-014")
 
     report = run_julia_project_harness(root; config)
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("disabled without a concrete explanation", rendered)
 
-    config.disabled_rule_explanations["JULIA-PROJ-R014"] =
+    config.disabled_rule_explanations["JULIA-AGENT-PROJECT-014"] =
         "todo add real explanation after the migration"
     placeholder_report = run_julia_project_harness(root; config)
     @test !JuliaLangProjectHarness.is_clean(placeholder_report)
 
-    config.disabled_rule_explanations["JULIA-PROJ-R014"] = "local policy migration under review"
+    config.disabled_rule_explanations["JULIA-AGENT-PROJECT-014"] = "local policy migration under review"
     clean_report = run_julia_project_harness(root; config)
 
     @test JuliaLangProjectHarness.is_clean(clean_report)
@@ -66,20 +66,20 @@ end
     root = mktempdir()
     write_config_project(root)
     config = default_julia_harness_config()
-    config.rule_severity_overrides["JULIA-PROJ-R002"] = JuliaLangProjectHarness.Info
+    config.rule_severity_overrides["JULIA-AGENT-PROJECT-002"] = JuliaLangProjectHarness.Info
 
     report = run_julia_project_harness(root; config)
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("severity is overridden", rendered)
 
-    config.rule_severity_override_explanations["JULIA-PROJ-R002"] = "later"
+    config.rule_severity_override_explanations["JULIA-AGENT-PROJECT-002"] = "later"
     placeholder_report = run_julia_project_harness(root; config)
     @test !JuliaLangProjectHarness.is_clean(placeholder_report)
 
-    config.rule_severity_override_explanations["JULIA-PROJ-R002"] =
+    config.rule_severity_override_explanations["JULIA-AGENT-PROJECT-002"] =
         "temporary package layout migration"
     clean_report = run_julia_project_harness(root; config)
 
@@ -96,7 +96,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("Blocking severity `warning` is removed", rendered)
 
     config.blocking_severity_explanations["warning"] = "n/a"
@@ -118,7 +118,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("without a concrete explanation", rendered)
 end
 
@@ -133,7 +133,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("without a concrete explanation", rendered)
 end
 
@@ -157,10 +157,10 @@ end
         lib = "package keeps generated source adapters under lib during migration"
 
         [tool.JuliaLangProjectHarness.rule_severity_overrides]
-        "JULIA-PROJ-R002" = "info"
+        "JULIA-AGENT-PROJECT-002" = "info"
 
         [tool.JuliaLangProjectHarness.rule_severity_override_explanations]
-        "JULIA-PROJ-R002" = "temporary package layout migration"
+        "JULIA-AGENT-PROJECT-002" = "temporary package layout migration"
         """,
     )
     mkpath(joinpath(root, "lib"))
@@ -176,7 +176,7 @@ end
     @test config.test_dir_names == ["spec"]
     @test config.blocking_severities ==
           Set([JuliaLangProjectHarness.Warning, JuliaLangProjectHarness.Error])
-    @test config.rule_severity_overrides["JULIA-PROJ-R002"] == JuliaLangProjectHarness.Info
+    @test config.rule_severity_overrides["JULIA-AGENT-PROJECT-002"] == JuliaLangProjectHarness.Info
     @test config.agent_advice_allow_explanation ==
           "stage public API documentation while landing Project.toml policy"
 
@@ -204,7 +204,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R014", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-014", rendered)
     @test occursin("without a concrete explanation", rendered)
 end
 

@@ -24,9 +24,9 @@
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R008", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R008", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
 end
 
 @testset "project runner reports missing package extension entrypoint" begin
@@ -55,9 +55,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R011", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-011", rendered)
     @test occursin("Project extension entrypoint is missing", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R011", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-011", report.findings) == 1
 end
 
 @testset "project runner reports dependencies without compat or source override" begin
@@ -80,9 +80,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R009", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-009", rendered)
     @test occursin("Project dependency lacks compat or source override", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R009", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-009", report.findings) == 1
 end
 
 @testset "project runner reports moving source revs" begin
@@ -108,9 +108,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R010", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-010", rendered)
     @test occursin("Source-tracked dependency rev is not locked", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R010", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-010", report.findings) == 1
 end
 
 @testset "project runner sorts source rev findings by source name" begin
@@ -135,7 +135,7 @@ end
     write(joinpath(root, "src", "Example.jl"), "module Example\nusing Arrow\nend\n")
 
     report = run_julia_project_harness(root)
-    source_findings = filter(finding -> finding.rule_id == "JULIA-PROJ-R010", report.findings)
+    source_findings = filter(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-010", report.findings)
 
     @test [finding.summary for finding in source_findings] == [
         "Project source `Arrow` uses moving `rev = \"main\"`.",
@@ -162,9 +162,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R008", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R008", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
 end
 
 @testset "project runner reports missing Pkg.test entrypoint" begin
@@ -179,10 +179,10 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R003", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-003", rendered)
     @test occursin("Pkg.test entrypoint is missing", rendered)
     @test occursin("test/runtests.jl", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R003", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-003", report.findings) == 1
 end
 
 @testset "project runner reports large inline runtests entrypoint" begin
@@ -198,9 +198,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R004", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-004", rendered)
     @test occursin("Pkg.test entrypoint is no longer a thin aggregate", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R004", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-004", report.findings) == 1
 end
 
 @testset "project runner advises harness test profile hook" begin
@@ -294,15 +294,15 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R005", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-005", rendered)
     @test occursin("Custom source or test scope lacks explanation", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R005", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", report.findings) == 1
 
     config.source_path_explanations["lib"] = "todo"
     placeholder_report = run_julia_project_harness(root; config)
 
     @test !JuliaLangProjectHarness.is_clean(placeholder_report)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R005", placeholder_report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", placeholder_report.findings) == 1
 end
 
 @testset "project runner accepts Pkg entryfile source without conventional src" begin
@@ -356,9 +356,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R006", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-006", rendered)
     @test occursin("Conventional source or test scope was excluded", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R006", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-006", report.findings) == 1
 end
 
 @testset "project runner reports package policy facts" begin
@@ -371,7 +371,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R001", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-001", rendered)
     @test occursin("Project.toml lacks a package name", rendered)
 end
 
@@ -396,11 +396,11 @@ end
 
     @test !JuliaLangProjectHarness.is_clean(report)
     @test !isnothing(report.project_scope.project_parse_error)
-    @test occursin("JULIA-PROJ-R013", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-013", rendered)
     @test occursin("Project.toml is not readable by Pkg", rendered)
     @test occursin("Missing", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R013", report.findings) == 1
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R001", report.findings) == 0
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-013", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-001", report.findings) == 0
 end
 
 @testset "project runner reports entry module mismatch" begin
@@ -413,6 +413,6 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R007", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-007", rendered)
     @test occursin("Package entry file lacks package module declaration", rendered)
 end

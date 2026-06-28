@@ -21,6 +21,6 @@ end
     report = run_julia_lang_harness([source]; config)
     json = render_julia_project_harness_json(report)
 
-    @test occursin("JULIA-PROJ-R014", json)
+    @test occursin("JULIA-AGENT-PROJECT-014", json)
     @test occursin("Harness config escape lacks explanation", json)
 end

@@ -171,7 +171,7 @@ end
     @test occursin("- owner examples/runexamples.jl role=example imports=Example", rendered)
     @test occursin("docs/make.jl function=build_docs/0", rendered)
     @test occursin("examples/runexamples.jl function=scripted_example/0", rendered)
-    @test !occursin("JULIA-PROJ-R008", rendered)
+    @test !occursin("JULIA-AGENT-PROJECT-008", rendered)
 end
 
 @testset "agent snapshot finding groups" begin

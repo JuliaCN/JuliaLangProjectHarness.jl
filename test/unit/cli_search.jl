@@ -67,7 +67,7 @@
         [
             "search",
             "policy",
-            "JULIA-PROJ-R001",
+            "JULIA-AGENT-PROJECT-001",
             "owner",
             "tests",
             "--view",
@@ -185,7 +185,7 @@
         query_rendered,
     )
     @test policy_status == 0
-    @test occursin("[search-policy] q=JULIA-PROJ-R001 view=policy", policy_rendered)
+    @test occursin("[search-policy] q=JULIA-AGENT-PROJECT-001 view=policy", policy_rendered)
     @test occursin("O=owner:path(src/rules/catalog.jl)", policy_rendered)
     @test occursin(
         "@julia://src/rules/catalog.jl#item/owner/src/rules/catalog.jl!owner",

@@ -324,9 +324,9 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R008", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R008", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
 end
 
 @testset "project runner evaluates local Pkg source dependency scopes" begin
@@ -361,7 +361,7 @@ end
     @test report.project_scope.source_dependency_projects == ["deps/LocalDep"]
     @test length(report.workspace_member_scopes) == 1
     @test only(report.workspace_member_scopes).package_name == "LocalDep"
-    @test occursin("JULIA-PROJ-R008", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("deps/LocalDep/src/LocalDep.jl", rendered)
 end
 
@@ -423,8 +423,8 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R008", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R008", report.findings) == 1
+    @test occursin("JULIA-AGENT-PROJECT-008", rendered)
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
     @test occursin("packages/Member/src/Member.jl", rendered)
 end
 
@@ -450,8 +450,8 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test occursin("JULIA-PROJ-R012", rendered)
+    @test occursin("JULIA-AGENT-PROJECT-012", rendered)
     @test occursin("Project extension dependency is undeclared", rendered)
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R012", report.findings) == 1
-    @test count(finding -> finding.rule_id == "JULIA-PROJ-R008", report.findings) == 0
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-012", report.findings) == 1
+    @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 0
 end

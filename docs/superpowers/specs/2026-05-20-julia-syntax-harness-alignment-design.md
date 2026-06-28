@@ -389,22 +389,22 @@ modes.
 
 Initial rules:
 
-- `JULIA-PROJ-R001`: package projects should have a `Project.toml` with a
+- `JULIA-AGENT-PROJECT-001`: package projects should have a `Project.toml` with a
   package name.
-- `JULIA-PROJ-R002`: package projects should expose the package entry module
+- `JULIA-AGENT-PROJECT-002`: package projects should expose the package entry module
   through `src/<PackageName>.jl`, unless config records a reason.
-- `JULIA-PROJ-R003`: harness-enabled packages should mount a configured
+- `JULIA-AGENT-PROJECT-003`: harness-enabled packages should mount a configured
   `Pkg.test` gate from `test/runtests.jl`.
-- `JULIA-PROJ-R004`: `test/runtests.jl` should stay a thin test aggregate when
+- `JULIA-AGENT-PROJECT-004`: `test/runtests.jl` should stay a thin test aggregate when
   it grows beyond small package scale.
-- `JULIA-PROJ-R005`: custom source or test scope paths need concrete
+- `JULIA-AGENT-PROJECT-005`: custom source or test scope paths need concrete
   explanations.
-- `JULIA-PROJ-R006`: removing conventional source or test scope needs a
+- `JULIA-AGENT-PROJECT-006`: removing conventional source or test scope needs a
   concrete explanation.
-- `JULIA-PROJ-R014`: harness config escape surfaces need concrete
+- `JULIA-AGENT-PROJECT-014`: harness config escape surfaces need concrete
   explanations.
 
-The first implementation can keep `JULIA-PROJ-R003` narrow: if the package
+The first implementation can keep `JULIA-AGENT-PROJECT-003` narrow: if the package
 depends on this harness or calls its assertion API, the test gate must be
 configured. Comments and strings do not count.
 

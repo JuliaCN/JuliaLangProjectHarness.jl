@@ -76,7 +76,7 @@
         [
             "search",
             "policy",
-            "JULIA-PROJ-R001",
+            "JULIA-AGENT-PROJECT-001",
             "owner",
             "tests",
             "--view",
@@ -191,8 +191,8 @@
     @test any(action -> action.target == "src/CliExample.jl", query_packet.nextActions)
     @test policy_status == 0
     @test policy_packet.method == "search/policy"
-    @test any(handle -> handle.id == "JULIA-PROJ-R001", policy_packet.semanticHandles)
-    @test any(hit -> hit.symbol == "JULIA-PROJ-R001", policy_packet.hits)
+    @test any(handle -> handle.id == "JULIA-AGENT-PROJECT-001", policy_packet.semanticHandles)
+    @test any(hit -> hit.symbol == "JULIA-AGENT-PROJECT-001", policy_packet.hits)
     @test ingest_status == 0
     @test ingest_packet.method == "search/ingest"
     @test ingest_packet.inputDetection.source == "path-list"

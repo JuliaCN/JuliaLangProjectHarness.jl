@@ -42,17 +42,17 @@ Generated from embedded `src/harness-rules.md`.
 - **JULIA-MOD-R005**: Keeps Julia literal include graphs acyclic.
 - **JULIA-MOD-R006**: Requires Julia source files to be reachable from the package entry include graph.
 - **JULIA-MOD-R007**: Replaces generic Julia source path buckets with domain ownership names.
-- **JULIA-PROJ-R001**: Requires Project.toml to define a concrete package name.
-- **JULIA-PROJ-R002**: Requires Julia packages to expose a parser-stable entry file.
-- **JULIA-PROJ-R003**: Requires Julia package tests to mount the Pkg test entrypoint.
-- **JULIA-PROJ-R004**: Keeps test runtests files as compact Pkg test aggregates.
-- **JULIA-PROJ-R005**: Requires custom Julia source or test scopes to carry project-local explanations.
-- **JULIA-PROJ-R006**: Requires conventional Julia source or test scope exclusions to carry project-local explanations.
-- **JULIA-PROJ-R007**: Requires package entry files to declare a top-level module matching the package name.
-- **JULIA-PROJ-R008**: Requires external Julia imports to be declared in project dependency metadata.
-- **JULIA-PROJ-R009**: Requires registry dependencies to carry compat bounds or source-tracked dependency records.
-- **JULIA-PROJ-R010**: Requires URL-based source dependencies to lock rev to commit SHAs.
-- **JULIA-PROJ-R011**: Requires Julia extension entries to resolve to extension entry files.
-- **JULIA-PROJ-R012**: Requires Julia extension trigger dependencies to be declared.
-- **JULIA-PROJ-R013**: Requires Project.toml to be readable by Pkg.
-- **JULIA-PROJ-R014**: Requires harness config escapes to carry concrete explanations.
+- **JULIA-AGENT-PROJECT-001**: Requires Project.toml to define a concrete package name.
+- **JULIA-AGENT-PROJECT-002**: Requires Julia packages to expose a parser-stable entry file.
+- **JULIA-AGENT-PROJECT-003**: Requires Julia package tests to mount the Pkg test entrypoint.
+- **JULIA-AGENT-PROJECT-004**: Keeps test runtests files as compact Pkg test aggregates.
+- **JULIA-AGENT-PROJECT-005**: Requires custom Julia source or test scopes to carry project-local explanations.
+- **JULIA-AGENT-PROJECT-006**: Requires conventional Julia source or test scope exclusions to carry project-local explanations.
+- **JULIA-AGENT-PROJECT-007**: Requires package entry files to declare a top-level module matching the package name.
+- **JULIA-AGENT-PROJECT-008**: Requires external Julia imports to be declared in project dependency metadata.
+- **JULIA-AGENT-PROJECT-009**: Requires registry dependencies to carry compat bounds or source-tracked dependency records.
+- **JULIA-AGENT-PROJECT-010**: Requires URL-based source dependencies to lock rev to commit SHAs.
+- **JULIA-AGENT-PROJECT-011**: Requires Julia extension entries to resolve to extension entry files.
+- **JULIA-AGENT-PROJECT-012**: Requires Julia extension trigger dependencies to be declared.
+- **JULIA-AGENT-PROJECT-013**: Requires Project.toml to be readable by Pkg.
+- **JULIA-AGENT-PROJECT-014**: Requires harness config escapes to carry concrete explanations.
