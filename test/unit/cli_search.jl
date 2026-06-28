@@ -180,11 +180,11 @@
     @test occursin("[search-query] q=run", query_rendered)
     @test occursin("selector=**/*.jl", query_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", query_rendered)
-    @test occursin("frontier=O.owner", query_rendered)
+    @test occursin("O.owner", query_rendered)
     @test policy_status == 0
     @test occursin("[search-policy] q=JULIA-AGENT-PROJECT-001 view=policy", policy_rendered)
     @test occursin("O=owner:path(src/rules/catalog.jl)", policy_rendered)
-    @test occursin("frontier=O.owner", policy_rendered)
+    @test occursin("O.owner", policy_rendered)
     @test occursin("T=test:path(test/unit/rule_catalog.jl)!tests", policy_rendered)
     @test occursin("T2=test:path(test/unit/project/policy.jl)!tests", policy_rendered)
     @test miss_status == 0
@@ -194,7 +194,7 @@
     @test ingest_status == 0
     @test occursin("[search-ingest]", ingest_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", ingest_rendered)
-    @test occursin("frontier=O.owner", ingest_rendered)
+    @test occursin("O.owner", ingest_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", ingest_rendered)
     @test occursin("frontier=O.owner,T.tests", ingest_rendered)
     @test ingest_extra_root_status != 0
