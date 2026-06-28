@@ -1,0 +1,10 @@
+schema = "schemas/semantic-scenario-benchmark.v1.schema.json"
+agent_policy_id_schema = "schemas/semantic-agent-policy-id.v1.schema.json"
+language = "julia"
+scenario_id = "julia-json-boundary-v1"
+scenario_path = "test/fixtures/scenario_benchmarks/json_boundary_v1/scenario.toml"
+benchmark_path = "test/fixtures/scenario_benchmarks/json_boundary_v1/benchmark.toml"
+policy_ids = ["JULIA-AGENT-JSON-BOUNDARY-001"]
+harness = "julia-test"
+test = "scenario_benchmarks/json_boundary_v1"
+snapshot_role = "scenario-benchmark-contract"
