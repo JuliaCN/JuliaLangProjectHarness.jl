@@ -7,6 +7,10 @@ observed_total = "21ms"
 regression_budget = "25ms"
 memory_budget_bytes = 16777216
 observed_memory_bytes = 8388608
+route_source = "parser-scenario"
+max_provider_process_count = 0
+max_stdout_bytes = 8192
+fallback_reason = "none"
 target_rationale = "Julia control-flow policy fixtures should stay small enough for snapshot-level agent quality gates."
 
 [observed_timings]

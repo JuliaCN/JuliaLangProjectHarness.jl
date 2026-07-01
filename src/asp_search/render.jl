@@ -142,7 +142,7 @@ function render_julia_fast_prime_like_graph(
     push!(lines, "rank=$(rank) frontier=$(frontier)")
     push!(lines, "entries=owner-tests(O=>covering-tests+test-entrypoints+fixtures)")
     push!(lines, "omit=items,blocks,code,full-test-list")
-    push!(lines, "avoid=raw-read,full-json,broad-fzf")
+    push!(lines, "avoid=raw-read,full-json,broad-lexical")
     join(lines, "\n") * "\n"
 end
 

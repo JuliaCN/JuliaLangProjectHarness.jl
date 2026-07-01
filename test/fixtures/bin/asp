@@ -452,7 +452,7 @@ function dedupeStrings(values) {
 
 function defaultAvoid(kind) {
   return kind === "search-fzf" || kind === "search-query"
-    ? "broad-fzf,raw-read,repeat-glob"
+    ? "broad-lexical,raw-read,repeat-glob"
     : undefined;
 }
 

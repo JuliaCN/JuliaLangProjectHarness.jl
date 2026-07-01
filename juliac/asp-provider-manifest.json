@@ -74,11 +74,11 @@
         "seeds"
       ]
     },
-    "fzf": {
+    "lexical": {
       "argv": [
         "asp-julia-harness",
         "search",
-        "fzf",
+        "lexical",
         "{query}",
         "owner",
         "tests",
