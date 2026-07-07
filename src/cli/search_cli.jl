@@ -30,6 +30,19 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         length(args) >= 2 || error("search owner requires an owner path")
         owner_path = args[2]
         options = parse_julia_search_args(args[3:end])
+        if "items" in options.pipes
+            return run_julia_harness_owner_items_query_cli(
+                [owner_path],
+                options.query_terms,
+                options.render_view,
+                false,
+                options.json,
+                false,
+                25;
+                workspace_root = options.project_root,
+                out,
+            )
+        end
         if options.json
             print(
                 out,

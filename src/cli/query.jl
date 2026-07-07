@@ -91,6 +91,23 @@ function run_julia_harness_query_cli(args::Vector{String}; out::IO = stdout)
         )
     end
     isnothing(flow_lite_where) || error("query --where requires --catalog flow-lite")
+    if !isnothing(selector)
+        structural_selector = julia_query_structural_selector_parts(String(selector))
+        if !isnothing(structural_selector)
+            code_only || error("query structural selector requires --code")
+            return run_julia_harness_owner_items_query_cli(
+                [structural_selector.owner_path],
+                [structural_selector.term],
+                render_view == "hits" ? "code" : render_view,
+                true,
+                json,
+                names_only,
+                match_limit;
+                workspace_root,
+                out,
+            )
+        end
+    end
     if !isnothing(from_hook)
         return run_julia_harness_hook_query_cli(
             from_hook,
@@ -301,4 +318,25 @@ end
 function julia_query_owner_selector(selector::String)::String
     path = replace(selector, r"^owner:" => "")
     return replace(path, r":[0-9]+([:-][0-9]+)?$" => "")
+end
+
+function julia_query_structural_selector_parts(selector::String)
+    match_result = match(r"^julia://(.+)#item/([^/]+)/(.+)$", selector)
+    isnothing(match_result) && return nothing
+    owner_path, kind, term = match_result.captures
+    if isempty(owner_path) || isempty(kind) || isempty(term)
+        return nothing
+    end
+    return (
+        owner_path = String(owner_path),
+        kind = String(kind),
+        term = julia_query_decode_selector_term(term),
+    )
+end
+
+function julia_query_decode_selector_term(term::AbstractString)::String
+    decoded = replace(term, "%21" => "!")
+    decoded = replace(decoded, "%3F" => "?")
+    decoded = replace(decoded, "%2F" => "/")
+    return decoded
 end

@@ -205,7 +205,7 @@ const DEFAULT_IGNORED_DIR_NAMES = Set([
 """Return the default Julia project harness configuration."""
 function default_julia_harness_config()
     JuliaHarnessConfig(
-        copy(DEFAULT_IGNORED_DIR_NAMES),
+        union(copy(DEFAULT_IGNORED_DIR_NAMES), Set([".gerbil"])),
         Set([Warning, Error]),
         Set{String}(),
         Dict{String,String}(),

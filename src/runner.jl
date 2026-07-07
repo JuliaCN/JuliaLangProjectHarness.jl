@@ -380,6 +380,7 @@ end
 
 function discover_julia_path!(files::Set{String}, path::AbstractString, ignored_dir_names::Set{String})
     should_ignore_path(path, ignored_dir_names) && return
+    islink(path) && return
     if isfile(path)
         endswith(lowercase(path), ".jl") && push!(files, String(path))
         return
