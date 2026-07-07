@@ -124,7 +124,7 @@ function render_julia_query_owner_items(
         match_limit,
     )
     lines = String[
-        "[query-owner-items] owner=$(packet["ownerPath"]) terms=$(packet["query"]) match=$(packet["matchMode"]) hit=$(packet["matchCount"]) mode=$(packet["outputMode"]) truncated=$(packet["truncated"])",
+        "[query-item] owner=$(packet["ownerPath"]) terms=$(packet["query"]) match=$(packet["matchMode"]) hit=$(packet["matchCount"]) mode=$(packet["outputMode"]) truncated=$(packet["truncated"])",
     ]
     for coverage in packet["queryCoverage"]
         candidate_text = haskey(coverage, "candidateNames") ? join(coverage["candidateNames"], ",") : "-"

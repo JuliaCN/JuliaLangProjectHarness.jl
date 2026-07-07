@@ -1,6 +1,7 @@
 harness = "julia-test"
 test = "test/unit/scenarios/software_criteria/control_flow_v1"
 snapshot = "software_criteria/control_flow_v1"
+phase = "cold"
 target_total = "30ms"
 max_total = "120ms"
 observed_total = "21ms"

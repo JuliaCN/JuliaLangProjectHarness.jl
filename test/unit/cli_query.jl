@@ -68,7 +68,7 @@
     names_packet = JSON3.read(String(take!(json_names_out)))
 
     @test compact_status == 0
-    @test occursin("[query-owner-items] owner=src/CliExample.jl", compact_rendered)
+    @test occursin("[query-item] owner=src/CliExample.jl", compact_rendered)
     @test occursin("|query term=run status=hit match=exact", compact_rendered)
     @test occursin("|item run kind=", compact_rendered)
     @test occursin("structuralSelector=julia://src/CliExample.jl#item/", compact_rendered)
