@@ -38,6 +38,8 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-assurance-case.v1.schema.json", "agent.semantic-protocols.semantic-assurance-case"),
     ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
     ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
+    ("semantic-exact-selector-receipt.v1.schema.json", "agent.semantic-protocols.semantic-exact-selector-receipt"),
+    ("semantic-language-projection.v1.schema.json", "agent.semantic-protocols.semantic-language-projection"),
     ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
 ]
 

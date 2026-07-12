@@ -15,11 +15,16 @@ function write_cli_project(root::AbstractString)
         """
         module CliExample
         export run
+        include("Other.jl")
         \"\"\"Run a value through the CLI fixture.\"\"\"
         run(value) = helper(value)
         helper(value) = string(value)
         end
         """,
+    )
+    write(
+        joinpath(root, "src", "Other.jl"),
+        "module Other\nrun() = nothing\nend\n",
     )
     mkpath(joinpath(root, "test"))
     write(
