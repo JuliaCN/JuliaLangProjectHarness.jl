@@ -74,7 +74,7 @@ function render_julia_text_search(
     tests = search_results_to_test_paths(results, project_root)
     pipe_text = isempty(pipes) ? "-" : join(pipes, ",")
     lines = String[
-        "[search-fzf] q=\"$(compact_cli_value(query))\" owner=$(length(owners)) tests=$(length(tests)) hit=$(length(results)) pipes=$(pipe_text)",
+        "[search-lexical] q=\"$(compact_cli_value(query))\" owner=$(length(owners)) tests=$(length(tests)) hit=$(length(results)) pipes=$(pipe_text)",
         "|flow prime->owner|deps|symbol|tests pipe=text:owner,tests ingest=stdin",
     ]
     for owner in owners
@@ -83,7 +83,7 @@ function render_julia_text_search(
     !isempty(tests) && push!(lines, "|seed tests:$(join(tests, ","))")
     push!(
         lines,
-        "|synthesis algorithm=julia-search-index scope=fzf selectedOwners=$(length(owners)) testFrontier=$(search_seed_frontier(tests)) windowSet=$(search_window_set(owners, tests))",
+        "|synthesis algorithm=julia-search-index scope=lexical selectedOwners=$(length(owners)) testFrontier=$(search_seed_frontier(tests)) windowSet=$(search_window_set(owners, tests))",
     )
     isempty(results) && push!(lines, "|note kind=not-found message=$(query)")
     join(lines, "\n") * "\n"

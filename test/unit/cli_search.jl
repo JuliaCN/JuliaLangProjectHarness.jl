@@ -8,6 +8,7 @@
     text_out = IOBuffer()
     deps_out = IOBuffer()
     query_out = IOBuffer()
+    exact_query_out = IOBuffer()
     policy_out = IOBuffer()
     miss_out = IOBuffer()
     ingest_out = IOBuffer()
@@ -27,7 +28,7 @@
         out=owner_out,
     )
     text_status = run_julia_project_harness_cli(
-        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--workspace", root];
+        ["search", "lexical", "run", "owner", "tests", "--view", "seeds", "--workspace", root];
         out=text_out,
     )
     deps_status = run_julia_project_harness_cli(
@@ -62,6 +63,26 @@
             root,
         ];
         out=query_out,
+    )
+    write(joinpath(root, "src", "Other.jl"), "module Other\nrun() = nothing\nend\n")
+    exact_query_status = run_julia_project_harness_cli(
+        [
+            "search",
+            "query",
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "src/CliExample.jl",
+            "--term",
+            "run",
+            "--surface",
+            "owner,tests",
+            "--view",
+            "seeds",
+            "--workspace",
+            root,
+        ];
+        out=exact_query_out,
     )
     policy_status = run_julia_project_harness_cli(
         [
@@ -132,6 +153,7 @@
     text_rendered = String(take!(text_out))
     deps_rendered = String(take!(deps_out))
     query_rendered = String(take!(query_out))
+    exact_query_rendered = String(take!(exact_query_out))
     policy_rendered = String(take!(policy_out))
     miss_rendered = String(take!(miss_out))
     ingest_rendered = String(take!(ingest_out))
@@ -166,8 +188,8 @@
     @test occursin("O=owner:path(src/CliExample.jl)", owner_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", owner_rendered)
     @test text_status == 0
-    @test occursin("[search-fzf] q=run view=fzf", text_rendered)
-    @test occursin("Q=query:term(run)!fzf", text_rendered)
+    @test occursin("[search-lexical] q=run view=lexical", text_rendered)
+    @test occursin("Q=query:term(run)!lexical", text_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", text_rendered)
     @test deps_status == 0
     @test occursin("[search-deps] q=JSON3::read", deps_rendered) ||
@@ -181,6 +203,9 @@
     @test occursin("selector=**/*.jl", query_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", query_rendered)
     @test occursin("O.owner", query_rendered)
+    @test exact_query_status == 0
+    @test occursin("O=owner:path(src/CliExample.jl)", exact_query_rendered)
+    @test !occursin("src/Other.jl", exact_query_rendered)
     @test policy_status == 0
     @test occursin("[search-policy] q=JULIA-AGENT-PROJECT-001 view=policy", policy_rendered)
     @test occursin("O=owner:path(src/rules/catalog.jl)", policy_rendered)

@@ -15,7 +15,7 @@ end
 
 function julia_query_owner_entries(owner_path::AbstractString, project_root::AbstractString)
     owner = normalized_owner_path(owner_path)
-    entries = julia_project_search_index(project_root)
+    entries = julia_exact_owner_search_entries(owner, project_root)
     [
         entry for entry in entries
         if normalized_owner_path(search_entry_owner_path(entry, project_root)) == owner &&

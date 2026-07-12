@@ -159,7 +159,7 @@ end
     @test language.providerId == "julia-lang-project-harness"
     @test language.binary == "asp-julia-harness"
     @test "search/prime" in language.methods
-    @test "search/fzf" in language.methods
+    @test "search/lexical" in language.methods
     @test "search/query" in language.methods
     @test "search/policy" in language.methods
     @test "query/owner-items" in language.methods
@@ -198,6 +198,39 @@ end
             "agent.semantic-protocols.semantic-query-packet" in descriptor.outputSchemaIds,
         language.methodDescriptors,
     )
+    search_descriptors = filter(
+        descriptor -> startswith(String(descriptor.method), "search/"),
+        language.methodDescriptors,
+    )
+    @test all(descriptor -> haskey(descriptor, "benchmarkInvocation"), search_descriptors)
+    @test all(search_descriptors) do descriptor
+        invocation = descriptor.benchmarkInvocation
+        invocation.args[1:2] == ["search", descriptor.view] &&
+            "{workspace}" in invocation.args &&
+            invocation.expectsJson isa Bool &&
+            invocation.maxElapsedMs > 0
+    end
+    benchmark_invocations = Dict(
+        String(descriptor.method) => descriptor.benchmarkInvocation
+        for descriptor in search_descriptors
+    )
+    @test benchmark_invocations["search/owner"].args[1:6] == [
+        "search",
+        "owner",
+        "{owner}",
+        "items",
+        "--query",
+        "{query}",
+    ]
+    @test benchmark_invocations["search/lexical"].args[1:6] == [
+        "search",
+        "lexical",
+        "--query",
+        "{query}",
+        "--query",
+        "{owner}",
+    ]
+    @test benchmark_invocations["search/semantic-facts"].stdinTemplate == "{owner}:1:{query}\\n"
 end
 
 @testset "package-local semantic schemas stay synchronized when protocol root is present" begin

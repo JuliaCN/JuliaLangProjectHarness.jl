@@ -11,6 +11,7 @@ function julia_query_owner_items_packet(
     names_only::Bool=false,
     code::Bool=false,
     match_limit::Int=25,
+    structural_selector=nothing,
 )
     root = abspath(String(project_root))
     owner = normalized_owner_path(owner_path)
@@ -18,6 +19,14 @@ function julia_query_owner_items_packet(
     isempty(terms) && error("query/owner-items requires --term or --query")
     match_limit >= 0 || error("--limit must be non-negative")
     entries = julia_query_owner_entries(owner, root)
+    owner_found = !isempty(entries)
+    if !isnothing(structural_selector)
+        expected_selector = String(structural_selector)
+        entries = [
+            entry for entry in entries
+            if julia_query_structural_selector(entry, asp_location_row(entry.location, root)) == expected_selector
+        ]
+    end
     coverage = julia_query_coverage(entries, terms, owner; project_root=root)
     matched_pairs = julia_query_matching_entries(entries, terms, owner)
     total_matches = length(matched_pairs)
@@ -65,7 +74,7 @@ function julia_query_owner_items_packet(
     )
     if !isempty(matches)
         packet["patchSafety"]["exactRead"] = first(matches)["read"]
-    elseif isempty(entries)
+    elseif !owner_found
         push!(
             packet["notes"],
             Dict(
@@ -93,6 +102,7 @@ function render_julia_query_owner_items_json(
     names_only::Bool=false,
     code::Bool=false,
     match_limit::Int=25,
+    structural_selector=nothing,
 )
     JSON3.write(
         julia_query_owner_items_packet(
@@ -102,6 +112,7 @@ function render_julia_query_owner_items_json(
             names_only,
             code,
             match_limit,
+            structural_selector,
         ),
     )
 end
@@ -114,6 +125,7 @@ function render_julia_query_owner_items(
     names_only::Bool=false,
     code::Bool=false,
     match_limit::Int=25,
+    structural_selector=nothing,
 )
     packet = julia_query_owner_items_packet(
         owner_path,
@@ -122,6 +134,7 @@ function render_julia_query_owner_items(
         names_only,
         code,
         match_limit,
+        structural_selector,
     )
     lines = String[
         "[query-item] owner=$(packet["ownerPath"]) terms=$(packet["query"]) match=$(packet["matchMode"]) hit=$(packet["matchCount"]) mode=$(packet["outputMode"]) truncated=$(packet["truncated"])",

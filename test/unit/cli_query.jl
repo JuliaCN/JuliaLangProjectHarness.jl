@@ -1,11 +1,27 @@
 @testset "cli query owner items packet" begin
     root = mktempdir()
     write_cli_project(root)
+    write(joinpath(root, "src", "Unrelated.jl"), "module Unrelated\nrun() = nothing\nend\n")
+    exact_owner_entries = JuliaLangProjectHarness.julia_exact_owner_search_entries(
+        "src/CliExample.jl",
+        root,
+    )
+    missing_owner_entries = JuliaLangProjectHarness.julia_exact_owner_search_entries(
+        "src/Missing.jl",
+        root,
+    )
     compact_out = IOBuffer()
     json_out = IOBuffer()
     names_out = IOBuffer()
     names_hit_out = IOBuffer()
     json_names_out = IOBuffer()
+
+    @test !isempty(exact_owner_entries)
+    @test all(
+        entry -> JuliaLangProjectHarness.search_entry_owner_path(entry, root) == "src/CliExample.jl",
+        exact_owner_entries,
+    )
+    @test isempty(missing_owner_entries)
 
     compact_status = run_julia_project_harness_cli(
         [
@@ -152,7 +168,7 @@
     )
     @test missing_owner_status == 2
     @test occursin(
-        "query --names-only requires an owner selector; workspace term discovery is `search fzf '<term>' owner --workspace <workspace-root> --view seeds`",
+        "query --names-only requires an owner selector; workspace term discovery is `search lexical '<term>' owner --workspace <workspace-root> --view seeds`",
         String(take!(missing_owner_err)),
     )
     @test_throws ErrorException julia_query_owner_items_packet(

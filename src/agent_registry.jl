@@ -32,13 +32,13 @@ function julia_agent_method_descriptors()
             ],
         ),
         julia_search_method_descriptor(
-            "search/fzf",
-            "fzf";
+            "search/lexical",
+            "lexical";
             requires_query=true,
             accepted_pipes=["owner", "tests"],
             capabilities=[
-                julia_agent_capability("finder-fuzzy-candidate-search"; namespace="semantic"),
-                julia_agent_capability("julia-search-index-fzf"),
+                julia_agent_capability("lexical-candidate-search"; namespace="semantic"),
+                julia_agent_capability("julia-search-index-lexical"),
             ],
         ),
         julia_search_method_descriptor(
@@ -60,7 +60,7 @@ function julia_agent_method_descriptors()
             accepted_pipes=["owner", "tests"],
             required_options=["--from-hook", "--selector", "--term"],
             supports_query_set=true,
-            accepted_query_set_selectors=["fuzzy-set"],
+            accepted_query_set_selectors=["lexical-set"],
             output_schema_ids=[
                 "agent.semantic-protocols.semantic-search-packet",
                 "agent.semantic-protocols.semantic-native-syntax-fact-index",

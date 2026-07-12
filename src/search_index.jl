@@ -36,6 +36,32 @@ function julia_project_search_index(
     )
 end
 
+"""Resolve one concrete Julia owner within a project root.
+
+An exact owner is a parser boundary. Callers must not widen a missing or
+non-source selector into a project scan.
+"""
+function julia_exact_owner_source_path(
+    owner_path::AbstractString,
+    project_root::AbstractString,
+)
+    root = abspath(String(project_root))
+    owner = String(owner_path)
+    source_path = isabspath(owner) ? normpath(owner) : normpath(joinpath(root, owner))
+    isfile(source_path) && endswith(lowercase(source_path), ".jl") ? source_path : nothing
+end
+
+"""Build syntax-search entries for one concrete Julia owner only."""
+function julia_exact_owner_search_entries(
+    owner_path::AbstractString,
+    project_root::AbstractString;
+    config=default_julia_harness_config(),
+)
+    source_path = julia_exact_owner_source_path(owner_path, project_root)
+    isnothing(source_path) && return JuliaSearchIndexEntry[]
+    julia_lang_search_index([source_path]; config)
+end
+
 """Search explicit Julia source roots with optional syntax tag filters."""
 function search_julia_lang(
     paths::Vector{<:AbstractString},

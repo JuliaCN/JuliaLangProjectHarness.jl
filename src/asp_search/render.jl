@@ -19,9 +19,9 @@ function render_julia_search_packet_json(
     elseif view == "owner"
         isnothing(owner_path) && error("search owner JSON requires an owner path")
         julia_owner_search_packet(owner_path, project_root; render_mode)
-    elseif view == "fzf"
-        isnothing(query) && error("search fzf JSON requires a query")
-        packet = julia_fzf_search_packet(query, project_root; render_mode)
+    elseif view == "lexical"
+        isnothing(query) && error("search lexical JSON requires a query")
+        packet = julia_lexical_search_packet(query, project_root; render_mode)
         if !isempty(query_set)
             packet["querySet"] = [
                 Dict{String,Any}("value" => term, "kind" => "text", "selector" => "fuzzy")
@@ -83,9 +83,9 @@ function julia_fast_search_packet(
     elseif view == "owner"
         isnothing(owner_path) && error("search owner requires an owner path")
         return julia_fast_owner_search_packet(owner_path, project_root; render_mode)
-    elseif view == "fzf"
-        isnothing(query) && error("search fzf requires a query")
-        return julia_fast_fzf_search_packet(query, project_root; render_mode, query_set)
+    elseif view == "lexical"
+        isnothing(query) && error("search lexical requires a query")
+        return julia_fast_lexical_search_packet(query, project_root; render_mode, query_set)
     elseif view == "deps"
         isnothing(query) && error("search deps requires a dependency query")
         return julia_fast_dependency_search_packet(query, project_root; render_mode)
@@ -109,8 +109,8 @@ function render_julia_fast_packet_graph(packet::Dict{String,Any})
         return render_julia_fast_owner_graph(packet, owners, tests)
     elseif view == "deps"
         return render_julia_fast_dependency_graph(packet, owners, tests)
-    elseif view == "fzf"
-        return render_julia_fast_fzf_graph(packet, owners)
+    elseif view == "lexical"
+        return render_julia_fast_lexical_graph(packet, owners)
     end
     error("unsupported Julia fast graph view: $(view)")
 end
@@ -131,7 +131,7 @@ function render_julia_fast_prime_like_graph(
     frontier = join(julia_compact_frontier(owner_ids, "owner", test_ids, "tests"), ",")
     lines = String[
         "[search-$(view)] root=$(root) view=$(view) alg=budgeted-prime-frontier-v1 budget=handles:12",
-        "|decision purpose=decision-primer answer=false code=false capabilities=pipe,fzf,fd-query,rg-query,owner-items,selector-code,treesitter-query ladder=pipe>fzf>fd-query|rg-query>owner-items>selector-code history=asp-artifacts:directReadRisk,repeatedPrime,repeatedPipe,bestPath risk=broad-direct-read,manual-window-scan,repeat-prime next=\"asp julia search pipe '<question-or-feature-term>' --workspace . --view seeds\"",
+        "|decision purpose=decision-primer answer=false code=false capabilities=pipe,lexical,fd-query,rg-query,owner-items,selector-code,treesitter-query ladder=pipe>lexical>fd-query|rg-query>owner-items>selector-code history=asp-artifacts:directReadRisk,repeatedPrime,repeatedPipe,bestPath risk=broad-direct-read,manual-window-scan,repeat-prime next=\"asp julia search pipe '<question-or-feature-term>' --workspace . --view seeds\"",
         "legend: ID=kind:role(value)!next; entries profile(selectors=>returns); frontier ID.next",
         "aliases: graph:{G=search,O=owner,T=test}",
     ]
@@ -200,23 +200,23 @@ function render_julia_fast_dependency_graph(
     join(lines, "\n") * "\n"
 end
 
-function render_julia_fast_fzf_graph(packet::Dict{String,Any}, owners::Vector{String})
+function render_julia_fast_lexical_graph(packet::Dict{String,Any}, owners::Vector{String})
     query = String(get(packet, "query", ""))
     query_set = get(packet, "querySet", Any[])
     selected = owners[1:min(length(owners), 11)]
     owner_ids = julia_compact_ids("O", length(selected))
     ids = vcat(["Q"], owner_ids)
     rank = join(ids, ",")
-    frontier = join(vcat(["Q.fzf"], ["$(id).owner" for id in owner_ids]), ",")
-    header = "[search-fzf] q=$(query)"
+    frontier = join(vcat(["Q.lexical"], ["$(id).owner" for id in owner_ids]), ",")
+    header = "[search-lexical] q=$(query)"
     if length(query_set) > 1
         header *= " querySet=$(length(query_set))"
     end
     lines = String[
-        "$(header) view=fzf alg=julia-fast-fzf-frontier-v1",
+        "$(header) view=lexical alg=julia-fast-lexical-frontier-v1",
         "legend: ID=kind:role(value)!next; edge SRC>{DST:rel}; frontier ID.next",
         "aliases: graph:{G=search,Q=query,O=owner}",
-        "Q=query:term($(query))!fzf",
+        "Q=query:term($(query))!lexical",
     ]
     julia_push_compact_node_line!(lines, owner_ids, "owner", "path", selected, "owner")
     edge_parts = vcat(["Q:matches"], ["$(id):selects" for id in owner_ids])

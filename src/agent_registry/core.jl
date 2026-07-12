@@ -73,6 +73,7 @@ function julia_search_method_descriptor(
         "requiresQuery" => requires_query,
         "acceptsStdin" => accepts_stdin,
         "supportsPackageScope" => true,
+        "benchmarkInvocation" => julia_search_benchmark_invocation(String(view)),
         "supportsCompact" => supports_compact,
         "supportsJson" => supports_json,
     )
@@ -84,6 +85,53 @@ function julia_search_method_descriptor(
     isempty(accepted_query_set_selectors) || (descriptor["acceptedQuerySetSelectors"] = accepted_query_set_selectors)
     isempty(capabilities) || (descriptor["capabilities"] = capabilities)
     descriptor
+end
+
+function julia_search_benchmark_invocation(view::String)
+    workspace = ["--workspace", "{workspace}"]
+    seeds = [workspace..., "--view", "seeds"]
+    function invocation(args::Vector{String}; expects_json::Bool=false, stdin_template=nothing)
+        record = Dict{String,Any}(
+            "args" => args,
+            "expectsJson" => expects_json,
+            "maxElapsedMs" => 30_000,
+        )
+        isnothing(stdin_template) || (record["stdinTemplate"] = stdin_template)
+        record
+    end
+    if view == "owner"
+        return invocation(["search", "owner", "{owner}", "items", "--query", "{query}", seeds...])
+    elseif view == "lexical"
+        return invocation(["search", "lexical", "--query", "{query}", "--query", "{owner}", seeds...])
+    elseif view == "deps"
+        return invocation(["search", "deps", "{dependency}", seeds...])
+    elseif view == "query"
+        return invocation([
+            "search",
+            "query",
+            "--from-hook",
+            "direct-source-read",
+            "--selector",
+            "{owner}",
+            "--term",
+            "{query}",
+            seeds...,
+        ])
+    elseif view == "ingest"
+        return invocation(
+            ["search", "ingest", seeds...];
+            stdin_template="{owner}:1:{query}\\n",
+        )
+    elseif view == "semantic-facts"
+        return invocation(
+            ["search", "semantic-facts", "{query}", workspace..., "--json"];
+            expects_json=true,
+            stdin_template="{owner}:1:{query}\\n",
+        )
+    elseif view in ("extension", "pattern", "compare", "policy")
+        return invocation(["search", view, "{query}", seeds...])
+    end
+    invocation(["search", view, seeds...])
 end
 
 function julia_query_method_descriptor()

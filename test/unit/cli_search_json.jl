@@ -3,7 +3,7 @@
     write_cli_dependency_project(root)
     workspace_out = IOBuffer()
     prime_out = IOBuffer()
-    fzf_out = IOBuffer()
+    lexical_out = IOBuffer()
     deps_out = IOBuffer()
     query_out = IOBuffer()
     policy_out = IOBuffer()
@@ -33,9 +33,9 @@
         ["search", "prime", "--view", "seeds", "--json", "--workspace", root];
         out=prime_out,
     )
-    fzf_status = run_julia_project_harness_cli(
-        ["search", "fzf", "run", "owner", "tests", "--view", "seeds", "--json", "--workspace", root];
-        out=fzf_out,
+    lexical_status = run_julia_project_harness_cli(
+        ["search", "lexical", "run", "owner", "tests", "--view", "seeds", "--json", "--workspace", root];
+        out=lexical_out,
     )
     deps_status = run_julia_project_harness_cli(
         [
@@ -138,7 +138,7 @@
 
     workspace_packet = JSON3.read(String(take!(workspace_out)))
     prime_packet = JSON3.read(String(take!(prime_out)))
-    fzf_packet = JSON3.read(String(take!(fzf_out)))
+    lexical_packet = JSON3.read(String(take!(lexical_out)))
     deps_packet = JSON3.read(String(take!(deps_out)))
     query_packet = JSON3.read(String(take!(query_out)))
     policy_packet = JSON3.read(String(take!(policy_out)))
@@ -158,11 +158,11 @@
     @test prime_packet.renderMode == "seeds"
     @test any(owner -> owner.path == "src/CliExample.jl", prime_packet.owners)
     @test any(fact -> fact.ownerPath == "src/CliExample.jl", prime_packet.nativeSyntaxFacts)
-    @test fzf_status == 0
-    @test fzf_packet.method == "search/fzf"
-    @test fzf_packet.query == "run"
-    @test any(hit -> hit.symbol == "run", fzf_packet.hits)
-    @test any(action -> action.target == "src/CliExample.jl", fzf_packet.nextActions)
+    @test lexical_status == 0
+    @test lexical_packet.method == "search/lexical"
+    @test lexical_packet.query == "run"
+    @test any(hit -> hit.symbol == "run", lexical_packet.hits)
+    @test any(action -> action.target == "src/CliExample.jl", lexical_packet.nextActions)
     @test deps_status == 0
     @test deps_packet.method == "search/deps"
     @test deps_packet.view == "deps"
@@ -347,7 +347,7 @@
         descriptor ->
             descriptor.method == "search/query" &&
                 descriptor.supportsQuerySet == true &&
-                "fuzzy-set" in descriptor.acceptedQuerySetSelectors,
+                "lexical-set" in descriptor.acceptedQuerySetSelectors,
         language.methodDescriptors,
     )
     @test any(

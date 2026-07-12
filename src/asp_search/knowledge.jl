@@ -93,7 +93,7 @@ function julia_knowledge_search_packet(
     )
     push!(packet["notes"], Dict("kind" => "fact-scope", "message" => detail["next"]))
     packet["nextActions"] = [
-        Dict{String,Any}("kind" => "fzf", "target" => isempty(query) ? String(axis) : query),
+        Dict{String,Any}("kind" => "lexical", "target" => isempty(query) ? String(axis) : query),
         Dict{String,Any}("kind" => "owner", "target" => "."),
     ]
     packet

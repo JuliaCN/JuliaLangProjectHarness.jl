@@ -58,15 +58,15 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
         print(out, render_julia_search_graph("owner"; project_root=options.project_root, render_mode=options.render_view, owner_path=owner_path))
-    elseif view == "fzf"
-        query_terms, rest = parse_julia_fzf_search_args(args[2:end])
+    elseif view == "lexical"
+        query_terms, rest = parse_julia_lexical_search_args(args[2:end])
         query = join(query_terms, " ")
         options = parse_julia_search_args(rest)
         if options.json
             print(
                 out,
                 render_julia_search_packet_json(
-                    "fzf";
+                    "lexical";
                     project_root=options.project_root,
                     render_mode=options.render_view,
                     query,
@@ -77,7 +77,7 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
             return 0
         end
         options.render_view == "seeds" || error("unknown search render mode: $(options.render_view)")
-        print(out, render_julia_search_graph("fzf"; project_root=options.project_root, render_mode=options.render_view, query=query, query_set=query_terms))
+        print(out, render_julia_search_graph("lexical"; project_root=options.project_root, render_mode=options.render_view, query=query, query_set=query_terms))
     elseif view in ["dependency", "deps"]
         length(args) >= 2 || error("search deps requires a dependency query")
         query = args[2]
@@ -192,8 +192,8 @@ function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
     0
 end
 
-function parse_julia_fzf_search_args(args::Vector{String})
-    isempty(args) && error("search fzf requires a query")
+function parse_julia_lexical_search_args(args::Vector{String})
+    isempty(args) && error("search lexical requires a query")
     if first(args) != "--query-set"
         return String[args[1]], args[2:end]
     end
@@ -212,7 +212,7 @@ function parse_julia_fzf_search_args(args::Vector{String})
         end
         index += 1
     end
-    isempty(query_terms) && error("search fzf requires at least one --query-set")
+    isempty(query_terms) && error("search lexical requires at least one --query-set")
     query_terms, args[rest_start:end]
 end
 

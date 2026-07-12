@@ -303,7 +303,7 @@ Each search entry should carry:
   `call`, `doc`, `identifier`, `include`, or `test`;
 - name;
 - detail text for disambiguation;
-- combined search fzf;
+- combined search lexical;
 - tags for filtering, such as `owner`, `reasoning-tree`, `public`, `method`,
   `control-flow`, `nested-loop`, `call`, `dependency`, and `test`.
 
@@ -311,7 +311,7 @@ The public search API should also provide deterministic local query helpers over
 this index. Query helpers should return scored results, apply tag filters as hard
 filters, and avoid hidden external services or fuzzy state. Ranking should favor
 exact symbol-name matches, then name containment, tag matches, detail matches,
-and broader search fzf matches.
+and broader search lexical matches.
 
 ## CLI Surface
 

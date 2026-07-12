@@ -16,7 +16,7 @@ end
         run_cli(["search", "prime", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
         run_cli(["search", "owner", "src/JuliaLangProjectHarness.jl", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
         run_cli(["search", "deps", "JSON3", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
-        run_cli(["search", "fzf", "--query-set", "parser", "--query-set", "module", "--query-set", "render", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
+        run_cli(["search", "lexical", "--query-set", "parser", "--query-set", "module", "--query-set", "render", "owner", "tests", "--workspace", PACKAGE_ROOT, "--view", "seeds"]; out=devnull, err=devnull)
         JuliaLangProjectHarness.julia_index_export_packet(PACKAGE_ROOT)
     end
 end

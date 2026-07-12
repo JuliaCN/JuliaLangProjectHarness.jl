@@ -15,6 +15,7 @@ using Test
     include("unit/cli_search.jl")
     include("unit/cli_search_json.jl")
     include("unit/cli_query.jl")
+    include("unit/cli_structural_selector.jl")
     include("unit/agent_snapshot.jl")
     include("unit/render.jl")
     include("unit/config.jl")

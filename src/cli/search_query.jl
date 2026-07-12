@@ -145,7 +145,10 @@ function render_julia_hook_query_search(
     intent::Union{Nothing,AbstractString}=nothing,
 )
     query = julia_search_query_text(terms)
-    results = julia_search_query_filter_results(search_julia_project(project_root, query; limit=16), pipes)
+    results = julia_search_query_filter_results(
+        julia_hook_query_search_results(selector, query, project_root),
+        pipes,
+    )
     owners = search_results_to_owner_paths(results, project_root)
     tests = search_results_to_test_paths(results, project_root)
     pipe_text = isempty(pipes) ? "-" : join(pipes, ",")
@@ -168,4 +171,17 @@ function render_julia_hook_query_search(
     )
     isempty(results) && push!(lines, "|note kind=not-found message=$(query)")
     join(lines, "\n") * "\n"
+end
+
+function julia_hook_query_search_results(
+    selector::AbstractString,
+    query::AbstractString,
+    project_root::AbstractString,
+)
+    owner_path, _ = julia_query_selector_range(selector)
+    source_path = isabspath(owner_path) ? owner_path : joinpath(project_root, owner_path)
+    if isfile(source_path)
+        return search_julia_lang([source_path], query; limit=16)
+    end
+    search_julia_project(project_root, query; limit=16)
 end

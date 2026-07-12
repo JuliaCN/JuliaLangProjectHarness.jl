@@ -211,7 +211,7 @@ end
                 "search\tprime\t--view\tseeds\t--workspace\t.",
                 "search\towner\tsrc/DataFrames.jl\t--view\tseeds\t--workspace\t.",
                 "search\tdeps\tTables\t--view\tseeds\t--workspace\t.",
-                "search\tfzf\t--query-set\tgroupby\t--query-set\tDataFrame\t--query-set\ttransform\towner\ttests\t--view\tseeds\t--workspace\t.",
+                "search\tlexical\t--query-set\tgroupby\t--query-set\tDataFrame\t--query-set\ttransform\towner\ttests\t--view\tseeds\t--workspace\t.",
             ],
             "\n",
         ) * "\n"
@@ -226,7 +226,7 @@ end
             @test maximum(elapsed) <= 20
             @test occursin("[search-owner]", batch_rendered)
             @test occursin("src/DataFrames.jl", batch_rendered)
-            @test occursin("[search-fzf]", batch_rendered)
+            @test occursin("[search-lexical]", batch_rendered)
         end
     end
 end

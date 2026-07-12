@@ -75,7 +75,7 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |cmd asp julia search policy <rule-id-or-alias> owner tests --workspace . --view seeds
     |cmd asp julia evidence graph --json .
     |cmd asp julia evidence analyze --json .
-    |cmd asp julia search fzf <query> owner tests --workspace . --view seeds
+    |cmd asp julia search lexical <query> owner tests --workspace . --view seeds
     |cmd asp julia search deps <dependency[@version][::api]> owner tests --workspace . --view seeds
     |cmd asp julia search env [term ...] --workspace . --view seeds
     |cmd asp julia search runtime-source [term ...] --workspace . --view seeds

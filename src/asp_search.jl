@@ -271,12 +271,12 @@ function julia_owner_search_packet(owner_path::AbstractString, project_root::Abs
     )
 end
 
-function julia_fzf_search_packet(query::AbstractString, project_root::AbstractString; render_mode::AbstractString="seeds")
+function julia_lexical_search_packet(query::AbstractString, project_root::AbstractString; render_mode::AbstractString="seeds")
     results = search_julia_project(project_root, query; limit=16)
     entries = [result.entry for result in results]
     owners = search_results_to_owner_paths(results, project_root)
     tests = search_results_to_test_paths(results, project_root)
-    packet = julia_search_packet_base("fzf", render_mode, project_root; query)
+    packet = julia_search_packet_base("lexical", render_mode, project_root; query)
     packet["queryCoverage"] = [
         Dict{String,Any}(
             "value" => String(query),
@@ -288,7 +288,7 @@ function julia_fzf_search_packet(query::AbstractString, project_root::AbstractSt
             "surfaces" => unique([is_julia_test_entry(entry) ? "test-source" : "real-source" for entry in entries]),
         ),
     ]
-    packet["hits"] = [julia_search_hit_row(result.entry, project_root; score=result.score, reason="fzf") for result in results]
+    packet["hits"] = [julia_search_hit_row(result.entry, project_root; score=result.score, reason="lexical") for result in results]
     packet["nativeSyntaxFacts"] = julia_search_native_facts(entries, project_root)
     isempty(results) && push!(packet["notes"], Dict("kind" => "not-found", "message" => String(query)))
     julia_search_attach_frontier!(
@@ -296,7 +296,7 @@ function julia_fzf_search_packet(query::AbstractString, project_root::AbstractSt
         owners,
         tests;
         algorithm="julia-search-index",
-        scope="fzf",
+        scope="lexical",
         summary=isempty(results) ? "No Julia fuzzy results matched" : "Resolved Julia fuzzy candidates",
     )
 end

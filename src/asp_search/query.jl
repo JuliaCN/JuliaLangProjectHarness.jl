@@ -148,8 +148,10 @@ function julia_search_query_packet(
     intent::Union{Nothing,AbstractString}=nothing,
 )
     query = julia_search_query_text(terms)
-    entries = julia_project_search_index(project_root)
     selector_owner = julia_search_query_selector_owner(selector, project_root)
+    entries = isnothing(selector_owner) ?
+              julia_project_search_index(project_root) :
+              julia_exact_owner_search_entries(selector_owner, project_root)
     scoped_entries = isnothing(selector_owner) ? entries : [
         entry for entry in entries
         if search_entry_owner_path(entry, project_root) == selector_owner
@@ -170,7 +172,7 @@ function julia_search_query_packet(
     packet["queryComposition"] = Dict{String,Any}(
         "mode" => length(terms) == 1 ? "single" : "query-set",
         "view" => "query",
-        "selector" => length(terms) == 1 ? "single" : "fuzzy-set",
+        "selector" => length(terms) == 1 ? "single" : "lexical-set",
         "scope" => Dict{String,Any}("projectRoot" => abspath(String(project_root))),
         "merge" => ["owners", "hits", "nativeSyntaxFacts", "nextActions", "notes"],
         "fields" => Dict{String,Any}(

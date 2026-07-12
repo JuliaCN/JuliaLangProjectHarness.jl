@@ -122,7 +122,7 @@ function julia_fast_owner_search_packet(
     )
 end
 
-function julia_fast_fzf_search_packet(
+function julia_fast_lexical_search_packet(
     query::AbstractString,
     project_root::AbstractString;
     render_mode::AbstractString="seeds",
@@ -135,7 +135,7 @@ function julia_fast_fzf_search_packet(
         owners = frontier.owners[1:min(length(frontier.owners), 12)]
         tests = frontier.tests[1:min(length(frontier.tests), 12)]
     end
-    packet = julia_fast_seed_packet_base("fzf", project_root; render_mode, query)
+    packet = julia_fast_seed_packet_base("lexical", project_root; render_mode, query)
     packet["querySet"] = [
         Dict{String,Any}("value" => term, "kind" => "text", "selector" => "fuzzy")
         for term in terms
@@ -155,8 +155,8 @@ function julia_fast_fzf_search_packet(
         packet,
         owners,
         tests;
-        algorithm="julia-fast-fzf-frontier-v1",
-        scope="fzf",
+        algorithm="julia-fast-lexical-frontier-v1",
+        scope="lexical",
         summary="Resolved Julia fuzzy candidates from file path/content scan",
     )
 end
