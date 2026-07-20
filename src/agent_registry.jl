@@ -139,7 +139,13 @@ end
 
 """Return package-local schema registrations advertised by the Julia provider."""
 function julia_schema_registrations()
-    schema_registrations(JULIA_AGENT_SCHEMA_FILES)
+    schema_registrations((
+        JULIA_AGENT_SCHEMA_FILES...,
+        (
+            "semantic-owner-item-evidence.v1.schema.json",
+            "agent.semantic-protocols.semantic-owner-item-evidence",
+        ),
+    ))
 end
 
 """Return package-local schema registrations for a provider language entry."""

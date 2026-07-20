@@ -16,8 +16,8 @@ function write_cli_project(root::AbstractString)
         module CliExample
         export run
         include("Other.jl")
-        \"\"\"Run a value through the CLI fixture.\"\"\"
-        run(value) = helper(value)
+        \"\"\"Run a value through the CLI fixture using an explicit dispatch extension.\"\"\"
+run(value) = helper(value)
         helper(value) = string(value)
         end
         """,
@@ -64,7 +64,8 @@ function write_cli_dependency_project(root::AbstractString)
         module CliExample
         using JSON3
         export run, parse_json
-        \"\"\"Run a value through the CLI fixture.\"\"\"
+        include("Other.jl")
+        \"\"\"Run a value through the CLI fixture using an explicit dispatch extension.\"\"\"
         run(value) = helper(value)
         helper(value) = string(value)
         \"\"\"Parse JSON text through JSON3 for dependency search fixtures.\"\"\"
