@@ -12,6 +12,13 @@
     "program": "./juliac/build_provider.sh",
     "args": [],
     "workingDirectory": "languages/JuliaLangProjectHarness.jl",
+    "sourceSnapshotAnchors": [
+      "languages/JuliaLangProjectHarness.jl/Project.toml",
+      "languages/JuliaLangProjectHarness.jl/Manifest.toml",
+      "languages/JuliaLangProjectHarness.jl/juliac/Project.toml",
+      "languages/JuliaLangProjectHarness.jl/juliac/Manifest.toml",
+      "languages/JuliaLangProjectHarness.jl/juliac/build_provider.sh"
+    ],
     "derivedPaths": [
       "languages/JuliaLangProjectHarness.jl/build"
     ],
