@@ -235,7 +235,7 @@
     "prime": "search/prime",
     "owner": "search/owner",
     "lexical": "search/lexical",
-    "query": "search/query",
+    "query": "query/exact-selector",
     "ingest": "search/ingest",
     "checkChanged": "check/changed",
     "guide": "guide"
