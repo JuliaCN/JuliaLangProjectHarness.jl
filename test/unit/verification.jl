@@ -10,13 +10,13 @@ function write_verification_project(root::AbstractString)
         JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [extensions]
-        VerifyJSONExt = ["JSON3"]
+        VerifyJSONExt = ["JSON"]
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
         JuliaLangProjectHarness = "0.1"
 
         [extras]
@@ -62,11 +62,11 @@ function write_responsibility_project(root::AbstractString)
 
         [deps]
         HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [compat]
         HTTP = "1"
-        JSON3 = "1"
+        JSON = "1"
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -75,7 +75,7 @@ function write_responsibility_project(root::AbstractString)
         """
         module ResponsibilityExample
         using HTTP
-        using JSON3
+        using JSON
         using SHA
         using LinearAlgebra
         export fetch_config
@@ -85,7 +85,7 @@ function write_responsibility_project(root::AbstractString)
             digests = mapreduce(url -> bytes2hex(sha256(url)), vcat, urls)
             response = HTTP.get(first(urls))
             data = open("config.json") do io
-                JSON3.read(read(io, String))
+                JSON.parse(read(io, String))
             end
             return norm(digests), response, data
         end

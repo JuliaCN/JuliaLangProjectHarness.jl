@@ -8,7 +8,7 @@
         version = "0.1.0"
 
         [extras]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
         [targets]
@@ -18,7 +18,7 @@
     mkpath(joinpath(root, "src"))
     mkpath(joinpath(root, "test"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
-    write(joinpath(root, "test", "runtests.jl"), "using Test\nusing JSON3\n@test true\n")
+    write(joinpath(root, "test", "runtests.jl"), "using Test\nusing JSON\n@test true\n")
 
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
@@ -39,13 +39,13 @@ end
         version = "0.1.0"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
 
         [extensions]
-        ExampleJSONExt = "JSON3"
+        ExampleJSONExt = "JSON"
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -70,11 +70,11 @@ end
         version = "0.1.0"
 
         [deps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
         """,
     )
     mkpath(joinpath(root, "src"))
-    write(joinpath(root, "src", "Example.jl"), "module Example\nusing JSON3\nend\n")
+    write(joinpath(root, "src", "Example.jl"), "module Example\nusing JSON\nend\n")
 
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
@@ -151,7 +151,7 @@ end
         joinpath(root, "src", "Example.jl"),
         """
         module Example
-        using JSON3
+        using JSON
         using .Local
         import Base: show
         end

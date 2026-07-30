@@ -6,7 +6,7 @@ const JULIA_VERIFICATION_RECEIPT_RELATIVE_PATHS = [
 
 """Read agent verification receipts from a compact JSON file."""
 function read_julia_verification_receipts_json(path::AbstractString)
-    payload = JSON3.read(read(path, String))
+    payload = JSON.parse(read(path, String))
     raw_receipts = json_payload_receipts(payload)
     [verification_receipt_dict(receipt) for receipt in raw_receipts]
 end
@@ -290,7 +290,7 @@ end
 function render_julia_verification_receipt_reviews_json(
     reviews::Vector{JuliaVerificationReceiptReview},
 )
-    JSON3.write(Dict("reviews" => map(verification_receipt_review_dict, reviews)))
+    JSON.json(Dict("reviews" => map(verification_receipt_review_dict, reviews)))
 end
 
 function verification_receipt_review_dict(review::JuliaVerificationReceiptReview)

@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 
 """Render blocking findings and agent advice as compact text."""
 render_julia_project_harness(report::JuliaHarnessReport) =
@@ -17,7 +17,11 @@ function render_julia_project_harness_with_options(
     blocking = blocking_findings(report; severities)
     advice = include_advice ? deduplicate_advice(advisory_findings(report), blocking) :
              JuliaHarnessFinding[]
-    findings = vcat(blocking, advice)
+    findings = copy(blocking)
+    sizehint!(findings, length(blocking) + length(advice))
+    for finding in advice
+        push!(findings, finding)
+    end
     isempty(findings) && return "[ok] julia\n"
     rendered = isempty(blocking) ? "" : render_julia_failure_frontier(report, blocking)
     if !isempty(advice)
@@ -110,8 +114,27 @@ function compact_rule_visibility(visibility::JuliaRuleVisibility)
 end
 
 function deduplicate_advice(advice::Vector{JuliaHarnessFinding}, blocking::Vector{JuliaHarnessFinding})
-    blocking_keys = Set(finding_key.(blocking))
-    [finding for finding in advice if !(finding_key(finding) in blocking_keys)]
+    blocking_keys = Tuple{String,Union{Nothing,String},Int,Int}[]
+    sizehint!(blocking_keys, length(blocking))
+    for finding in blocking
+        push!(blocking_keys, finding_key(finding))
+    end
+    retained = JuliaHarnessFinding[]
+    sizehint!(retained, length(advice))
+    for finding in advice
+        key = finding_key(finding)
+        duplicate = false
+        for blocking_key in blocking_keys
+            if key == blocking_key
+                duplicate = true
+                break
+            end
+        end
+        if !duplicate
+            push!(retained, finding)
+        end
+    end
+    retained
 end
 
 function finding_key(finding::JuliaHarnessFinding)
@@ -122,7 +145,7 @@ slash_path(path::AbstractString) = replace(String(path), '\\' => '/')
 
 """Render a Julia project harness report as JSON for tools."""
 function render_julia_project_harness_json(report::JuliaHarnessReport)
-    JSON3.write(report_dict(report))
+    JSON.json(report_dict(report))
 end
 
 function report_dict(report::JuliaHarnessReport)

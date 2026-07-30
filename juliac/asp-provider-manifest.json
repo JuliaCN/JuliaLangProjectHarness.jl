@@ -10,49 +10,9 @@
   "namespace": "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
   "binary": "asp-julia-harness",
   "execution": "external-process",
-  "source": {
-    "defaultProjectMarkers": [
-      "Project.toml"
-    ],
-    "defaultDependencyMarkers": [
-      "Project.toml",
-      "Manifest.toml"
-    ],
-    "defaultConfigFiles": [
-      "Project.toml"
-    ],
-    "defaultSourceRoots": [
-      "src",
-      "test",
-      "docs",
-      "examples",
-      "benchmark"
-    ],
-    "defaultExtensions": [
-      ".jl"
-    ],
-    "defaultIgnoredPathPrefixes": [
-      ".devenv",
-      ".git",
-      "build",
-      "Manifest.toml",
-      ".cache",
-      ".codex/harness-state",
-      ".codex/rs-harness",
-      ".data",
-      ".direnv",
-      ".idea",
-      ".jj",
-      ".run",
-      ".vscode",
-      "node_modules",
-      "target"
-    ]
-  },
   "searchCapabilities": {
     "ownerItems": false,
-    "workspaceScope": false,
-    "dependencyTopology": false,
+    "dependencyTopology": true,
     "dependencyTopologyMetadata": false,
     "semanticFacts": true,
     "sourceSnapshot": {
@@ -123,6 +83,29 @@
         "roles": []
       }
     ]
+  },
+  "projectResolution": {
+    "schemaId": "agent.semantic-protocols.provider-project-resolution-descriptor",
+    "schemaVersion": "1",
+    "capabilityId": "project-resolution",
+    "entryMarkers": [
+      "Project.toml"
+    ],
+    "manifestKinds": [
+      "julia-project-toml",
+      "julia-pkg-workspace"
+    ],
+    "lockfileKinds": [
+      "julia-manifest"
+    ],
+    "supportsGitCandidates": true,
+    "supportsProviderOnly": false,
+    "parserId": "julia.pkg-project-toml",
+    "commandBinding": "project-resolution-stdin",
+    "candidateSnapshotSchema": "https://schemas.agent-semantic-protocols.dev/repository-candidate-snapshot.v1.schema.json",
+    "packageGraphSchema": "https://schemas.agent-semantic-protocols.dev/language-package-graph.v1.schema.json",
+    "resolvedSourceScopeSchema": "https://schemas.agent-semantic-protocols.dev/resolved-source-scope.v1.schema.json",
+    "projectResolutionSchema": "https://schemas.agent-semantic-protocols.dev/project-resolution.v1.schema.json"
   },
   "queryPackDescriptor": {
     "descriptorId": "julia.query-pack",
@@ -238,6 +221,7 @@
     "query": "query/exact-selector",
     "ingest": "search/ingest",
     "checkChanged": "check/changed",
+    "dependencyTopology": "search/dependency-topology",
     "guide": "guide"
   }
 }

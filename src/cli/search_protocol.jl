@@ -69,9 +69,7 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |cmd asp julia search prime --workspace . --view seeds
     |cmd asp julia search pipe <query> --workspace . --view seeds
     |cmd asp julia search owner <owner-path> items [--query <symbol-or-prefix>] --workspace . --view seeds
-    |cmd asp julia query <owner-path> --term <symbol-or-prefix> --workspace <workspace-root> [--names-only|--code|--json]
-    |cmd asp julia query --selector <path:start-end> --workspace <workspace-root> --code
-    |cmd asp julia query --from-hook direct-source-read --selector <path:start-end> --workspace <workspace-root> --code
+    |cmd asp julia search owner <owner-path> items --query <symbol-or-prefix> --workspace <workspace-root> --view seeds
     |cmd asp julia search policy <rule-id-or-alias> owner tests --workspace . --view seeds
     |cmd asp julia evidence graph --json .
     |cmd asp julia evidence analyze --json .
@@ -89,7 +87,7 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |pipe <candidate-lines> | asp julia search ingest owner tests --workspace . --view seeds
     |cmd asp julia check --changed .
     |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
-    |rule query --code is pure code; search/read-plan returns locators/frontier, not inline code
+    |rule exact query is unavailable until Julia declares typed native exact projection; search returns structural locators/frontier
     |rule provider-knowledge-axes env/lang/std/pattern/runtime-source return facts or explicit frontier gaps; do not fill missing facts from memory
     |rule use the asp julia facade by default; run one command at a time; no raw Julia source reads
     """

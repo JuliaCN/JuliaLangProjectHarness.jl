@@ -50,7 +50,7 @@ function render_julia_query_read_packet_selector(selector::AbstractString, proje
     source_path = isabspath(owner_path) ? owner_path : joinpath(project_root, owner_path)
     isfile(source_path) || error("missing parser-visible Julia source $(owner_path)")
     packet = julia_direct_read_packet(owner_path, selector, project_root, source_path, line_range)
-    return JSON3.write(packet) * "\n"
+    return JSON.json(packet) * "\n"
 end
 
 function render_julia_direct_read_source_window(

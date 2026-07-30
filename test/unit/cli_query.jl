@@ -1,340 +1,67 @@
-@testset "cli query owner items packet" begin
-    root = mktempdir()
-    write_cli_project(root)
-    write(joinpath(root, "src", "Unrelated.jl"), "module Unrelated\nrun() = nothing\nend\n")
-    exact_owner_entries = JuliaLangProjectHarness.julia_exact_owner_search_entries(
-        "src/CliExample.jl",
-        root,
-    )
-    missing_owner_entries = JuliaLangProjectHarness.julia_exact_owner_search_entries(
-        "src/Missing.jl",
-        root,
-    )
-    compact_out = IOBuffer()
-    json_out = IOBuffer()
-    names_out = IOBuffer()
-    names_hit_out = IOBuffer()
-    json_names_out = IOBuffer()
+using JSON
+using Test
 
-    @test !isempty(exact_owner_entries)
-    @test all(
-        entry -> JuliaLangProjectHarness.search_entry_owner_path(entry, root) == "src/CliExample.jl",
-        exact_owner_entries,
-    )
-    @test isempty(missing_owner_entries)
-
-    compact_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "src/CliExample.jl",
-            "--term",
-            "run",
-            "--workspace",
-            root,
-            "--code",
-        ];
-        out = compact_out,
-    )
-    json_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "src/CliExample.jl",
-            "--term",
-            "run",
-            "--workspace",
-            root,
-            "--code",
-            "--json",
-        ];
-        out = json_out,
-    )
-    names_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "src/CliExample.jl",
-            "--term",
-            "missing",
-            "--names-only",
-            "--workspace",
-            root,
-        ];
-        out = names_out,
-    )
-    names_hit_status = run_julia_project_harness_cli(
-        ["query", "src/CliExample.jl", "--term", "run", "--workspace", root, "--names-only"];
-        out = names_hit_out,
-    )
-    json_names_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "src/CliExample.jl",
-            "--term",
-            "run",
-            "--workspace",
-            root,
-            "--names-only",
-            "--json",
-        ];
-        out = json_names_out,
-    )
-    compact_rendered = String(take!(compact_out))
-    packet = JSON3.read(String(take!(json_out)))
-    names_rendered = String(take!(names_out))
-    names_hit_rendered = String(take!(names_hit_out))
-    names_packet = JSON3.read(String(take!(json_names_out)))
-
-    @test compact_status == 0
-    @test occursin("[query-item] owner=src/CliExample.jl", compact_rendered)
-    @test occursin("|query term=run status=hit match=exact", compact_rendered)
-    @test occursin("|item run kind=", compact_rendered)
-    @test occursin("structuralSelector=julia://src/CliExample.jl#item/", compact_rendered)
-    @test occursin("displayLineRange=", compact_rendered)
-    @test occursin("sourceLocatorHint=src/CliExample.jl:", compact_rendered)
-    @test !occursin("|code read=src/CliExample.jl:", compact_rendered)
-    @test occursin("kind=asp-owned-code", compact_rendered)
-    @test json_status == 0
-    @test packet.schemaId == "agent.semantic-protocols.semantic-query-packet"
-    @test packet.protocolId == "agent.semantic-protocols.semantic-language"
-    @test packet.languageId == "julia"
-    @test packet.providerId == "julia-lang-project-harness"
-    @test packet.binary == "asp-julia-harness"
-    @test packet.method == "query/owner-items"
-    @test packet.ownerPath == "src/CliExample.jl"
-    @test packet.query == "run"
-    @test packet.queryTerms == ["run"]
-    @test packet.matchMode == "exact"
-    @test packet.outputMode == "code"
-    @test packet.matchCount >= 1
-    @test any(match -> match.name == "run" && haskey(match, :projection), packet.matches)
-    @test any(
-        match -> startswith(match.structuralSelector, "julia://src/CliExample.jl#item/") &&
-                 startswith(match.sourceLocatorHint, "src/CliExample.jl:") &&
-                 !isempty(match.displayLineRange),
-        packet.matches,
-    )
-    run_projection_matches = filter(
-        match -> match.name == "run" && haskey(match, :projection),
-        packet.matches,
-    )
-    @test !isempty(run_projection_matches)
-    @test all(
-        match -> all(action -> !haskey(action, :argv), match.projection.expandActions),
-        run_projection_matches,
-    )
-    @test any(fact -> fact.name == "run", packet.nativeSyntaxFacts)
-    @test names_status == 0
-    @test occursin("status=miss", names_rendered)
-    @test occursin("|candidate", names_rendered)
-    @test names_hit_status == 0
-    @test occursin("mode=names", names_hit_rendered)
-    @test occursin("|query term=run status=hit match=exact", names_hit_rendered)
-    @test occursin("|item run kind=", names_hit_rendered)
-    @test occursin("structuralSelector=julia://src/CliExample.jl#item/", names_hit_rendered)
-    @test occursin("displayLineRange=", names_hit_rendered)
-    @test occursin("sourceLocatorHint=src/CliExample.jl:", names_hit_rendered)
-    @test !occursin("|code", names_hit_rendered)
-    @test json_names_status == 0
-    @test names_packet.method == "query/owner-items"
-    @test names_packet.ownerPath == "src/CliExample.jl"
-    @test names_packet.outputMode == "names"
-    @test names_packet.queryCoverage[1].status == "hit"
-    @test names_packet.queryCoverage[1].match == "exact"
-    @test any(
-        match -> match.name == "run" && !haskey(match, :code) && !haskey(match, :projection),
-        names_packet.matches,
-    )
-    @test any(
-        match -> startswith(match.structuralSelector, "julia://src/CliExample.jl#item/") &&
-                 startswith(match.sourceLocatorHint, "src/CliExample.jl:") &&
-                 !isempty(match.displayLineRange),
-        names_packet.matches,
-    )
-    trailing_root_err = IOBuffer()
-    trailing_root_status = run_julia_project_harness_cli(
-        ["query", "src/CliExample.jl", "--term", "run", "--code", root];
-        out = IOBuffer(),
-        err = trailing_root_err,
-    )
-    @test trailing_root_status == 2
-    @test occursin(
-        "query/owner-items does not accept positional WORKSPACE",
-        String(take!(trailing_root_err)),
-    )
-    missing_owner_err = IOBuffer()
-    missing_owner_status = run_julia_project_harness_cli(
-        ["query", "--term", "run", "--names-only", "--workspace", root];
-        out = IOBuffer(),
-        err = missing_owner_err,
-    )
-    @test missing_owner_status == 2
-    @test occursin(
-        "query --names-only requires an owner selector; workspace term discovery is `search lexical '<term>' owner --workspace <workspace-root> --view seeds`",
-        String(take!(missing_owner_err)),
-    )
-    @test_throws ErrorException julia_query_owner_items_packet(
-        "src/CliExample.jl",
-        String[];
-        project_root = root,
-    )
-    @test_throws ErrorException julia_query_owner_items_packet(
-        "src/CliExample.jl",
-        ["run"];
-        project_root = root,
-        match_limit = -1,
-    )
-end
-
-@testset "cli query workspace direct read selector" begin
+@testset "native owner items query packet" begin
     root = mktempdir()
     write_cli_project(root)
     out = IOBuffer()
 
-    status = run_julia_project_harness_cli(
-        [
-            "query",
-            "--from-hook",
-            "direct-source-read",
-            "--workspace",
-            root,
-            "--selector",
-            "src/CliExample.jl:1:2",
-            "--code",
-        ];
-        out = out,
+    rendered = @inferred JuliaLangProjectHarness.render_julia_native_owner_items_query_json(
+        "src/CliExample.jl",
+        ["run"],
+        root,
     )
+    status = @inferred JuliaLangProjectHarness.run_julia_native_owner_items_query_cli(
+        "src/CliExample.jl",
+        ["run"],
+        root,
+        out,
+    )
+    packet = JSON.parse(String(take!(out)), Dict{String,Any})
 
-    rendered = String(take!(out))
+    @test JSON.parse(rendered, Dict{String,Any})["matches"] == packet["matches"]
     @test status == 0
-    @test occursin("module CliExample", rendered)
+    @test packet["schemaId"] == "agent.semantic-protocols.semantic-query-packet"
+    @test packet["schemaVersion"] == "1"
+    @test packet["method"] == "query/owner-items"
+    @test packet["ownerPath"] == "src/CliExample.jl"
+    @test packet["queryTerms"] == ["run"]
+    @test any(match -> match["name"] == "run", packet["matches"])
+    @test_throws ErrorException JuliaLangProjectHarness.render_julia_native_owner_items_query_json(
+        "src/CliExample.jl",
+        String[],
+        root,
+    )
+    @test_throws ErrorException JuliaLangProjectHarness.julia_query_owner_items_packet(
+        "src/CliExample.jl",
+        String[];
+        project_root=root,
+    )
 end
 
-@testset "cli query flow-lite compatibility" begin
+@testset "legacy query projections stay unavailable" begin
     root = mktempdir()
-    mkpath(joinpath(root, "src"))
-    write(
-        joinpath(root, "Project.toml"),
-        """
-        name = "FlowLiteFixture"
-        uuid = "11111111-1111-1111-1111-111111111111"
-        version = "0.1.0"
-        """,
-    )
-    write(
-        joinpath(root, "src", "FlowLiteFixture.jl"),
-        """
-        module FlowLiteFixture
-        struct ToolAction
-            payload::String
-        end
-        payload_string(input) = strip(input)
-        function collect_tool_actions(input)
-            payload = payload_string(input)
-            return [ToolAction(payload)]
-        end
-        end
-        """,
-    )
-    compact_out = IOBuffer()
-    json_out = IOBuffer()
-
-    compact_status = run_julia_project_harness_cli(
+    write_cli_project(root)
+    legacy_arguments = [
+        ["query", "src/CliExample.jl", "--term", "run", "--workspace", root, "--code"],
+        ["query", "src/CliExample.jl", "--term", "run", "--workspace", root, "--names-only"],
         [
             "query",
             "--catalog",
             "flow-lite",
             "--where",
-            "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
+            "source.call=run sink.constructs=Result",
             "--workspace",
             root,
-        ];
-        out = compact_out,
-    )
-    json_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "--catalog",
-            "flow-lite",
-            "--where",
-            "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
-            "--json",
-            "--workspace",
-            root,
-        ];
-        out = json_out,
-    )
+        ],
+    ]
 
-    compact_rendered = String(take!(compact_out))
-    packet = JSON3.read(String(take!(json_out)))
-
-    @test compact_status == 0
-    @test occursin("[query-flow-lite]", compact_rendered)
-    @test occursin("lang=julia catalog=flow-lite", compact_rendered)
-    @test occursin(
-        "S=source:call(payload_string)@src/FlowLiteFixture.jl:7!code",
-        compact_rendered,
-    )
-    @test occursin(
-        "K=sink:constructs(ToolAction)@src/FlowLiteFixture.jl:8!code",
-        compact_rendered,
-    )
-    @test occursin("confidence=bounded sourceAuthority=native-parser", compact_rendered)
-    @test occursin("frontier=S.code,K.code,O.code", compact_rendered)
-    @test json_status == 0
-    @test packet.schemaId == "agent.semantic-protocols.semantic-flow-lite"
-    @test packet.languageId == "julia"
-    @test packet.providerId == "julia-lang-project-harness"
-    @test packet.flowKind == "local-source-sink"
-    @test packet.sourceAuthority == "native-parser"
-    @test packet.executionBackend == "native-parser"
-    @test packet.adapterMode == "native-projection"
-    @test packet.confidence == "bounded"
-    @test packet.ownerPath == "src/FlowLiteFixture.jl"
-    @test isempty(packet.omissions)
-    @test length(packet.path) == 2
-    @test packet.path[1].role == "source"
-    @test packet.path[1].line == 7
-    @test packet.path[2].role == "sink"
-    @test packet.path[2].line == 8
-    @test packet.fields.rawSourceStored == false
-    @test packet.fields.fileHashes == []
-    @test packet.fields.where["scope.fn"] == "collect_tool_actions"
-    @test packet.fields.scannedFiles >= 1
-
-    code_err = IOBuffer()
-    code_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "--catalog",
-            "flow-lite",
-            "--where",
-            "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions",
-            "--code",
-            "--workspace",
-            root,
-        ];
-        out = IOBuffer(),
-        err = code_err,
-    )
-    @test code_status == 2
-    @test occursin("locator/provenance surface", String(take!(code_err)))
-
-    open_where_err = IOBuffer()
-    open_where_status = run_julia_project_harness_cli(
-        [
-            "query",
-            "--catalog",
-            "flow-lite",
-            "--where",
-            "source.call=payload_string sink.constructs=ToolAction scope.fn=collect_tool_actions guard.eq=is_safe",
-            "--workspace",
-            root,
-        ];
-        out = IOBuffer(),
-        err = open_where_err,
-    )
-    @test open_where_status == 2
-    @test occursin(
-        "unsupported flow-lite --where key `guard.eq`",
-        String(take!(open_where_err)),
-    )
+    for args in legacy_arguments
+        out = IOBuffer()
+        status = run_julia_project_harness_cli(args; out)
+        rendered = String(take!(out))
+        @test status == 2
+        @test occursin("does not declare typed native exact projection", rendered)
+        @test !startswith(strip(rendered), "{")
+    end
 end

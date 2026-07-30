@@ -35,7 +35,7 @@
         [
             "search",
             "deps",
-            "JSON3::read",
+            "JSON::parse",
             "owner",
             "tests",
             "--view",
@@ -165,7 +165,8 @@
     @test occursin("asp julia agent doctor --workspace . --json", guide_rendered)
     @test !occursin("asp julia agent guide", guide_rendered)
     @test occursin("asp julia search workspace --workspace . --view seeds", guide_rendered)
-    @test occursin("asp julia query <owner-path> --term", guide_rendered)
+    @test occursin("exact query is unavailable until Julia declares typed native exact projection", guide_rendered)
+    @test !occursin("asp julia query <owner-path> --term", guide_rendered)
     @test occursin("--workspace <workspace-root>", guide_rendered)
     @test occursin("asp julia search policy", guide_rendered)
     @test occursin("asp julia search deps", guide_rendered)
@@ -192,12 +193,12 @@
     @test occursin("Q=query:term(run)!lexical", text_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", text_rendered)
     @test deps_status == 0
-    @test occursin("[search-deps] q=JSON3::read", deps_rendered) ||
-          occursin("[search-dependency] q=JSON3::read", deps_rendered)
+    @test occursin("[search-deps] q=JSON::parse", deps_rendered) ||
+          occursin("[search-dependency] q=JSON::parse", deps_rendered)
     @test occursin("view=deps", deps_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", deps_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", deps_rendered)
-    @test occursin("JSON3", deps_rendered)
+    @test occursin("JSON", deps_rendered)
     @test query_status == 0
     @test occursin("[search-query] q=run", query_rendered)
     @test occursin("selector=**/*.jl", query_rendered)

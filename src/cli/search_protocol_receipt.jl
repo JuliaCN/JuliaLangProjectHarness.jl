@@ -41,7 +41,15 @@ end
 function search_entry_owner_path(entry::JuliaSearchIndexEntry, project_root::AbstractString)
     entry.kind == "owner" && return normalized_owner_path(entry.name)
     isnothing(entry.location.path) && return "<memory>"
-    normalized_owner_path(relpath(entry.location.path, abspath(String(project_root))))
+    path = entry.location.path::String
+    isabspath(path) || return normalized_owner_path(path)
+    root = realpath(String(project_root))
+    path = realpath(path)
+    path == root && return "."
+    prefix = root * string(Base.Filesystem.path_separator)
+    startswith(path, prefix) ||
+        throw(ArgumentError("search index owner escaped project root: $path"))
+    return normalized_owner_path(SubString(path, nextind(path, lastindex(prefix))))
 end
 
 function related_julia_test_paths(
@@ -67,4 +75,3 @@ function related_julia_test_paths(
     end
     sort!(unique(isempty(path_candidates) ? detail_candidates : path_candidates))
 end
-

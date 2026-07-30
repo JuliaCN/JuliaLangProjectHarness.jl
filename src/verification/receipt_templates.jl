@@ -29,5 +29,5 @@ end
 
 """Render a JSON receipt template that agents can fill and submit for review."""
 function render_julia_verification_receipt_template(index::JuliaVerificationTaskIndex)
-    JSON3.write(julia_verification_receipt_template(index))
+    JSON.json(julia_verification_receipt_template(index))
 end

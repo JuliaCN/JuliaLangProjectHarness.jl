@@ -45,16 +45,16 @@ function public_mutating_method_test_findings(
             push!(reported, name)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R028];
-                    summary="Exported/public mutating method `$(name)` documents a mutation contract but tests do not call it.",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R028],
+                    "Exported/public mutating method `$(name)` documents a mutation contract but tests do not call it.",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add a package test that calls this public mutating API",
+                    source_line(parsed.source, function_fact.line),
+                    "add a package test that calls this public mutating API",
                 ),
             )
         end
@@ -96,12 +96,12 @@ function public_mutating_method_contract_findings(
         push!(reported, name)
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R016];
-                summary="Exported/public mutating method `$(name)` is documented without a mutation contract.",
-                location=SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
-                source_line=source_line(parsed.source, function_fact.line),
-                label="document which arguments or state this public mutating method changes",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R016],
+                "Exported/public mutating method `$(name)` is documented without a mutation contract.",
+                SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
+                source_line(parsed.source, function_fact.line),
+                "document which arguments or state this public mutating method changes",
             ),
         )
     end

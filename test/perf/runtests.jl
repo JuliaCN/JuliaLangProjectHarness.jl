@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 using JuliaLangProjectHarness
 using Test
 
@@ -40,7 +40,7 @@ function write_julia_microbench_project(root::AbstractString)
 end
 
 function julia_microbench_config(case_name::AbstractString)
-    budget = JSON3.read(read(JULIA_MICROBENCH_BUDGET_PATH, String))
+    budget = JSON.parse(read(JULIA_MICROBENCH_BUDGET_PATH, String))
     case_config = budget["cases"][String(case_name)]
     (
         warmup_iterations=Int(case_config["warmupIterations"]),
@@ -161,7 +161,7 @@ end
         project_root=root,
         render_mode="seeds",
     )
-    search_packet = JSON3.read(search_output)
+    search_packet = JSON.parse(search_output)
     @test search_packet["schemaId"] == "agent.semantic-protocols.semantic-search-packet"
     @test search_packet["view"] == "prime"
     @test !isempty(search_packet["owners"])

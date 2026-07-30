@@ -304,6 +304,7 @@ end
 include("asp_search/knowledge.jl")
 include("asp_search/deps.jl")
 include("asp_search/ingest.jl")
+include("asp_search/native_ingest.jl")
 include("asp_search/policy.jl")
 include("asp_search/query.jl")
 include("asp_search/render.jl")

@@ -118,11 +118,14 @@ function asp_entry_relations(entry::JuliaSearchIndexEntry, owner_path::AbstractS
     relations
 end
 
-function asp_search_index_fact(entry::JuliaSearchIndexEntry, project_root::AbstractString)
+function asp_search_index_fact(
+    entry::JuliaSearchIndexEntry,
+    project_root::AbstractString,
+)::Dict{String,Any}
     owner_path = search_entry_owner_path(entry, project_root)
     qualified_name = asp_qualified_name(entry, owner_path)
     relations = asp_entry_relations(entry, owner_path)
-    fact = Dict(
+    fact = Dict{String,Any}(
         "id" => asp_fact_id(entry, owner_path),
         "kind" => asp_fact_kind(entry),
         "source" => asp_fact_source(entry),
@@ -209,7 +212,7 @@ end
 
 """Render the ASP Julia index export packet as one JSON document."""
 function render_julia_index_export_json(project_root::AbstractString)
-    JSON3.write(julia_index_export_packet(project_root))
+    JSON.json(julia_index_export_packet(project_root))
 end
 
 """Run the agent-facing `export index` CLI used by ASP cache refreshes.

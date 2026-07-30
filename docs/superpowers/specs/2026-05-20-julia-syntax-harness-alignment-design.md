@@ -675,7 +675,7 @@ that tell an agent which responsibility family is present:
 
 This is an adaptation of the Rust harness verification profile design, but the
 signals are Julia-native: package dependencies, stdlibs such as `SHA` or
-`LinearAlgebra`, data/persistence packages such as `JSON3`, network packages
+`LinearAlgebra`, data/persistence packages such as `JSON`, network packages
 such as `HTTP`, file/process calls, performance-related calls/macros, and
 parser-visible algorithm shapes such as `branchy`, `nested-loop`, and
 `broad-body`. The agent should use this inferred profile as the default

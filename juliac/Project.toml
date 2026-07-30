@@ -3,15 +3,17 @@ uuid = "7607743f-c6e1-4906-95fc-43e27be8c368"
 version = "0.1.0"
 
 [deps]
-JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JuliaC = "acedd4c2-ced6-4a15-accc-2607eb759ba2"
 JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
+JuliaSyntax = "70703baa-626e-46a2-a12c-08ffd08c73b4"
 PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 
 [sources]
 JuliaLangProjectHarness = {path = ".."}
 
 [compat]
-JSON3 = "1"
+JSON = "1"
 JuliaC = "0.3"
+JuliaSyntax = "2"
 PrecompileTools = "1"

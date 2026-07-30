@@ -319,12 +319,12 @@ function verification_owner_fingerprint_part(
     scope::JuliaProjectHarnessScope,
     owner_path::AbstractString,
 )
-    relative_path = relpath(owner_path, scope.project_root)
-    parts = splitpath(relative_path)
-    if !isabspath(relative_path) && (isempty(parts) || first(parts) != "..")
-        return slash_path(relative_path)
-    end
-    slash_path(owner_path)
+    root = normpath(scope.project_root)
+    owner = normpath(String(owner_path))
+    owner == root && return "."
+    prefix = root * string(Base.Filesystem.path_separator)
+    startswith(owner, prefix) || return slash_path(owner)
+    slash_path(String(SubString(owner, nextind(owner, lastindex(prefix)))))
 end
 
 function compact_fingerprint_part(part::AbstractString)
@@ -368,7 +368,7 @@ end
 
 """Render verification tasks as JSON while preserving raw argv vectors."""
 function render_julia_verification_task_index_json(index::JuliaVerificationTaskIndex)
-    JSON3.write(verification_task_index_dict(index))
+    JSON.json(verification_task_index_dict(index))
 end
 
 function verification_task_index_dict(index::JuliaVerificationTaskIndex)

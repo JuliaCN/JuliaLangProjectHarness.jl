@@ -75,16 +75,16 @@ function public_unsafe_evidence_test_findings(
             push!(reported, name)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R030];
-                    summary="Exported/public method `$(name)` documents unsafe or performance evidence for $(join(constructs, ", ")) but package tests do not call it.",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R030],
+                    "Exported/public method `$(name)` documents unsafe or performance evidence for $(join(constructs, ", ")) but package tests do not call it.",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add a package test that calls this public safety/performance API",
+                    source_line(parsed.source, function_fact.line),
+                    "add a package test that calls this public safety/performance API",
                 ),
             )
         end
@@ -107,12 +107,12 @@ function unsafe_construct_call_findings(
         push!(reported, key)
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R017];
-                summary=unsafe_construct_summary(construct),
-                location=SourceLocation(parsed.report.path, call.line, call.column),
-                source_line=source_line(parsed.source, call.line),
-                label="document the safety/performance reason and focused verification evidence for this construct",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R017],
+                unsafe_construct_summary(construct),
+                SourceLocation(parsed.report.path, call.line, call.column),
+                source_line(parsed.source, call.line),
+                "document the safety/performance reason and focused verification evidence for this construct",
             ),
         )
     end
@@ -134,12 +134,12 @@ function unsafe_construct_macro_findings(
         push!(reported, key)
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R017];
-                summary=unsafe_construct_summary(construct),
-                location=SourceLocation(parsed.report.path, invocation.line, invocation.column),
-                source_line=source_line(parsed.source, invocation.line),
-                label="document the safety/performance reason and focused verification evidence for this construct",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R017],
+                unsafe_construct_summary(construct),
+                SourceLocation(parsed.report.path, invocation.line, invocation.column),
+                source_line(parsed.source, invocation.line),
+                "document the safety/performance reason and focused verification evidence for this construct",
             ),
         )
     end

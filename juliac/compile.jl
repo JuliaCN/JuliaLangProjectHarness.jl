@@ -5,12 +5,14 @@ const BUILD_DIR = abspath(get(ENV, "ASP_JULIA_BUILD_DIR", joinpath(ROOT, "build"
 const OUTPUT_EXE = get(ENV, "ASP_JULIA_OUTPUT_EXE", "asp-julia-harness")
 const APP_FILE = joinpath(@__DIR__, "asp_julia_harness_app.jl")
 
+ENV["ASP_JULIA_AOT_BUILD"] = "1"
+
 mkpath(BUILD_DIR)
 
 args = String[
     "--output-exe",
     OUTPUT_EXE,
-    "--trim=no",
+    "--trim=safe",
     "--project",
     @__DIR__,
     APP_FILE,

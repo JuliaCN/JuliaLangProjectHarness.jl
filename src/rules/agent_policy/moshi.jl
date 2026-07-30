@@ -7,19 +7,20 @@ function moshi_policy_findings(
 )
     project_moshi_policy(scope) == "enable" || return JuliaHarnessFinding[]
     haskey(scope.direct_dependencies, "Moshi") && return JuliaHarnessFinding[]
-    application = moshi_nearest_application(scope, parsed_files)
+    application::Union{Nothing,MoshiNearestApplication} =
+        moshi_nearest_application(scope, parsed_files)
     repair_target = isnothing(application) ?
                     moshi_source_repair_target(scope) :
-                    slash_path(relpath(application.path, scope.project_root))
+                    display_public_owner_path(scope, application.path)
     summary_suffix = isnothing(application) ? "" :
                      " Nearest parser-visible application: `$(application.function_name)` at $(repair_target):$(application.line) with branch literals $(join(application.branch_literals, ", "))."
     [
-        finding_from_rule(
-            rules[AGENT_JL_R020];
-            summary="Project.toml enables Moshi support through `[tool.JuliaLangProjectHarness]`, but Moshi is not a direct package dependency available to `src/`.$(summary_suffix)",
-            location=SourceLocation(scope.project_toml_path, 1, 0),
-            label="declare Moshi in `[deps]` and model the nearest stringly domain in `$(repair_target)`",
-            extra_labels=moshi_policy_labels(scope, application, repair_target),
+        finding_from_rule_typed(
+            rules[AGENT_JL_R020],
+            "Project.toml enables Moshi support through `[tool.JuliaLangProjectHarness]`, but Moshi is not a direct package dependency available to `src/`.$(summary_suffix)",
+            SourceLocation(scope.project_toml_path, 1, 0),
+            "declare Moshi in `[deps]` and model the nearest stringly domain in `$(repair_target)`",
+            moshi_policy_labels(scope, application, repair_target),
         ),
     ]
 end
@@ -41,17 +42,17 @@ function moshi_domain_model_findings(
             moshi_domain_model_satisfied(function_fact, modeling_facts) && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R020];
-                    summary=moshi_domain_model_summary(scope, function_fact),
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R020],
+                    moshi_domain_model_summary(scope, function_fact),
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label=moshi_domain_model_label(scope),
-                    extra_labels=moshi_domain_model_labels(
+                    source_line(parsed.source, function_fact.line),
+                    moshi_domain_model_label(scope),
+                    moshi_domain_model_labels(
                         scope,
                         function_fact,
                         modeling_facts,
@@ -81,17 +82,17 @@ function moshi_domain_bridge_findings(
             moshi_match_bridge_satisfied(function_fact, modeling_facts) && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R022];
-                    summary=moshi_domain_bridge_summary(function_fact),
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R022],
+                    moshi_domain_bridge_summary(function_fact),
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="route this domain through Moshi @match cases or typed methods",
-                    extra_labels=moshi_domain_bridge_labels(
+                    source_line(parsed.source, function_fact.line),
+                    "route this domain through Moshi @match cases or typed methods",
+                    moshi_domain_bridge_labels(
                         scope,
                         function_fact,
                         modeling_facts,
@@ -127,8 +128,8 @@ function project_moshi_policy(scope::JuliaProjectHarnessScope)
     isnothing(scope.project_toml_path) && return "auto"
     table = project_harness_tool_table(scope.project_toml_path)
     value = get(table, "moshi", "auto")
-    value isa AbstractString || return "invalid"
-    normalized = lowercase(strip(value))
+    value isa String || return "invalid"
+    normalized = lowercase(String(strip(value)))
     normalized in ("auto", "enable") && return normalized
     "invalid"
 end

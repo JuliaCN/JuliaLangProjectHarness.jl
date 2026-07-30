@@ -121,42 +121,53 @@ function julia_query_coverage(
     owner_path::AbstractString;
     project_root::AbstractString,
 )
-    rows = Dict{String,Any}[]
+    rows = JuliaQueryCoverageRow[]
     candidates = julia_query_candidate_items(entries, terms, owner_path; project_root)
-    candidate_names = String[String(candidate["name"]) for candidate in candidates]
+    typed_candidates = JuliaQueryCandidateItem[]
+    sizehint!(typed_candidates, length(candidates))
+    for candidate in candidates
+        push!(typed_candidates, julia_query_candidate_item(candidate))
+    end
+    candidate_names = String[]
+    sizehint!(candidate_names, length(typed_candidates))
+    for candidate in typed_candidates
+        push!(candidate_names, candidate.name)
+    end
     for term in terms
         exact_count = count(entry -> julia_query_entry_match(entry, term, owner_path) == "exact", entries)
         fallback_count = count(entry -> julia_query_entry_match(entry, term, owner_path) == "fallback-contains", entries)
         if exact_count > 0
-            push!(
-                rows,
-                Dict{String,Any}(
-                    "value" => term,
-                    "status" => "hit",
-                    "match" => "exact",
-                    "matchCount" => exact_count,
-                ),
-            )
+            push!(rows, JuliaQueryCoverageHit("hit", exact_count, term, "exact"))
         elseif fallback_count > 0
             push!(
                 rows,
-                Dict{String,Any}(
-                    "value" => term,
-                    "status" => "hit",
-                    "match" => "fallback-contains",
-                    "matchCount" => fallback_count,
-                ),
+                JuliaQueryCoverageHit("hit", fallback_count, term, "fallback-contains"),
             )
         else
-            row = Dict{String,Any}(
-                "value" => term,
-                "status" => "miss",
-                "match" => "none",
-                "matchCount" => 0,
-                "nextAction" => "query:revise-term",
-            )
-            isempty(candidate_names) || (row["candidateNames"] = candidate_names)
-            push!(rows, row)
+            if isempty(candidate_names)
+                push!(
+                    rows,
+                    JuliaQueryCoverageMiss(
+                        "miss",
+                        "query:revise-term",
+                        0,
+                        term,
+                        "none",
+                    ),
+                )
+            else
+                push!(
+                    rows,
+                    JuliaQueryCoverageMissWithCandidates(
+                        candidate_names,
+                        "miss",
+                        "query:revise-term",
+                        0,
+                        term,
+                        "none",
+                    ),
+                )
+            end
         end
     end
     rows

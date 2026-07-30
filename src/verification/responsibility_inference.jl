@@ -35,7 +35,7 @@ const JULIA_PERSISTENCE_ROOTS = Set([
     "HDF5",
     "JLD2",
     "JSON",
-    "JSON3",
+    "JSON",
     "LibPQ",
     "ODBC",
     "Parquet",

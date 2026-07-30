@@ -287,11 +287,22 @@ end
 
 function finding_from_rule(
     rule::JuliaHarnessRule;
-    summary,
-    location,
-    source_line=nothing,
-    label,
-    extra_labels=Dict{String,String}(),
+    summary::AbstractString,
+    location::SourceLocation,
+    source_line::Union{Nothing,AbstractString}=nothing,
+    label::AbstractString,
+    extra_labels::Dict{String,String}=Dict{String,String}(),
+)
+    finding_from_rule_typed(rule, summary, location, source_line, label, extra_labels)
+end
+
+function finding_from_rule_typed(
+    rule::JuliaHarnessRule,
+    summary::AbstractString,
+    location::SourceLocation,
+    source_line::Union{Nothing,AbstractString},
+    label::AbstractString,
+    extra_labels::Dict{String,String},
 )
     JuliaHarnessFinding(
         rule.rule_id,
@@ -305,4 +316,40 @@ function finding_from_rule(
         label,
         merge(copy(rule.labels), extra_labels),
     )
+end
+
+function finding_from_rule_typed(
+    rule::JuliaHarnessRule,
+    summary::AbstractString,
+    location::SourceLocation,
+    source_line::Union{Nothing,AbstractString},
+    label::AbstractString,
+)
+    finding_from_rule_typed(
+        rule,
+        summary,
+        location,
+        source_line,
+        label,
+        Dict{String,String}(),
+    )
+end
+
+function finding_from_rule_typed(
+    rule::JuliaHarnessRule,
+    summary::AbstractString,
+    location::SourceLocation,
+    label::AbstractString,
+)
+    finding_from_rule_typed(rule, summary, location, nothing, label, Dict{String,String}())
+end
+
+function finding_from_rule_typed(
+    rule::JuliaHarnessRule,
+    summary::AbstractString,
+    location::SourceLocation,
+    label::AbstractString,
+    extra_labels::Dict{String,String},
+)
+    finding_from_rule_typed(rule, summary, location, nothing, label, extra_labels)
 end

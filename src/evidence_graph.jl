@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 using TOML
 
 const JULIA_EVIDENCE_GRAPH_SCHEMA_ID =
@@ -117,7 +117,7 @@ end
 
 """Render the provider-owned Julia evidence graph JSON packet for agent receipts."""
 function render_julia_evidence_graph_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_evidence_graph_packet(project_root))
+    JSON.json(julia_evidence_graph_packet(project_root))
 end
 
 function julia_evidence_analysis_request_packet(project_root::AbstractString=pwd())
@@ -165,7 +165,7 @@ end
 
 """Render the Julia evidence graph-turbo request JSON for evidence-quality ranking."""
 function render_julia_evidence_analysis_request_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_evidence_analysis_request_packet(project_root))
+    JSON.json(julia_evidence_analysis_request_packet(project_root))
 end
 
 function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
@@ -194,7 +194,7 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
     if action == "graph"
         packet = julia_evidence_graph_packet(project_root)
         if json
-            print(out, JSON3.write(packet))
+            print(out, JSON.json(packet))
             print(out, "\n")
         else
             print(out, render_julia_evidence_graph(packet))
@@ -202,7 +202,7 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
     else
         packet = julia_evidence_analysis_request_packet(project_root)
         if json
-            print(out, JSON3.write(packet))
+            print(out, JSON.json(packet))
             print(out, "\n")
         else
             print(out, render_julia_evidence_analysis_request(packet))

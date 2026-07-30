@@ -12,23 +12,23 @@ function evaluate_modularity_rules(
             if !include.is_literal
                 push!(
                     findings,
-                    finding_from_rule(
-                        rules[JULIA_MOD_R003];
-                        summary="Parser facts found `$(include.expression)`, whose target is not statically known.",
-                        location=SourceLocation(parsed.report.path, include.line, include.column),
-                        source_line=source_line(parsed.source, include.line),
-                        label="replace dynamic include with a literal include or document the exception",
+                    finding_from_rule_typed(
+                        rules[JULIA_MOD_R003],
+                        "Parser facts found `$(include.expression)`, whose target is not statically known.",
+                        SourceLocation(parsed.report.path, include.line, include.column),
+                        source_line(parsed.source, include.line),
+                        "replace dynamic include with a literal include or document the exception",
                     ),
                 )
             elseif !isfile(include.resolved_target)
                 push!(
                     findings,
-                    finding_from_rule(
-                        rules[JULIA_MOD_R004];
-                        summary="`$(include.expression)` resolves to missing file `$(include.resolved_target)`.",
-                        location=SourceLocation(parsed.report.path, include.line, include.column),
-                        source_line=source_line(parsed.source, include.line),
-                        label="create the included file or update the literal include path",
+                    finding_from_rule_typed(
+                        rules[JULIA_MOD_R004],
+                        "`$(include.expression)` resolves to missing file `$(include.resolved_target)`.",
+                        SourceLocation(parsed.report.path, include.line, include.column),
+                        source_line(parsed.source, include.line),
+                        "create the included file or update the literal include path",
                     ),
                 )
             end
@@ -56,12 +56,12 @@ function project_jl_owner_budget_findings(
             parsed.metrics.nonblank_line_count > MAX_ENTRY_FACADE_NONBLANK_LINES || continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[JULIA_MOD_R001];
-                    summary="Package entry `$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines and no literal include owners.",
-                    location=SourceLocation(parsed.report.path, 1, 0),
-                    source_line=source_line(parsed.source, 1),
-                    label="move implementation into included owner files and keep the entry module as a facade",
+                finding_from_rule_typed(
+                    rules[JULIA_MOD_R001],
+                    "Package entry `$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines and no literal include owners.",
+                    SourceLocation(parsed.report.path, 1, 0),
+                    source_line(parsed.source, 1),
+                    "move implementation into included owner files and keep the entry module as a facade",
                 ),
             )
             continue
@@ -69,12 +69,12 @@ function project_jl_owner_budget_findings(
         parsed.metrics.nonblank_line_count > MAX_SOURCE_FILE_NONBLANK_LINES || continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_MOD_R002];
-                summary="Julia owner file `$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines.",
-                location=SourceLocation(parsed.report.path, 1, 0),
-                source_line=source_line(parsed.source, 1),
-                label=project_jl_owner_budget_label(scope, parsed.report.path),
+            finding_from_rule_typed(
+                rules[JULIA_MOD_R002],
+                "Julia owner file `$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines.",
+                SourceLocation(parsed.report.path, 1, 0),
+                source_line(parsed.source, 1),
+                project_jl_owner_budget_label(scope, parsed.report.path),
             ),
         )
     end
@@ -137,12 +137,12 @@ function visit_include_graph!(
                 push!(reported_cycles, cycle_key)
                 push!(
                     findings,
-                    finding_from_rule(
-                        rules[JULIA_MOD_R005];
-                        summary="Literal include cycle detected: $(join(cycle_paths, " -> ")).",
-                        location=SourceLocation(parsed.report.path, include.line, include.column),
-                        source_line=source_line(parsed.source, include.line),
-                        label="break the include cycle by moving shared declarations behind one acyclic owner",
+                    finding_from_rule_typed(
+                        rules[JULIA_MOD_R005],
+                        "Literal include cycle detected: $(join(cycle_paths, " -> ")).",
+                        SourceLocation(parsed.report.path, include.line, include.column),
+                        source_line(parsed.source, include.line),
+                        "break the include cycle by moving shared declarations behind one acyclic owner",
                     ),
                 )
             end
@@ -174,12 +174,12 @@ function orphan_source_findings(
     for path in orphaned
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_MOD_R006];
-                summary="`$(path)` is under `src/` but is not reachable from `$(scope.package_entry_path)` through literal includes.",
-                location=SourceLocation(path, 1, 0),
-                source_line=source_line(parsed_by_path[path].source, 1),
-                label="include this source from the package entry graph or document why it is intentionally separate",
+            finding_from_rule_typed(
+                rules[JULIA_MOD_R006],
+                "`$(path)` is under `src/` but is not reachable from `$(scope.package_entry_path)` through literal includes.",
+                SourceLocation(path, 1, 0),
+                source_line(parsed_by_path[path].source, 1),
+                "include this source from the package entry graph or document why it is intentionally separate",
             ),
         )
     end
@@ -205,9 +205,21 @@ function reachable_source_files(entry_path::String, parsed_by_path::Dict{String,
     reachable
 end
 
+function normalized_absolute_path(path::AbstractString)
+    normpath(abspath(String(path)))
+end
+
+function path_has_root_prefix(path::String, root::String)
+    path == root && return true
+    separator = string(Base.Filesystem.path_separator)
+    root_prefix = endswith(root, separator) ? root : root * separator
+    startswith(path, root_prefix)
+end
+
 function is_path_under(path::AbstractString, root::AbstractString)
-    relative = relpath(path, root)
-    relative == "." || (!startswith(relative, "..") && !isabspath(relative))
+    normalized_path = normalized_absolute_path(path)
+    normalized_root = normalized_absolute_path(root)
+    path_has_root_prefix(normalized_path, normalized_root)
 end
 
 function generic_owner_bucket_findings(
@@ -223,12 +235,12 @@ function generic_owner_bucket_findings(
         isnothing(generic_segment) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_MOD_R007];
-                summary="`$(parsed.report.path)` is under generic source owner `$(generic_segment)`.",
-                location=SourceLocation(parsed.report.path, 1, 0),
-                source_line=source_line(parsed.source, 1),
-                label="rename the source directory to the domain owner it represents",
+            finding_from_rule_typed(
+                rules[JULIA_MOD_R007],
+                "`$(parsed.report.path)` is under generic source owner `$(generic_segment)`.",
+                SourceLocation(parsed.report.path, 1, 0),
+                source_line(parsed.source, 1),
+                "rename the source directory to the domain owner it represents",
             ),
         )
     end
@@ -250,8 +262,15 @@ function first_project_jl_owner_root(scope::JuliaProjectHarnessScope, path::Abst
 end
 
 function first_generic_owner_segment(source_root::AbstractString, path::AbstractString)
-    relative = relpath(dirname(path), source_root)
-    relative == "." && return nothing
+    normalized_root = normalized_absolute_path(source_root)
+    owner_directory = normalized_absolute_path(dirname(path))
+    path_has_root_prefix(owner_directory, normalized_root) || return nothing
+    owner_directory == normalized_root && return nothing
+    separator = string(Base.Filesystem.path_separator)
+    root_prefix = endswith(normalized_root, separator) ?
+                  normalized_root :
+                  normalized_root * separator
+    relative = String(chopprefix(owner_directory, root_prefix))
     for segment in splitpath(relative)
         normalized = lowercase(String(segment))
         normalized in GENERIC_SOURCE_OWNER_SEGMENTS && return segment

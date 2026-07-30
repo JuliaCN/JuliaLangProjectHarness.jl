@@ -106,20 +106,20 @@ end
         version = "0.1.0"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [extensions]
-        ActivatedJSONExt = ["JSON3"]
+        ActivatedJSONExt = ["JSON"]
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
 
         [extras]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
         [targets]
-        test = ["JSON3", "Test"]
+        test = ["JSON", "Test"]
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -136,7 +136,7 @@ end
     )
 
     @test extension_task.evidence["activation"] == "test_target"
-    @test extension_task.evidence["test_target"] == "JSON3,Test"
+    @test extension_task.evidence["test_target"] == "JSON,Test"
     @test occursin("Pkg.test()", join(extension_task.command, " "))
     @test extension_candidate.state == "test_target"
 end

@@ -196,7 +196,7 @@ end
 
 """Render the Julia semantic-language registry packet as JSON."""
 function render_julia_agent_registry_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_agent_registry_packet(project_root))
+    JSON.json(julia_agent_registry_packet(project_root))
 end
 
 """Render a compact Julia provider registry status line."""

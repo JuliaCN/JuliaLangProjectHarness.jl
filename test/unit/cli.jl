@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 
 function write_cli_project(root::AbstractString)
     write(
@@ -49,27 +49,27 @@ function write_cli_dependency_project(root::AbstractString)
         version = "0.1.0"
 
         [deps]
-        JSON3 = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
+        JSON = "0f8b85d8-4d53-5b53-a99a-2ac09aa4099b"
 
         [extras]
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
         """,
     )
     write(
         joinpath(root, "src", "CliExample.jl"),
         """
         module CliExample
-        using JSON3
+        using JSON
         export run, parse_json
         include("Other.jl")
         \"\"\"Run a value through the CLI fixture using an explicit dispatch extension.\"\"\"
         run(value) = helper(value)
         helper(value) = string(value)
-        \"\"\"Parse JSON text through JSON3 for dependency search fixtures.\"\"\"
-        parse_json(text) = JSON3.read(text)
+        \"\"\"Parse JSON text through JSON for dependency search fixtures.\"\"\"
+        parse_json(text) = JSON.parse(text)
         end
         """,
     )
@@ -148,8 +148,8 @@ end
         run_julia_project_harness_cli(["agent", "registry", "--json", root]; out = json_out)
     doctor_status =
         run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = doctor_out)
-    registry = JSON3.read(String(take!(json_out)))
-    doctor_registry = JSON3.read(String(take!(doctor_out)))
+    registry = JSON.parse(String(take!(json_out)))
+    doctor_registry = JSON.parse(String(take!(doctor_out)))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
 
     @test compact_status == 0
@@ -282,7 +282,7 @@ end
     out = IOBuffer()
 
     status = run_julia_project_harness_cli(["export", "index", root]; out)
-    packet = JSON3.read(String(take!(out)))
+    packet = JSON.parse(String(take!(out)))
 
     @test status == 0
     @test packet.schemaId == "agent.semantic-protocols.semantic-native-syntax-fact-index"

@@ -1,6 +1,15 @@
+struct MoshiNearestApplication
+    path::String
+    line::Int
+    function_name::String
+    domain_args::Vector{String}
+    branch_literals::Vector{String}
+    branch_count::Int
+end
+
 function moshi_policy_labels(
     scope::JuliaProjectHarnessScope,
-    application,
+    application::Union{Nothing,MoshiNearestApplication},
     repair_target::AbstractString,
 )
     labels = Dict(
@@ -23,8 +32,8 @@ end
 function moshi_nearest_application(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-)
-    candidates = []
+)::Union{Nothing,MoshiNearestApplication}
+    candidates = MoshiNearestApplication[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -32,13 +41,13 @@ function moshi_nearest_application(
             is_stringly_branch_dispatch(function_fact) || continue
             push!(
                 candidates,
-                (
-                    path = parsed.report.path,
-                    line = function_fact.line,
-                    function_name = function_fact.terminal_name,
-                    domain_args = function_fact.stringly_domain_args,
-                    branch_literals = function_fact.stringly_branch_literals,
-                    branch_count = function_fact.branch_count,
+                MoshiNearestApplication(
+                    parsed.report.path,
+                    function_fact.line,
+                    function_fact.terminal_name,
+                    copy(function_fact.stringly_domain_args),
+                    copy(function_fact.stringly_branch_literals),
+                    function_fact.branch_count,
                 ),
             )
         end
@@ -47,7 +56,7 @@ function moshi_nearest_application(
     first(sort(candidates; by = moshi_application_rank_key))
 end
 
-function moshi_application_rank_key(application)
+function moshi_application_rank_key(application::MoshiNearestApplication)
     (
         -length(application.branch_literals),
         -application.branch_count,

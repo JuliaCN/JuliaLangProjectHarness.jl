@@ -32,16 +32,16 @@ function mutable_global_state_findings(
             is_mutable_global_initializer(binding_fact) || continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R024];
-                    summary="Package source defines mutable global binding `$(binding_fact.name)` initialized as $(mutable_global_initializer_summary(binding_fact)).",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R024],
+                    "Package source defines mutable global binding `$(binding_fact.name)` initialized as $(mutable_global_initializer_summary(binding_fact)).",
+                    SourceLocation(
                         parsed.report.path,
                         binding_fact.line,
                         binding_fact.column,
                     ),
-                    source_line=source_line(parsed.source, binding_fact.line),
-                    label="move mutable state into an explicit owner object or document a const reset/lifecycle contract",
+                    source_line(parsed.source, binding_fact.line),
+                    "move mutable state into an explicit owner object or document a const reset/lifecycle contract",
                 ),
             )
         end

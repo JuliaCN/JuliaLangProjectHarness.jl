@@ -6,7 +6,7 @@ function render_julia_semantic_graph_facts_json(
     query::AbstractString,
     stdin_text::AbstractString,
 )
-    JSON3.write(julia_semantic_graph_facts_packet(project_root, query, stdin_text))
+    JSON.json(julia_semantic_graph_facts_packet(project_root, query, stdin_text))
 end
 
 function julia_semantic_graph_facts_packet(

@@ -41,6 +41,21 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-exact-selector-receipt.v1.schema.json", "agent.semantic-protocols.semantic-exact-selector-receipt"),
     ("semantic-language-projection.v1.schema.json", "agent.semantic-protocols.semantic-language-projection"),
     ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
+    ("callable-skeleton-projection.v1.schema.json", "agent.semantic-protocols.callable-skeleton-projection"),
+    ("canonical-item-selector.v1.schema.json", "asp.canonical-item-selector.v1"),
+    ("exact-structural-selector.v1.schema.json", "asp.exact-structural-selector.v1"),
+    ("language-package-graph.v1.schema.json", "agent.semantic-protocols.language-package-graph"),
+    ("project-resolution.v1.schema.json", "agent.semantic-protocols.project-resolution"),
+    ("provider-document-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-document-resolution-descriptor"),
+    ("provider-manifest.v1.schema.json", "agent.semantic-protocols.hook.provider-manifest"),
+    ("provider-native-exact-request.v1.schema.json", "agent.semantic-protocols.provider-native-exact-request"),
+    ("provider-native-exact-response.v1.schema.json", "agent.semantic-protocols.provider-native-exact-projection"),
+    ("provider-project-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-project-resolution-descriptor"),
+    ("provider-query-pack-descriptor.v1.schema.json", "agent.semantic-protocols.provider-query-pack-descriptor"),
+    ("repository-candidate-snapshot.v1.schema.json", "agent.semantic-protocols.repository-candidate-snapshot"),
+    ("resolved-source-scope.v1.schema.json", "agent.semantic-protocols.resolved-source-scope"),
+    ("semantic-invariant-candidate.v1.schema.json", "agent.semantic-protocols.semantic-invariant-candidate"),
+    ("source-snapshot-evidence.v1.schema.json", "agent.semantic-protocols.source-snapshot-evidence"),
 ]
 
 function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")

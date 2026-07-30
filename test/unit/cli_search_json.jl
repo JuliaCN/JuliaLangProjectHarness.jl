@@ -41,7 +41,7 @@
         [
             "search",
             "deps",
-            "JSON3::read",
+            "JSON::parse",
             "owner",
             "tests",
             "--view",
@@ -136,16 +136,21 @@
     end
     registry_status = run_julia_project_harness_cli(["agent", "registry", "--json", root]; out=registry_out)
 
-    workspace_packet = JSON3.read(String(take!(workspace_out)))
-    prime_packet = JSON3.read(String(take!(prime_out)))
-    lexical_packet = JSON3.read(String(take!(lexical_out)))
-    deps_packet = JSON3.read(String(take!(deps_out)))
-    query_packet = JSON3.read(String(take!(query_out)))
-    policy_packet = JSON3.read(String(take!(policy_out)))
-    ingest_packet = JSON3.read(String(take!(ingest_out)))
-    semantic_packet = JSON3.read(String(take!(semantic_out)))
-    registry = JSON3.read(String(take!(registry_out)))
+    workspace_packet = JSON.parse(String(take!(workspace_out)))
+    prime_packet = JSON.parse(String(take!(prime_out)))
+    lexical_packet = JSON.parse(String(take!(lexical_out)))
+    deps_packet = JSON.parse(String(take!(deps_out)))
+    query_packet = JSON.parse(String(take!(query_out)))
+    policy_packet = JSON.parse(String(take!(policy_out)))
+    ingest_packet = JSON.parse(String(take!(ingest_out)))
+    semantic_packet = JSON.parse(String(take!(semantic_out)))
+    registry = JSON.parse(String(take!(registry_out)))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
+    relative_prime_packet = cd(root) do
+        JSON.parse(
+            JuliaLangProjectHarness.render_julia_native_prime_packet_json(".", "seeds"),
+        )
+    end
 
     @test workspace_status == 0
     @test workspace_packet.method == "search/workspace"
@@ -157,6 +162,9 @@
     @test prime_packet.method == "search/prime"
     @test prime_packet.renderMode == "seeds"
     @test any(owner -> owner.path == "src/CliExample.jl", prime_packet.owners)
+    @test relative_prime_packet.method == "search/prime"
+    @test !isempty(relative_prime_packet.hits)
+    @test all(hit -> !isabspath(hit.ownerPath), relative_prime_packet.hits)
     @test any(fact -> fact.ownerPath == "src/CliExample.jl", prime_packet.nativeSyntaxFacts)
     @test lexical_status == 0
     @test lexical_packet.method == "search/lexical"
@@ -166,13 +174,13 @@
     @test deps_status == 0
     @test deps_packet.method == "search/deps"
     @test deps_packet.view == "deps"
-    @test deps_packet.query == "JSON3::read"
+    @test deps_packet.query == "JSON::parse"
     @test only(deps_packet.querySet).kind == "dependency"
-    @test only(deps_packet.querySet).fields.dependency == "JSON3"
-    @test only(deps_packet.querySet).fields.apiQuery == "read"
+    @test only(deps_packet.querySet).fields.dependency == "JSON"
+    @test only(deps_packet.querySet).fields.apiQuery == "parse"
     @test only(deps_packet.queryCoverage).status == "hit"
-    @test any(node -> node.kind == "dependency" && node.fields.name == "JSON3", deps_packet.nodes)
-    @test any(hit -> hit.ownerPath == "src/CliExample.jl" && occursin("read", hit.symbol), deps_packet.hits)
+    @test any(node -> node.kind == "dependency" && node.fields.name == "JSON", deps_packet.nodes)
+    @test any(hit -> hit.ownerPath == "src/CliExample.jl" && occursin("parse", hit.symbol), deps_packet.hits)
     @test any(action -> action.target == "src/CliExample.jl", deps_packet.nextActions)
     @test deps_packet.cache.rawSourceStored == false
     dependency_cache_paths = [hash.path for hash in deps_packet.cache.fileHashes]
@@ -279,7 +287,7 @@
     @test any(
         node ->
             node.kind == "dependency" &&
-                node.value == "JSON3" &&
+                node.value == "JSON" &&
                 node.action == "deps" &&
                 node.fields.semanticFactKind == "dependency" &&
                 node.fields.dependencyKind == "normal" &&

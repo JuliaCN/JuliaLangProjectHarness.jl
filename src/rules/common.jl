@@ -6,13 +6,13 @@ function evaluate_syntax_rules(parsed_files::Vector{ParsedJuliaFile})
         parsed.report.is_valid && continue
         push!(
             findings,
-            finding_from_rule(
-                syntax_rule;
-                summary=isnothing(parsed.report.parse_error) ? "JuliaSyntax rejected the file." :
+            finding_from_rule_typed(
+                syntax_rule,
+                isnothing(parsed.report.parse_error) ? "JuliaSyntax rejected the file." :
                         parsed.report.parse_error,
-                location=SourceLocation(parsed.report.path, 1, 0),
-                source_line=source_line(parsed.source, 1),
-                label="repair Julia syntax until JuliaSyntax can parse this file",
+                SourceLocation(parsed.report.path, 1, 0),
+                source_line(parsed.source, 1),
+                "repair Julia syntax until JuliaSyntax can parse this file",
             ),
         )
     end

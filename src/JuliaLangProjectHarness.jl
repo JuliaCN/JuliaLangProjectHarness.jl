@@ -40,11 +40,15 @@ include("verification/profile_index.jl")
 include("moshi_extension.jl")
 include("evidence_graph.jl")
 include("cli/search_protocol.jl")
+include("cli/dependency_topology.jl")
 include("cli/search_query.jl")
 include("cli/search_cli.jl")
 include("asp_search.jl")
 include("queries/flow_lite.jl")
 include("cli/query.jl")
+include("cli/query_contract.jl")
+include("cli/project_resolution.jl")
+include("cli/project_resolution_codec.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 
@@ -102,6 +106,8 @@ export JuliaDiagnosticSeverity,
     render_julia_evidence_graph_json,
     render_julia_query_owner_items,
     render_julia_query_owner_items_json,
+    render_julia_native_owner_items_query_json,
+    run_julia_native_owner_items_query_cli,
     render_julia_rule_visibility,
     render_julia_search_results,
     render_julia_verification_pending_advice,

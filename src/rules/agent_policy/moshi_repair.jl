@@ -50,11 +50,11 @@ end
 function moshi_source_repair_target(scope::JuliaProjectHarnessScope)
     entry_path = scope.package_entry_path
     if !isnothing(entry_path)
-        return slash_path(relpath(entry_path, scope.project_root))
+        return display_public_owner_path(scope, entry_path)
     end
     source_paths = sort(scope.source_paths)
     isempty(source_paths) && return "src/"
-    slash_path(relpath(first(source_paths), scope.project_root))
+    display_public_owner_path(scope, first(source_paths))
 end
 
 function moshi_model_repair_target(scope::JuliaProjectHarnessScope)

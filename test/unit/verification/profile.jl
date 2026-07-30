@@ -77,9 +77,9 @@ end
         "chaos",
         "security",
     ]
-    @test candidate.evidence["direct_deps"] == "HTTP,JSON3"
+    @test candidate.evidence["direct_deps"] == "HTTP,JSON"
     @test candidate.evidence["network_roots"] == "HTTP"
-    @test candidate.evidence["persistence_roots"] == "JSON3"
+    @test candidate.evidence["persistence_roots"] == "JSON"
     @test candidate.evidence["security_roots"] == "SHA"
     @test candidate.evidence["performance_roots"] == "LinearAlgebra"
     @test occursin("responsibilities=public_api,external_dependency", rendered)

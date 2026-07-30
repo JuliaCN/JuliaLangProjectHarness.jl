@@ -32,16 +32,16 @@ function public_abstract_field_type_findings(
             first_field = first(broad_fields)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R025];
-                    summary="Exported/public struct `$(name)` has broadly abstract fields: $(join(display_broad_field.(broad_fields), ", ")).",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R025],
+                    "Exported/public struct `$(name)` has broadly abstract fields: $(join(display_broad_field.(broad_fields), ", ")).",
+                    SourceLocation(
                         parsed.report.path,
                         first_field.line,
                         first_field.column,
                     ),
-                    source_line=source_line(parsed.source, first_field.line),
-                    label="replace broad field annotations with concrete fields or a typed parameterized data shape",
+                    source_line(parsed.source, first_field.line),
+                    "replace broad field annotations with concrete fields or a typed parameterized data shape",
                 ),
             )
         end

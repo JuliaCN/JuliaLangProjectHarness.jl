@@ -88,13 +88,13 @@ end
         version = "0.1.0"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
 
         [extensions]
-        ExampleJSONExt = "JSON3"
+        ExampleJSONExt = "JSON"
         """,
     )
     mkpath(joinpath(root, "src"))

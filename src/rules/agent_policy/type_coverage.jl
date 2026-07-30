@@ -21,16 +21,16 @@ function public_generic_type_coverage_findings(
             push!(reported, name)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R018];
-                    summary=public_generic_type_coverage_summary(function_fact, input_types),
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R018],
+                    public_generic_type_coverage_summary(function_fact, input_types),
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add tests that call this generic public API with at least two relevant input types",
+                    source_line(parsed.source, function_fact.line),
+                    "add tests that call this generic public API with at least two relevant input types",
                 ),
             )
         end
@@ -64,50 +64,178 @@ function test_literal_input_types_by_call_name(
 end
 
 function literal_input_type_for_call(call::JuliaCallSyntax)
-    argument = first_call_argument_node(call.expression)
+    argument = first_call_argument_lexeme(call.expression)
     isnothing(argument) && return nothing
     literal_input_type_category(argument)
 end
 
-function first_call_argument_node(expression::AbstractString)
-    try
-        syntax = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, String(expression))
-        call_node = first_syntax_node_kind(syntax, "call")
-        isnothing(call_node) && return nothing
-        arguments = call_arguments(call_node)
-        isempty(arguments) && return nothing
-        first(arguments)
-    catch
-        nothing
-    end
-end
-
-function first_syntax_node_kind(node::JuliaSyntax.SyntaxNode, kind::AbstractString)
-    syntax_kind(node) == kind && return node
-    for child in syntax_children(node)
-        found = first_syntax_node_kind(child, kind)
-        !isnothing(found) && return found
+function first_call_argument_lexeme(
+    expression::AbstractString,
+)::Union{Nothing,String}
+    text = String(expression)
+    opening = findfirst(==('('), text)
+    isnothing(opening) && return nothing
+    start = nextind(text, opening)
+    start > lastindex(text) && return nothing
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
+    string_delimiter::Union{Nothing,Char} = nothing
+    escaped = false
+    index = start
+    while index <= lastindex(text)
+        character = text[index]
+        if !isnothing(string_delimiter)
+            if escaped
+                escaped = false
+            elseif character == '\\'
+                escaped = true
+            elseif character == string_delimiter
+                string_delimiter = nothing
+            end
+        elseif character == '"' || character == '\''
+            string_delimiter = character
+        elseif character == '('
+            paren_depth += 1
+        elseif character == ')'
+            if paren_depth == 0 && bracket_depth == 0 && brace_depth == 0
+                return stripped_argument_lexeme(text, start, prevind(text, index))
+            end
+            paren_depth -= 1
+        elseif character == '['
+            bracket_depth += 1
+        elseif character == ']'
+            bracket_depth -= 1
+        elseif character == '{'
+            brace_depth += 1
+        elseif character == '}'
+            brace_depth -= 1
+        elseif (character == ',' || character == ';') &&
+               paren_depth == 0 &&
+               bracket_depth == 0 &&
+               brace_depth == 0
+            return stripped_argument_lexeme(text, start, prevind(text, index))
+        end
+        index = nextind(text, index)
     end
     nothing
 end
 
-function literal_input_type_category(argument::JuliaSyntax.SyntaxNode)
-    kind = syntax_kind(argument)
-    kind == "Integer" && return "Int"
-    kind == "Float" && return "Float64"
-    kind == "Bool" && return "Bool"
-    kind == "string" && return "String"
-    kind == "char" && return "Char"
-    kind == "quote" && return "Symbol"
-    kind == "vect" && return "Vector"
-    kind == "tuple" && return "Tuple"
-    if kind == "call"
-        name = call_expression_name(argument)
-        isnothing(name) && return nothing
-        terminal = terminal_public_name(name)
+function stripped_argument_lexeme(
+    text::String,
+    start::Int,
+    stop::Int,
+)::Union{Nothing,String}
+    stop < start && return nothing
+    argument = strip(String(SubString(text, start, stop)))
+    isempty(argument) ? nothing : argument
+end
+
+function literal_input_type_category(argument::AbstractString)
+    text = String(strip(String(argument)))
+    isempty(text) && return nothing
+    (text == "true" || text == "false") && return "Bool"
+    occursin(r"^[+-]?\d[\d_]*$", text) && return "Int"
+    occursin(
+        r"^[+-]?(?:(?:\d[\d_]*)?\.\d[\d_]*|\d[\d_]*\.)(?:[eEfF][+-]?\d[\d_]*)?$|^[+-]?\d[\d_]*[eEfF][+-]?\d[\d_]*$",
+        text,
+    ) && return "Float64"
+    startswith(text, '"') && endswith(text, '"') && return "String"
+    startswith(text, '\'') && endswith(text, '\'') && return "Char"
+    startswith(text, ':') && return "Symbol"
+    startswith(text, '[') && endswith(text, ']') && return "Vector"
+    if startswith(text, '(') && endswith(text, ')')
+        closing = matching_delimiter_index(text, firstindex(text), '(', ')')
+        if closing == lastindex(text)
+            inner_start = nextind(text, firstindex(text))
+            inner_stop = prevind(text, lastindex(text))
+            inner_stop < inner_start && return "Tuple"
+            inner = String(SubString(text, inner_start, inner_stop))
+            has_top_level_comma(inner) && return "Tuple"
+            return literal_input_type_category(inner)
+        end
+    end
+    opening = findfirst(==('('), text)
+    if !isnothing(opening) && endswith(text, ')')
+        prefix_stop = prevind(text, opening)
+        prefix_stop >= firstindex(text) || return nothing
+        name = strip(String(SubString(text, firstindex(text), prefix_stop)))
+        terminal = last(split(name, '.'))
         terminal in TYPE_COVERAGE_LITERAL_CONSTRUCTORS && return terminal
     end
     nothing
+end
+
+function matching_delimiter_index(
+    text::String,
+    opening::Int,
+    open_character::Char,
+    close_character::Char,
+)::Union{Nothing,Int}
+    depth = 0
+    string_delimiter::Union{Nothing,Char} = nothing
+    escaped = false
+    index = opening
+    while index <= lastindex(text)
+        character = text[index]
+        if !isnothing(string_delimiter)
+            if escaped
+                escaped = false
+            elseif character == '\\'
+                escaped = true
+            elseif character == string_delimiter
+                string_delimiter = nothing
+            end
+        elseif character == '"' || character == '\''
+            string_delimiter = character
+        elseif character == open_character
+            depth += 1
+        elseif character == close_character
+            depth -= 1
+            depth == 0 && return index
+        end
+        index = nextind(text, index)
+    end
+    nothing
+end
+
+function has_top_level_comma(text::String)::Bool
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
+    string_delimiter::Union{Nothing,Char} = nothing
+    escaped = false
+    for character in text
+        if !isnothing(string_delimiter)
+            if escaped
+                escaped = false
+            elseif character == '\\'
+                escaped = true
+            elseif character == string_delimiter
+                string_delimiter = nothing
+            end
+        elseif character == '"' || character == '\''
+            string_delimiter = character
+        elseif character == '('
+            paren_depth += 1
+        elseif character == ')'
+            paren_depth -= 1
+        elseif character == '['
+            bracket_depth += 1
+        elseif character == ']'
+            bracket_depth -= 1
+        elseif character == '{'
+            brace_depth += 1
+        elseif character == '}'
+            brace_depth -= 1
+        elseif character == ',' &&
+               paren_depth == 0 &&
+               bracket_depth == 0 &&
+               brace_depth == 0
+            return true
+        end
+    end
+    false
 end
 
 const TYPE_COVERAGE_LITERAL_CONSTRUCTORS = Set([

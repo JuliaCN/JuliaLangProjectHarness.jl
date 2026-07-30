@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 
 function write_cli_evidence_project(root::AbstractString)
     write(
@@ -38,9 +38,9 @@ end
     registry_status =
         run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = registry_out)
     guide_status = run_julia_project_harness_cli(["guide", root]; out = guide_out)
-    graph = JSON3.read(String(take!(graph_out)))
-    analysis = JSON3.read(String(take!(analysis_out)))
-    registry = JSON3.read(String(take!(registry_out)))
+    graph = JSON.parse(String(take!(graph_out)))
+    analysis = JSON.parse(String(take!(analysis_out)))
+    registry = JSON.parse(String(take!(registry_out)))
     guide = String(take!(guide_out))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
 

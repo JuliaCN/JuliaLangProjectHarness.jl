@@ -37,16 +37,32 @@ function default_julia_harness_cli_options()
 end
 
 """Run the Julia project harness command-line interface."""
-function run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr)
+run_julia_project_harness_cli(args=ARGS; out=stdout, err=stderr) =
+    run_julia_project_harness_cli(args, out, err)
+
+function run_julia_project_harness_cli(args, out::IO, err::IO)
     try
         run_julia_project_harness_cli_checked(String.(collect(args)); out, err)
     catch caught
-        println(err, "error: $(compact_error_message(caught))")
+        println(err, "error: $(julia_cli_error_message(caught))")
         2
     end
 end
 
-function run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stderr)
+function julia_cli_error_message(caught)::String
+    caught isa ErrorException && return compact_error_message(caught.msg)
+    caught isa ArgumentError && return compact_error_message(caught.msg)
+    caught isa TOML.ParserError && return project_parse_error_message(caught)
+    return "provider command failed"
+end
+
+run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stderr) =
+    run_julia_project_harness_cli_checked(args, out, err)
+
+function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, err::IO)
+    if args == ["project-resolution-stdin"]
+        return run_julia_project_resolution_cli(stdin, out)
+    end
     if !isempty(args) && first(args) == "query"
         return run_julia_harness_query_cli(args[2:end]; out=out)
     end
@@ -192,7 +208,10 @@ function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
     status
 end
 
-function run_julia_harness_check_cli(args::Vector{String}; out=stdout)
+run_julia_harness_check_cli(args::Vector{String}; out=stdout) =
+    run_julia_harness_check_cli(args, out)
+
+function run_julia_harness_check_cli(args::Vector{String}, out::IO)
     isempty(args) || args[1] == "--changed" || error("unknown check option: $(args[1])")
     project_root = length(args) >= 2 ? args[2] : pwd()
     report = run_julia_project_harness(project_root)

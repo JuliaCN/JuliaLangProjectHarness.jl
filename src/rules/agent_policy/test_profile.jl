@@ -11,12 +11,12 @@ function verification_test_profile_findings(
     has_test_profile_hook(scope, parsed_files) && return JuliaHarnessFinding[]
     owner_path = preferred_test_owner_path(scope)
     [
-        finding_from_rule(
-            rules[AGENT_JL_R014];
-            summary="Project `$(something(scope.package_name, "<unnamed>"))` depends on JuliaLangProjectHarness, but its test files do not call `assert_julia_project_harness_test_profile_clean`.",
-            location=SourceLocation(owner_path, 1, 0),
-            source_line=test_profile_owner_source_line(owner_path, parsed_files),
-            label="add a compact harness testset that calls `assert_julia_project_harness_test_profile_clean(pkgdir(<PackageModule>))`",
+        finding_from_rule_typed(
+            rules[AGENT_JL_R014],
+            "Project `$(something(scope.package_name, "<unnamed>"))` depends on JuliaLangProjectHarness, but its test files do not call `assert_julia_project_harness_test_profile_clean`.",
+            SourceLocation(owner_path, 1, 0),
+            test_profile_owner_source_line(owner_path, parsed_files),
+            "add a compact harness testset that calls `assert_julia_project_harness_test_profile_clean(pkgdir(<PackageModule>))`",
         ),
     ]
 end
