@@ -52,6 +52,13 @@ include("cli/project_resolution_codec.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 
+"""Configure JuliaSyntax only for the closed JuliaC build process.
+
+Safety contract: this fixed parser override runs only while `ASP_JULIA_AOT_BUILD=1`,
+before the compiler snapshots the Harness dependency graph; it never mutates a normal
+Harness process. The JuliaC compile smoke and compiled `guide`/`export index` tests
+verify that the override preserves the parser block contract.
+"""
 function configure_juliac_aot_syntax!()
     Core.eval(
         JuliaSyntax,
