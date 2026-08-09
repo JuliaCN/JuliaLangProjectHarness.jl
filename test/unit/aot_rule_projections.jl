@@ -216,7 +216,6 @@ end
 
     @test roots isa Set{String}
     @test roots == expected
-    @test length(roots) == 61
     @test "Test" in roots
     @test "LinearAlgebra" in roots
     @test "Pkg" in roots
