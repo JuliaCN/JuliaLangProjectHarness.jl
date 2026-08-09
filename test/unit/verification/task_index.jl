@@ -44,7 +44,7 @@
     advice_out = IOBuffer()
     profile = assert_julia_project_harness_test_profile_clean(root; advice_io=advice_out)
     advice = String(take!(advice_out))
-    @test profile.report.project_scope.project_root == root
+    @test profile.report.project_resolution.project_root == root
     @test [record.kind for record in profile.task_index.records] == kinds
     @test length(profile.profile_index.candidates) == 3
     @test isempty(profile.receipt_reviews)

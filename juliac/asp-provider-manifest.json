@@ -9,6 +9,14 @@
   "providerId": "julia-lang-project-harness",
   "namespace": "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
   "binary": "asp-julia-harness",
+  "development": {
+    "schemaId": "agent.semantic-protocols.provider-development-descriptor",
+    "schemaVersion": "1",
+    "sourceRoot": "languages/JuliaLangProjectHarness.jl",
+    "buildBinding": "provider-workspace-install-v1",
+    "workspaceInstall": "juliac/asp-provider-workspace-install.json",
+    "artifactDomain": "checkout"
+  },
   "execution": "external-process",
   "searchCapabilities": {
     "ownerItems": false,
@@ -84,12 +92,24 @@
       }
     ]
   },
+  "languageProjection": {
+    "schemaId": "agent.semantic-protocols.provider-language-projection-descriptor",
+    "schemaVersion": "1",
+    "commandBinding": "projection-batch-stdin",
+    "transport": "framed-stdin-v1",
+    "requestSchema": "https://schemas.agent-semantic-protocols.dev/provider-language-projection-batch-request.v1.schema.json",
+    "responseSchema": "https://schemas.agent-semantic-protocols.dev/provider-language-projection-batch-response.v1.schema.json",
+    "identitySchema": "https://schemas.agent-semantic-protocols.dev/canonical-language-item-identity.v1.schema.json"
+  },
   "projectResolution": {
     "schemaId": "agent.semantic-protocols.provider-project-resolution-descriptor",
     "schemaVersion": "1",
     "capabilityId": "project-resolution",
     "entryMarkers": [
       "Project.toml"
+    ],
+    "sourceExtensions": [
+      ".jl"
     ],
     "manifestKinds": [
       "julia-project-toml",
@@ -98,13 +118,11 @@
     "lockfileKinds": [
       "julia-manifest"
     ],
-    "supportsGitCandidates": true,
-    "supportsProviderOnly": false,
     "parserId": "julia.pkg-project-toml",
     "commandBinding": "project-resolution-stdin",
-    "candidateSnapshotSchema": "https://schemas.agent-semantic-protocols.dev/repository-candidate-snapshot.v1.schema.json",
+    "requestSchema": "https://schemas.agent-semantic-protocols.dev/provider-project-resolution-request.v1.schema.json",
+    "responseSchema": "https://schemas.agent-semantic-protocols.dev/provider-project-resolution-response.v1.schema.json",
     "packageGraphSchema": "https://schemas.agent-semantic-protocols.dev/language-package-graph.v1.schema.json",
-    "resolvedSourceScopeSchema": "https://schemas.agent-semantic-protocols.dev/resolved-source-scope.v1.schema.json",
     "projectResolutionSchema": "https://schemas.agent-semantic-protocols.dev/project-resolution.v1.schema.json"
   },
   "queryPackDescriptor": {

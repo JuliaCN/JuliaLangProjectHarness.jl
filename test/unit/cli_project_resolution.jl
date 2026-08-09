@@ -2,61 +2,37 @@ using JSON
 using JuliaLangProjectHarness
 using Test
 
-function project_resolution_request(root::String, candidates::Vector{String})
+function project_resolution_request(candidates::Vector{String})
     return Dict{String,Any}(
         "schemaId" => "agent.semantic-protocols.provider-project-resolution-request",
         "schemaVersion" => "1",
         "languageId" => "julia",
         "providerId" => "julia-lang-project-harness",
-        "workspaceRoot" => root,
-        "repositoryCandidates" => Dict(
-            "schemaId" => "agent.semantic-protocols.repository-candidate-snapshot",
-            "schemaVersion" => "1",
-            "mode" => "git",
-            "repositoryIdentity" => Dict(
-                "repositoryId" => "repo-test",
-                "identityBasis" => "git-common-dir:test",
-                "gitCommonDir" => "/tmp/repo/.git",
-                "remoteUrl" => nothing,
-            ),
-            "worktreeIdentity" => Dict(
-                "worktreeId" => "worktree-test",
-                "worktreeRoot" => root,
-                "gitDir" => "/tmp/repo/.git",
-                "headId" => nothing,
-            ),
-            "candidateGeneration" => Dict(
-                "algorithm" => "blake3-path-set-v1",
-                "digest" => "blake3:" * repeat("0", 64),
-                "authorities" => ["git-index"],
-            ),
-            "candidates" => [
-                Dict("path" => path, "state" => "tracked", "authority" => "git-index") for
-                path in candidates
-            ],
-            "metrics" => Dict(
-                "indexEntryCount" => length(candidates),
-                "worktreeAdditionCount" => 0,
-                "candidateCount" => length(candidates),
-                "fullWorkspaceReads" => 0,
-                "fullMerkleRebuilds" => 0,
-                "directDbOpens" => 0,
-            ),
+        "candidateBase" => ".",
+        "candidateGeneration" => Dict(
+            "algorithm" => "blake3-path-set-v1",
+            "digest" => "blake3:" * repeat("0", 64),
+            "authorities" => ["asp-workspace-admission"],
         ),
+        "collectionScope" => Dict("kind" => "complete-generation"),
+        "candidatePaths" => candidates,
+        "policyExclusions" => Any[],
     )
 end
 
-function run_project_resolution(request)
+function run_project_resolution(root::String, request)
     out = IOBuffer()
-    exit_code = JuliaLangProjectHarness.run_julia_project_resolution_cli(
-        IOBuffer(JSON.json(request)),
-        out,
-    )
+    exit_code = cd(root) do
+        JuliaLangProjectHarness.run_julia_project_resolution_cli(
+            IOBuffer(JSON.json(request)),
+            out,
+        )
+    end
     seekstart(out)
     return exit_code, JSON.parse(read(out, String), Dict{String,Any})
 end
 
-@testset "candidate-bounded Julia Pkg project resolution" begin
+@testset "candidate-bounded Julia Pkg ProjectResolution" begin
     mktempdir() do root
         mkpath(joinpath(root, "src"))
         mkpath(joinpath(root, "test"))
@@ -94,27 +70,32 @@ end
             joinpath(root, "packages", "Member", "src", "Member.jl"),
             "module Member\nend\n",
         )
+        mkpath(joinpath(root, "examples", "Unrelated"))
+        write(joinpath(root, "examples", "Unrelated", "Manifest.toml"), "julia_version = \"1.12.0\"\n")
         candidates = [
             "Project.toml",
             "src/RootPackage.jl",
             "test/runtests.jl",
             "packages/Member/Project.toml",
             "packages/Member/src/Member.jl",
+            "examples/Unrelated/Manifest.toml",
         ]
         exit_code, response =
-            run_project_resolution(project_resolution_request(root, candidates))
+            run_project_resolution(root, project_resolution_request(candidates))
         @test exit_code == 0
         @test response["state"] == "resolved"
-        resolution = response["resolution"]
-        @test resolution["completeness"] == "exact"
-        @test resolution["metrics"]["parsedManifestCount"] == 2
-        @test resolution["metrics"]["affectedPackageCount"] == 2
-        @test resolution["metrics"]["fullWorkspaceReads"] == 0
-        @test resolution["metrics"]["dbOpens"] == 0
+        @test !haskey(response, "resolution")
+        scope = response["scope"]
+        @test scope["completeness"] == "exact"
+        @test scope["candidateGenerationDigest"] == "blake3:" * repeat("0", 64)
+        @test scope["metrics"]["parsedManifestCount"] == 2
+        @test scope["metrics"]["affectedPackageCount"] == 2
+        @test scope["metrics"]["fullWorkspaceReads"] == 0
+        @test scope["metrics"]["dbOpens"] == 0
         source_roots = sort!(
             reduce(
                 vcat,
-                [String.(scope["roots"]) for scope in resolution["resolvedSourceScopes"]],
+                [String.(source_scope["roots"]) for source_scope in scope["sourceScopes"]],
             ),
         )
         @test source_roots == [
@@ -122,34 +103,60 @@ end
             "src",
             "test",
         ]
+        test_scope = only(
+            filter(
+                scope -> scope["classifications"] == ["test"],
+                scope["sourceScopes"],
+            ),
+        )
+        @test test_scope["explicitPaths"] == ["test/runtests.jl"]
+        @test all(
+            isempty(source_scope["explicitPaths"]) for
+            source_scope in scope["sourceScopes"] if source_scope !== test_scope
+        )
         @test !occursin("NotCandidate.jl", JSON.json(response))
-        internal_edges = resolution["packageGraph"]["internalDependencyEdges"]
+        internal_edges = scope["packageGraph"]["internalDependencyEdges"]
         member_package = only(
             filter(
                 package -> package["name"] == "Member",
-                resolution["packageGraph"]["packages"],
+                scope["packageGraph"]["packages"],
             ),
         )
         @test length(internal_edges) == 1
         @test internal_edges[1]["toPackageId"] == member_package["packageId"]
+        @test isempty(scope["packageGraph"]["lockfiles"])
     end
 end
 
-@testset "Julia project resolution fails closed without a project entry" begin
+@testset "Julia ProjectResolution does not promote a nested project entry" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "packages", "Nested"))
+        write(
+            joinpath(root, "packages", "Nested", "Project.toml"),
+            "name = \"Nested\"\nuuid = \"33333333-3333-3333-3333-333333333333\"\n",
+        )
+        request = project_resolution_request(["packages/Nested/Project.toml"])
+        exit_code, response = run_project_resolution(root, request)
+        @test exit_code == 0
+        @test response["state"] == "failed"
+        @test occursin("provider project entry is required", response["failure"]["message"])
+    end
+end
+
+@testset "Julia ProjectResolution fails closed without a project entry" begin
     root = mktempdir()
-    request = project_resolution_request(root, ["src/Only.jl"])
-    exit_code, response = run_project_resolution(request)
+    request = project_resolution_request(["src/Only.jl"])
+    exit_code, response = run_project_resolution(root, request)
     @test exit_code == 0
     @test response["state"] == "failed"
     @test occursin("provider project entry is required", response["failure"]["message"])
 end
 
-@testset "Julia provider manifest advertises project resolution" begin
+@testset "Julia provider manifest advertises ProjectResolution" begin
     manifest_path = joinpath(@__DIR__, "..", "..", "juliac", "asp-provider-manifest.json")
     manifest = JSON.parse(read(manifest_path, String), Dict{String,Any})
     descriptor = manifest["projectResolution"]
     @test descriptor["commandBinding"] == "project-resolution-stdin"
     @test descriptor["parserId"] == "julia.pkg-project-toml"
-    @test descriptor["supportsGitCandidates"] === true
-    @test descriptor["supportsProviderOnly"] === false
+    @test descriptor["capabilityId"] == "project-resolution"
 end

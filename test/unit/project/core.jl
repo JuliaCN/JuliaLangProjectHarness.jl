@@ -8,10 +8,10 @@
     report = run_julia_project_harness(root)
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test !isnothing(report.project_scope)
-    @test report.project_scope.package_name == "Example"
-    @test isnothing(report.project_scope.project_parse_error)
-    @test report.project_scope.package_entry_path == joinpath(root, "src", "Example.jl")
+    @test !isnothing(report.project_resolution)
+    @test report.project_resolution.package_name == "Example"
+    @test isnothing(report.project_resolution.project_parse_error)
+    @test report.project_resolution.package_entry_path == joinpath(root, "src", "Example.jl")
     @test render_julia_project_harness(report) == "[ok] julia\n"
 end
 
@@ -25,9 +25,9 @@ end
     report = run_julia_project_harness(joinpath(root, "src", "internal"))
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test report.project_scope.project_root == root
-    @test report.project_scope.project_toml_path == joinpath(root, "Project.toml")
-    @test report.project_scope.package_entry_path == joinpath(root, "src", "Example.jl")
+    @test report.project_resolution.project_root == root
+    @test report.project_resolution.project_toml_path == joinpath(root, "Project.toml")
+    @test report.project_resolution.package_entry_path == joinpath(root, "src", "Example.jl")
 end
 
 @testset "project runner honors Project.toml entryfile" begin
@@ -48,8 +48,8 @@ end
     snapshot = render_julia_project_harness_agent_snapshot(root)
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test report.project_scope.project_entryfile == "src/Entry.jl"
-    @test report.project_scope.package_entry_path == joinpath(root, "src", "Entry.jl")
+    @test report.project_resolution.project_entryfile == "src/Entry.jl"
+    @test report.project_resolution.package_entry_path == joinpath(root, "src", "Entry.jl")
     @test occursin("Entry: src/Entry.jl", snapshot)
     @test occursin("entryfile=src/Entry.jl", snapshot)
 end
@@ -73,7 +73,7 @@ end
     report = run_julia_project_harness(root)
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test report.project_scope.source_paths == [joinpath(root, "lib")]
+    @test report.project_resolution.source_paths == [joinpath(root, "lib")]
     @test any(file -> file.path == joinpath(root, "lib", "Entry.jl"), report.files)
     @test !any(file -> file.path == joinpath(root, "src", "Stale.jl"), report.files)
 end
@@ -99,7 +99,7 @@ end
     write(joinpath(root, "benchmark", "runbenchmarks.jl"), "println(\"benchmark\")\n")
 
     report = run_julia_project_harness(root)
-    scope = report.project_scope
+    scope = report.project_resolution
 
     @test JuliaLangProjectHarness.is_clean(report)
     @test scope.package_paths == sort!(
@@ -153,7 +153,7 @@ end
     write(joinpath(root, "ext", "ExampleWeakExt.jl"), "module ExampleWeakExt\nend\n")
 
     report = run_julia_project_harness(root)
-    scope = report.project_scope
+    scope = report.project_resolution
 
     @test JuliaLangProjectHarness.is_clean(report)
     @test scope.package_uuid == "11111111-1111-1111-1111-111111111111"
@@ -224,7 +224,7 @@ end
 
     @test JuliaLangProjectHarness.is_clean(report)
     @test any(file -> file.path == joinpath(root, "ext", "ExampleJSONExt.jl"), report.files)
-    @test report.project_scope.extensions["ExampleJSONExt"] == ["JSON"]
+    @test report.project_resolution.extensions["ExampleJSONExt"] == ["JSON"]
     @test occursin("Files: source=1 test=0 ext=1", snapshot)
     @test occursin("extensions=ExampleJSONExt=JSON", snapshot)
     @test occursin("ext/ExampleJSONExt.jl module=ExampleJSONExt", snapshot)
@@ -292,7 +292,7 @@ end
     report = run_julia_project_harness(root)
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(report.project_scope.extension_paths)
+    @test isempty(report.project_resolution.extension_paths)
     @test !any(file -> file.path == joinpath(root, "ext", "LooseExt.jl"), report.files)
 end
 
@@ -358,7 +358,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test report.project_scope.source_dependency_projects == ["deps/LocalDep"]
+    @test report.project_resolution.source_dependency_projects == ["deps/LocalDep"]
     @test length(report.workspace_member_scopes) == 1
     @test only(report.workspace_member_scopes).package_name == "LocalDep"
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)

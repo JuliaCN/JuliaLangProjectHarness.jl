@@ -24,51 +24,30 @@ struct JuliaProjectDocument
     workspace_projects::Vector{String}
 end
 
-const JuliaRepositoryIdentity = @NamedTuple begin
-    repositoryId::String
-    identityBasis::String
-    gitCommonDir::String
-end
-const JuliaWorktreeIdentity = @NamedTuple begin
-    worktreeId::String
-    worktreeRoot::String
-    gitDir::String
-end
 const JuliaCandidateGeneration = @NamedTuple begin
     algorithm::String
     digest::String
     authorities::Vector{String}
 end
-const JuliaRepositoryCandidate = @NamedTuple begin
+const JuliaProjectResolutionPolicyExclusion = @NamedTuple begin
     path::String
-    state::String
     authority::String
+    reasonKind::String
 end
-const JuliaRepositoryCandidateMetrics = @NamedTuple begin
-    indexEntryCount::Int
-    worktreeAdditionCount::Int
-    candidateCount::Int
-    fullWorkspaceReads::Int
-    fullMerkleRebuilds::Int
-    directDbOpens::Int
-end
-const JuliaRepositoryCandidateSnapshot = @NamedTuple begin
-    schemaId::String
-    schemaVersion::String
-    mode::String
-    repositoryIdentity::JuliaRepositoryIdentity
-    worktreeIdentity::JuliaWorktreeIdentity
-    candidateGeneration::JuliaCandidateGeneration
-    candidates::Vector{JuliaRepositoryCandidate}
-    metrics::JuliaRepositoryCandidateMetrics
+const JuliaProjectResolutionCollectionScope = @NamedTuple begin
+    kind::String
+    ownerPaths::Vector{String}
 end
 const JuliaProjectResolutionRequest = @NamedTuple begin
     schemaId::String
     schemaVersion::String
     languageId::String
     providerId::String
-    workspaceRoot::String
-    repositoryCandidates::JuliaRepositoryCandidateSnapshot
+    candidateBase::String
+    candidateGeneration::JuliaCandidateGeneration
+    collectionScope::JuliaProjectResolutionCollectionScope
+    candidatePaths::Vector{String}
+    policyExclusions::Vector{JuliaProjectResolutionPolicyExclusion}
 end
 
 const JuliaProjectFile = @NamedTuple begin
@@ -122,18 +101,11 @@ const JuliaResolvedSourceScope = @NamedTuple begin
     packageId::String
     targetId::String
     roots::Vector{String}
+    explicitPaths::Vector{String}
     extensions::Vector{String}
     includeAuthority::String
     exclusions::Vector{@NamedTuple{prefix::String,authority::String}}
     classifications::Vector{String}
-end
-const JuliaProjectIdentity = @NamedTuple begin
-    projectId::String
-    projectInstanceId::String
-    projectEntry::String
-    languageId::String
-    providerId::String
-    parserIdentityDigest::String
 end
 const JuliaLanguagePackageGraph = @NamedTuple begin
     schemaId::String
@@ -169,11 +141,13 @@ const JuliaProjectResolution = @NamedTuple begin
     schemaVersion::String
     state::String
     completeness::String
-    projectIdentity::JuliaProjectIdentity
-    repositoryCandidates::JuliaRepositoryCandidateSnapshot
-    resolutionGeneration::String
+    languageId::String
+    providerId::String
+    parserId::String
+    candidateGenerationDigest::String
+    projectEntry::String
     packageGraph::JuliaLanguagePackageGraph
-    resolvedSourceScopes::Vector{JuliaResolvedSourceScope}
+    sourceScopes::Vector{JuliaResolvedSourceScope}
     conflicts::Vector{JuliaProjectConflict}
     metrics::JuliaProjectResolutionMetrics
 end
@@ -183,7 +157,7 @@ const JuliaProjectResolutionSuccess = @NamedTuple begin
     languageId::String
     providerId::String
     state::String
-    resolution::JuliaProjectResolution
+    scope::JuliaProjectResolution
 end
 const JuliaProjectResolutionFailureDetail = @NamedTuple begin
     reasonKind::String
@@ -198,16 +172,6 @@ const JuliaProjectResolutionFailure = @NamedTuple begin
     state::String
     failure::JuliaProjectResolutionFailureDetail
 end
-const JuliaResolutionDigestPayload = @NamedTuple begin
-    parserId::String
-    candidateGeneration::String
-    manifests::Vector{String}
-    packages::Vector{JuliaProjectPackage}
-    dependencies::Vector{JuliaProjectDependency}
-    scopes::Vector{JuliaResolvedSourceScope}
-    unresolved::Vector{JuliaProjectUnresolved}
-end
-
 function run_julia_project_resolution_cli(input::IO, out::IO)
     response = try
         request = julia_project_resolution_request_json(read(input, String))
@@ -235,12 +199,10 @@ end
 
 function julia_project_resolution(request::JuliaProjectResolutionRequest)
     julia_validate_project_resolution_request(request)
-    workspace_root = abspath(request.workspaceRoot)
-    candidate_snapshot = request.repositoryCandidates
-    candidate_paths =
-        julia_project_resolution_candidate_paths(candidate_snapshot.candidates)
+    workspace_root = abspath(pwd())
+    candidate_paths = julia_project_resolution_candidate_paths(request.candidatePaths)
     manifests = filter(path -> basename(path) == "Project.toml", candidate_paths)
-    isempty(manifests) && throw(
+    "Project.toml" in manifests || throw(
         JuliaProjectResolutionError(
             "provider project entry is required: tracked Project.toml",
             "provider-project-entry-required",
@@ -248,7 +210,7 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
         ),
     )
 
-    entry_manifest = "Project.toml" in manifests ? "Project.toml" : first(manifests)
+    entry_manifest = "Project.toml"
     entry_project = julia_project_document(
         julia_candidate_absolute_path(workspace_root, entry_manifest),
     )
@@ -278,18 +240,6 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
     dependencies =
         julia_project_resolution_dependencies(packages, documents, selected_manifests)
     scopes, unresolved = julia_project_resolution_scopes(packages)
-    generation_digest = candidate_snapshot.candidateGeneration.digest
-    resolution_digest = julia_project_resolution_digest(
-        generation_digest,
-        selected_manifests,
-        packages,
-        dependencies,
-        scopes,
-        unresolved,
-    )
-    project_id = "julia-project-" * julia_stable_id(
-        candidate_snapshot.repositoryIdentity.repositoryId * ":" * entry_manifest,
-    )
     package_graph = JuliaLanguagePackageGraph((
         schemaId=JULIA_PACKAGE_GRAPH_SCHEMA,
         schemaVersion="1",
@@ -303,7 +253,12 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
         ],
         lockfiles=JuliaProjectFile[
             julia_project_file(workspace_root, path, "julia-manifest") for
-            path in candidate_paths if basename(path) == "Manifest.toml"
+            path in candidate_paths if
+            basename(path) == "Manifest.toml" &&
+            any(
+                manifest -> dirname(path) == dirname(manifest),
+                selected_manifests,
+            )
         ],
         packages=packages,
         internalDependencyEdges=JuliaInternalDependencyEdge[
@@ -330,25 +285,13 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
         schemaVersion="1",
         state="resolved",
         completeness=isempty(unresolved) ? "exact" : "partial",
-        projectIdentity=(
-            projectId=project_id,
-            projectInstanceId="julia-project-instance-" * julia_stable_id(
-                project_id *
-                ":" *
-                candidate_snapshot.worktreeIdentity.worktreeId *
-                ":" *
-                resolution_digest,
-            ),
-            projectEntry=entry_manifest,
-            languageId="julia",
-            providerId="julia-lang-project-harness",
-            parserIdentityDigest=
-                "sha256:" * bytes2hex(SHA.sha256(JULIA_PROJECT_RESOLUTION_PARSER)),
-        ),
-        repositoryCandidates=candidate_snapshot,
-        resolutionGeneration=resolution_digest,
+        languageId="julia",
+        providerId="julia-lang-project-harness",
+        parserId=JULIA_PROJECT_RESOLUTION_PARSER,
+        candidateGenerationDigest=request.candidateGeneration.digest,
+        projectEntry=entry_manifest,
         packageGraph=package_graph,
-        resolvedSourceScopes=scopes,
+        sourceScopes=scopes,
         conflicts=JuliaProjectConflict[],
         metrics=(
             parsedManifestCount=length(documents),

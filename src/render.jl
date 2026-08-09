@@ -70,8 +70,8 @@ end
 failure_frontier_text(value::AbstractString) = join(split(String(value)), " ")
 
 function failure_frontier_root(report::JuliaHarnessReport)
-    if !isnothing(report.project_scope)
-        return slash_path(report.project_scope.project_root)
+    if !isnothing(report.project_resolution)
+        return slash_path(report.project_resolution.project_root)
     end
     isempty(report.root_paths) ? "." : slash_path(first(report.root_paths))
 end
@@ -154,9 +154,9 @@ function report_dict(report::JuliaHarnessReport)
         "findings" => map(finding_dict, report.findings),
         "root_paths" => slash_path.(report.root_paths),
         "blocking_severities" => sort(severity_label.(collect(report.blocking_severities))),
-        "project_scope" => isnothing(report.project_scope) ? nothing :
-                           project_scope_dict(report.project_scope),
-        "workspace_member_scopes" => map(project_scope_dict, report.workspace_member_scopes),
+        "project_resolution" => isnothing(report.project_resolution) ? nothing :
+                           project_resolution_dict(report.project_resolution),
+        "workspace_member_scopes" => map(project_resolution_dict, report.workspace_member_scopes),
     )
 end
 
@@ -191,7 +191,7 @@ function location_dict(location::SourceLocation)
     )
 end
 
-function project_scope_dict(scope::JuliaProjectHarnessScope)
+function project_resolution_dict(scope::JuliaProjectHarnessScope)
     Dict(
         "project_root" => slash_path(scope.project_root),
         "project_toml_path" => isnothing(scope.project_toml_path) ? nothing :

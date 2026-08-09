@@ -324,7 +324,7 @@ end
     report = run_julia_project_harness(root)
 
     @test JuliaLangProjectHarness.is_clean(report)
-    @test report.project_scope.source_paths == [joinpath(root, "lib")]
+    @test report.project_resolution.source_paths == [joinpath(root, "lib")]
 end
 
 @testset "project runner reports conventional test scope exclusion" begin
@@ -395,7 +395,7 @@ end
     rendered = render_julia_project_harness(report)
 
     @test !JuliaLangProjectHarness.is_clean(report)
-    @test !isnothing(report.project_scope.project_parse_error)
+    @test !isnothing(report.project_resolution.project_parse_error)
     @test occursin("JULIA-AGENT-PROJECT-013", rendered)
     @test occursin("Project.toml is not readable by Pkg", rendered)
     @test occursin("Missing", rendered)

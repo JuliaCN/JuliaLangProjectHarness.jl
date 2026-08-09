@@ -8,7 +8,7 @@
     @test JuliaLangProjectHarness.file_count(report) == 1
     @test JuliaLangProjectHarness.parsed_count(report) == 1
     @test JuliaLangProjectHarness.is_clean(report)
-    @test isnothing(report.project_scope)
+    @test isnothing(report.project_resolution)
     @test render_julia_project_harness(report) == "[ok] julia\n"
 end
 

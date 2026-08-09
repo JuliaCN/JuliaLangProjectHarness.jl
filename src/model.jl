@@ -175,7 +175,7 @@ struct JuliaHarnessReport
     findings::Vector{JuliaHarnessFinding}
     root_paths::Vector{String}
     blocking_severities::Set{JuliaDiagnosticSeverity}
-    project_scope::Union{Nothing,JuliaProjectHarnessScope}
+    project_resolution::Union{Nothing,JuliaProjectHarnessScope}
     workspace_member_scopes::Vector{JuliaProjectHarnessScope}
 end
 

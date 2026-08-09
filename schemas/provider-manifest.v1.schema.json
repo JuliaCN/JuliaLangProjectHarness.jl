@@ -15,6 +15,7 @@
     "providerId",
     "namespace",
     "binary",
+    "development",
     "searchCapabilities",
     "queryPackDescriptor",
     "policy",
@@ -61,6 +62,9 @@
     },
     "execution": {
       "$ref": "#/$defs/providerExecution"
+    },
+    "development": {
+      "$ref": "#/$defs/providerDevelopmentDescriptor"
     },
     "projectResolution": {
       "$ref": "https://schemas.agent-semantic-protocols.dev/provider-project-resolution-descriptor.v1.schema.json"
@@ -117,6 +121,69 @@
       "enum": [
         "external-process",
         "embedded"
+      ]
+    },
+    "providerDevelopmentDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "schemaVersion",
+        "sourceRoot",
+        "buildBinding",
+        "artifactDomain"
+      ],
+      "properties": {
+        "schemaId": {
+          "const": "agent.semantic-protocols.provider-development-descriptor"
+        },
+        "schemaVersion": {
+          "const": "1"
+        },
+        "sourceRoot": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/].*$",
+          "not": {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        },
+        "buildBinding": {
+          "enum": [
+            "root-development-installer-v1",
+            "provider-workspace-install-v1"
+          ]
+        },
+        "workspaceInstall": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/].*\\.json$",
+          "not": {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          }
+        },
+        "artifactDomain": {
+          "enum": [
+            "checkout",
+            "state-home-provider-staging"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "buildBinding": {
+                "const": "provider-workspace-install-v1"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "workspaceInstall"
+            ]
+          }
+        }
       ]
     },
     "providerSearchCapabilities": {

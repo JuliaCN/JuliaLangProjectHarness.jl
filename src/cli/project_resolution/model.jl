@@ -7,19 +7,29 @@ function julia_validate_project_resolution_request(request::JuliaProjectResoluti
         throw(ArgumentError("project-resolution language identity must be julia"))
     request.providerId == "julia-lang-project-harness" ||
         throw(ArgumentError("project-resolution provider identity does not match"))
-    isempty(request.workspaceRoot) &&
-        throw(ArgumentError("project-resolution request requires workspaceRoot"))
-    isempty(request.repositoryCandidates.candidateGeneration.digest) &&
-        throw(ArgumentError("repositoryCandidates requires candidateGeneration.digest"))
+    request.candidateBase == "." ||
+        throw(ArgumentError("project-resolution request requires candidateBase=."))
+    isempty(request.candidateGeneration.digest) &&
+        throw(ArgumentError("project-resolution requires candidateGeneration.digest"))
+    if request.collectionScope.kind == "complete-generation"
+        isempty(request.collectionScope.ownerPaths) || throw(
+            ArgumentError("complete-generation collectionScope must not include ownerPaths"),
+        )
+    elseif request.collectionScope.kind == "explicit-owners"
+        isempty(request.collectionScope.ownerPaths) && throw(
+            ArgumentError("explicit-owners collectionScope requires ownerPaths"),
+        )
+        julia_project_resolution_candidate_paths(request.collectionScope.ownerPaths)
+    else
+        throw(ArgumentError("project-resolution collectionScope is invalid"))
+    end
     return nothing
 end
 
-function julia_project_resolution_candidate_paths(
-    candidates::Vector{JuliaRepositoryCandidate},
-)
+function julia_project_resolution_candidate_paths(candidates::Vector{String})
     paths = String[]
     for candidate in candidates
-        path = replace(normpath(candidate.path), '\\' => '/')
+        path = replace(normpath(candidate), '\\' => '/')
         (isabspath(path) || path == ".." || startswith(path, "../")) &&
             throw(ArgumentError("repository candidate must be workspace-relative: $path"))
         push!(paths, path)
@@ -68,7 +78,13 @@ function julia_project_resolution_package(
     if library_path in candidates
         push!(
             targets,
-            julia_project_resolution_target(package_id, name, "library", [library_path]),
+            julia_project_resolution_target(
+                package_id,
+                name,
+                "library",
+                [library_path],
+                !isnothing(project.entryfile),
+            ),
         )
     end
     for extension_name in sort!(collect(keys(project.extensions)))
@@ -82,6 +98,7 @@ function julia_project_resolution_package(
                 extension_name,
                 "extension",
                 [extension_path],
+                true,
             ),
         )
     end
@@ -89,7 +106,7 @@ function julia_project_resolution_package(
     if haskey(project.targets, "test") && test_path in candidates
         push!(
             targets,
-            julia_project_resolution_target(package_id, "test", "test", [test_path]),
+            julia_project_resolution_target(package_id, "test", "test", [test_path], true),
         )
     end
     return JuliaProjectPackage((
@@ -107,12 +124,13 @@ function julia_project_resolution_target(
     name::String,
     kind::String,
     paths::Vector{String},
+    explicit::Bool,
 )
     return JuliaProjectTarget((
         targetId="julia-target-" * julia_stable_id(package_id * ":" * kind * ":" * name),
         kind=kind,
         name=name,
-        explicit=kind != "library",
+        explicit,
         sourceRoots=sort!(unique!(dirname.(paths))),
         entrypoints=paths,
         generatedRoots=String[],
@@ -272,6 +290,7 @@ function julia_project_resolution_scopes(packages::Vector{JuliaProjectPackage})
                     packageId=package.packageId,
                     targetId=target.targetId,
                     roots=target.sourceRoots,
+                    explicitPaths=target.explicit ? target.entrypoints : String[],
                     extensions=[".jl"],
                     includeAuthority=target.explicit ? "manifest-explicit" : "package-manager",
                     exclusions=@NamedTuple{prefix::String,authority::String}[],
@@ -281,26 +300,6 @@ function julia_project_resolution_scopes(packages::Vector{JuliaProjectPackage})
         end
     end
     return scopes, unresolved
-end
-
-function julia_project_resolution_digest(
-    generation::String,
-    manifests::Vector{String},
-    packages::Vector{JuliaProjectPackage},
-    dependencies::Vector{JuliaProjectDependency},
-    scopes::Vector{JuliaResolvedSourceScope},
-    unresolved::Vector{JuliaProjectUnresolved},
-)
-    payload = JuliaResolutionDigestPayload((
-        parserId=JULIA_PROJECT_RESOLUTION_PARSER,
-        candidateGeneration=generation,
-        manifests=manifests,
-        packages=packages,
-        dependencies=dependencies,
-        scopes=scopes,
-        unresolved=unresolved,
-    ))
-    return "sha256:" * bytes2hex(SHA.sha256(JSON.json(payload)))
 end
 
 julia_project_resolution_root(manifest::String) =
@@ -330,7 +329,7 @@ function julia_project_resolution_response(resolution::JuliaProjectResolution)
         languageId="julia",
         providerId="julia-lang-project-harness",
         state="resolved",
-        resolution=resolution,
+        scope=resolution,
     ))
 end
 

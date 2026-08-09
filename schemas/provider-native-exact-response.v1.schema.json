@@ -38,8 +38,10 @@
     "resolutionState": {
       "enum": [
         "resolved",
-        "item-missing",
         "owner-missing",
+        "item-missing",
+        "identity-incomplete",
+        "selector-stale",
         "kind-mismatch",
         "ambiguous"
       ]
@@ -47,6 +49,10 @@
     "reasonKind": {
       "type": "string",
       "minLength": 1
+    },
+    "activeGenerationDigest": {
+      "type": "string",
+      "pattern": "^blake3-256:[0-9a-f]{64}$"
     },
     "rootDigest": {
       "type": "string",
@@ -141,17 +147,20 @@
       "required": [
         "resolutionState",
         "reasonKind",
+        "activeGenerationDigest",
+        "rootDigest",
         "itemKind",
         "itemName",
         "candidates",
-        "actualKinds",
-        "recommendedNext"
+        "actualKinds"
       ],
       "properties": {
         "resolutionState": {
           "enum": [
-            "item-missing",
             "owner-missing",
+            "item-missing",
+            "identity-incomplete",
+            "selector-stale",
             "kind-mismatch",
             "ambiguous"
           ]
@@ -174,6 +183,123 @@
     }
   ],
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "item-missing"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "recommendedNext"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "identity-incomplete"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "const": "canonical-item-scope-required"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "owner-missing"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "const": "owner-not-in-workspace"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "item-missing"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "const": "item-not-in-live-owner"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "kind-mismatch"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "const": "owner-item-kind-mismatch"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "ambiguous"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "enum": [
+              "multiple-owner-items",
+              "multiple-snapshot-items"
+            ]
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -215,6 +341,57 @@
           "required": [
             "projectionText"
           ]
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "resolutionState": {
+                "const": "selector-stale"
+              }
+            },
+            "required": [
+              "resolutionState"
+            ]
+          },
+          {
+            "properties": {
+              "resolutionState": {
+                "const": "owner-missing"
+              }
+            },
+            "required": [
+              "resolutionState"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "required": [
+          "activeGenerationDigest",
+          "rootDigest"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "resolutionState": {
+            "const": "selector-stale"
+          }
+        },
+        "required": [
+          "resolutionState"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reasonKind": {
+            "const": "selector-not-in-active-generation"
+          }
         }
       }
     }
