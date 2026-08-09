@@ -6,15 +6,12 @@ version = "0.1.0"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JuliaC = "acedd4c2-ced6-4a15-accc-2607eb759ba2"
 JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
-JuliaSyntax = "70703baa-626e-46a2-a12c-08ffd08c73b4"
 PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 
 [sources]
 JuliaLangProjectHarness = {path = ".."}
-JuliaSyntax = {rev = "a713779e3a8dbf1fe03c659009dab6eb006cbb31", url = "https://github.com/JuliaLang/JuliaSyntax.jl"}
 
 [compat]
 JSON = "1"
 JuliaC = "0.3"
-JuliaSyntax = "2"
 PrecompileTools = "1"

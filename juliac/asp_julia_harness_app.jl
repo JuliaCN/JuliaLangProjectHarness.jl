@@ -1,18 +1,9 @@
 module AspJuliaHarnessApp
 
-import JuliaSyntax
+using JuliaLangProjectHarness
 
 if get(ENV, "ASP_JULIA_AOT_BUILD", "0") == "1"
-    include(joinpath(@__DIR__, "..", "src", "JuliaLangProjectHarness.jl"))
-    using .JuliaLangProjectHarness
-
-    function JuliaSyntax.parse_block(ps::JuliaSyntax.ParseState)
-        mark = JuliaSyntax.position(ps)
-        JuliaSyntax.parse_block_inner(ps, JuliaSyntax.parse_eq)
-        JuliaSyntax.emit(ps, mark, JuliaSyntax.K"block")
-    end
-else
-    using JuliaLangProjectHarness
+    JuliaLangProjectHarness.configure_juliac_aot_syntax!()
 end
 
 const NativeOutputIO = IOStream
@@ -118,6 +109,13 @@ run_check_changed_route(
 )::Cint =
     Cint(JuliaLangProjectHarness.run_julia_harness_check_cli(args[2:end], out))
 
+run_export_route(
+    args::Vector{String},
+    out::NativeOutputIO,
+    err::NativeOutputIO,
+)::Cint =
+    Cint(JuliaLangProjectHarness.run_julia_harness_export_cli(args[2:end]; out))
+
 function run_guide_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
     try
         project_root = length(args) >= 3 ? args[3] : pwd()
@@ -173,6 +171,8 @@ function run_cli_without_stdin(
             return invalid_provider_route("unsupported search route: $(route)", err)
         elseif command == "check"
             return run_check_changed_route(args, out, err)
+        elseif command == "export"
+            return run_export_route(args, out, err)
         elseif command == "guide" || (command == "agent" && length(args) >= 2 && args[2] == "guide")
             return run_guide_route(args, out, err)
         end

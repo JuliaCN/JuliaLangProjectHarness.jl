@@ -52,6 +52,20 @@ include("cli/project_resolution_codec.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 
+function configure_juliac_aot_syntax!()
+    Core.eval(
+        JuliaSyntax,
+        quote
+            function parse_block(ps::ParseState)
+                mark = position(ps)
+                parse_block_inner(ps, parse_eq)
+                emit(ps, mark, K"block")
+            end
+        end,
+    )
+    nothing
+end
+
 export JuliaDiagnosticSeverity,
     JuliaHarnessConfig,
     JuliaHarnessFinding,

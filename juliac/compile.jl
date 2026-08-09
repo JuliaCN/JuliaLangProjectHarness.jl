@@ -12,7 +12,6 @@ mkpath(BUILD_DIR)
 args = String[
     "--output-exe",
     OUTPUT_EXE,
-    "--trim=safe",
     "--project",
     @__DIR__,
     APP_FILE,
