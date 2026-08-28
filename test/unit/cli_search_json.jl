@@ -208,7 +208,7 @@
     @test semantic_status == 0
     @test semantic_packet.schemaId == "agent.semantic-protocols.semantic-fact-graph"
     @test semantic_packet.languageId == "julia"
-    @test semantic_packet.providerId == "julia-lang-project-harness"
+    @test semantic_packet.providerId == "asp-julia"
     @test semantic_packet.query == "Vector collection fields"
     semantic_field_nodes = [
         node for node in semantic_packet.nodes
@@ -218,7 +218,7 @@
     semantic_field = only(semantic_field_nodes)
     @test semantic_field.role == "struct-field"
     @test semantic_field.fields.languageId == "julia"
-    @test semantic_field.fields.providerId == "julia-lang-project-harness"
+    @test semantic_field.fields.providerId == "asp-julia"
     @test semantic_field.fields.semanticFactKind == "field"
     @test semantic_field.fields.provenance == "parser"
     @test semantic_field.fields.confidence == "exact"
@@ -247,7 +247,7 @@
         if node.kind == "collection" && node.value == "array"
     ])
     @test semantic_collection.fields.languageId == "julia"
-    @test semantic_collection.fields.providerId == "julia-lang-project-harness"
+    @test semantic_collection.fields.providerId == "asp-julia"
     @test semantic_collection.fields.semanticFactKind == "collection"
     @test semantic_collection.fields.collectionFamily == "sequence"
     @test semantic_collection.fields.collectionImpl == "array"

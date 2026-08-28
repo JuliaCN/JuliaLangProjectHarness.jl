@@ -1,7 +1,7 @@
 @testset "cli query facade metadata contract" begin
     normalized = JuliaLangProjectHarness.strip_julia_query_facade_options([
         "--asp-provider-id",
-        "julia-lang-project-harness",
+        "asp-julia",
         "--selector",
         "julia://src/example.jl#item/function/example",
         "--asp-parser-identity-digest",

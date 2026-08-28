@@ -3,8 +3,8 @@ const JULIA_AGENT_REGISTRY_VERSION = "1"
 const JULIA_AGENT_REGISTRY_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
 const JULIA_AGENT_REGISTRY_PROTOCOL_VERSION = "1"
 const JULIA_AGENT_PROVIDER_NAMESPACE =
-    "agent.semantic-protocols.languages.julia.julia-lang-project-harness"
-const JULIA_AGENT_BINARY = "asp-julia-harness"
+    "agent.semantic-protocols.languages.julia.asp-julia"
+const JULIA_AGENT_BINARY = "asp-julia"
 
 const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
@@ -41,13 +41,12 @@ const JULIA_AGENT_SCHEMA_FILES = [
     ("semantic-exact-selector-receipt.v1.schema.json", "agent.semantic-protocols.semantic-exact-selector-receipt"),
     ("semantic-language-projection.v1.schema.json", "agent.semantic-protocols.semantic-language-projection"),
     ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
-    ("callable-skeleton-projection.v1.schema.json", "agent.semantic-protocols.callable-skeleton-projection"),
+    ("callable-skeleton.schema.json", "agent.semantic-protocols.callable-skeleton"),
     ("canonical-item-selector.v1.schema.json", "asp.canonical-item-selector.v1"),
     ("exact-structural-selector.v1.schema.json", "asp.exact-structural-selector.v1"),
     ("language-package-graph.v1.schema.json", "agent.semantic-protocols.language-package-graph"),
     ("project-resolution.v1.schema.json", "agent.semantic-protocols.project-resolution"),
     ("provider-document-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-document-resolution-descriptor"),
-    ("provider-manifest.v1.schema.json", "agent.semantic-protocols.hook.provider-manifest"),
     ("provider-native-exact-request.v1.schema.json", "agent.semantic-protocols.provider-native-exact-request"),
     ("provider-native-exact-response.v1.schema.json", "agent.semantic-protocols.provider-native-exact-projection"),
     ("provider-project-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-project-resolution-descriptor"),

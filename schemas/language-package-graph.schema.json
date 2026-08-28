@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.agent-semantic-protocols.dev/language-package-graph.v1.schema.json",
+  "$id": "https://schemas.agent-semantic-protocols.dev/language-package-graph.schema.json",
   "title": "Language Package Graph",
   "type": "object",
   "additionalProperties": false,

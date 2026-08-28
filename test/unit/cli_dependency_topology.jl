@@ -61,7 +61,7 @@
     end
 
     provider_manifest = JSON.parse(
-        read(joinpath(@__DIR__, "..", "..", "juliac", "asp-provider-manifest.json"), String),
+    read(joinpath(@__DIR__, "..", "..", "schemas", "asp-provider.json"), String),
         Dict{String,Any},
     )
     @test provider_manifest["searchCapabilities"]["dependencyTopology"] === true

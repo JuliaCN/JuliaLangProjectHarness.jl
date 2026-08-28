@@ -48,7 +48,7 @@ end
     @test graph.schemaId == "agent.semantic-protocols.semantic-evidence-graph"
     @test graph.protocolId == "agent.semantic-protocols.evidence-graph"
     @test graph.producer.languageId == "julia"
-    @test graph.producer.providerId == "julia-lang-project-harness"
+    @test graph.producer.providerId == "asp-julia"
     @test graph.project.package == "CliEvidence"
     @test graph.summary.nodes == 4
     @test graph.summary.edges == 3
@@ -57,7 +57,7 @@ end
     @test graph.summary.gaps == 1
     @test any(node -> node.kind == "owner", graph.nodes)
     @test any(edge -> edge.kind == "requires-evidence", graph.edges)
-    @test only(graph.gaps).fields.nextCommand == "asp-julia-harness check --changed ."
+    @test only(graph.gaps).fields.nextCommand == "asp-julia check --changed ."
     @test analysis_status == 0
     @test analysis.schemaId == "agent.semantic-protocols.semantic-graph-turbo-request"
     @test analysis.packetKind == "graph-turbo-request"

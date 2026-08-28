@@ -3,6 +3,8 @@ uuid = "67259778-f152-405a-bc38-ee6219bce977"
 version = "0.1.0"
 
 [deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 JuliaSyntax = "70703baa-626e-46a2-a12c-08ffd08c73b4"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
@@ -19,6 +21,7 @@ JuliaLangProjectHarnessMoshiExt = "Moshi"
 JuliaSyntax = {rev = "a713779e3a8dbf1fe03c659009dab6eb006cbb31", url = "https://github.com/JuliaLang/JuliaSyntax.jl"}
 
 [compat]
+HTTP = "2"
 JSON = "1"
 Moshi = "0.3"
 

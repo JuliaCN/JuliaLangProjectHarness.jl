@@ -162,8 +162,8 @@ end
     @test count(language -> language.languageId == "julia", registry.languages) == 1
     @test !any(language -> language.languageId == "gerbil-scheme", registry.languages)
     @test language.languageId == "julia"
-    @test language.providerId == "julia-lang-project-harness"
-    @test language.binary == "asp-julia-harness"
+    @test language.providerId == "asp-julia"
+    @test language.binary == "asp-julia"
     @test "search/prime" in language.methods
     @test "search/lexical" in language.methods
     @test "search/query" in language.methods
@@ -290,7 +290,7 @@ end
     @test packet.protocolId == "agent.semantic-protocols.semantic-language"
     @test packet.protocolVersion == "1"
     @test packet.languageId == "julia"
-    @test packet.providerId == "julia-lang-project-harness"
+    @test packet.providerId == "asp-julia"
     @test packet.projectRoot == abspath(root)
     @test length(packet.facts) > 0
     @test length(packet.indexes) >= 5

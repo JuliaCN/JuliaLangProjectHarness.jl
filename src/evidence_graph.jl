@@ -18,7 +18,7 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
     receipt_id = evidence_node_id("julia:receipt", "julia-harness-check-changed")
     action_id = evidence_node_id("julia:action", "run-julia-harness-check")
     gap_id = evidence_node_id("julia:gap", "$(owner_path):receipt")
-    check_command = "asp-julia-harness check --changed ."
+    check_command = "asp-julia check --changed ."
     nodes = Dict{String,Any}[
         Dict{String,Any}(
             "nodeId" => owner_id,
@@ -68,7 +68,7 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
         Dict{String,Any}(
             "nodeId" => action_id,
             "kind" => "review-action",
-            "label" => "Run asp-julia-harness check --changed .",
+            "label" => "Run asp-julia check --changed .",
             "actionId" => "julia.run-harness-check",
             "status" => "missing",
             "summary" => "run-receipt",
@@ -179,8 +179,8 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
         if arg == "--json"
             json = true
         elseif arg in ("--help", "-h")
-            print(out, "asp-julia-harness evidence graph [--json] [PROJECT_ROOT]\n")
-            print(out, "asp-julia-harness evidence analyze [--json] [PROJECT_ROOT]\n")
+            print(out, "asp-julia evidence graph [--json] [PROJECT_ROOT]\n")
+            print(out, "asp-julia evidence analyze [--json] [PROJECT_ROOT]\n")
             return 0
         elseif startswith(arg, "--")
             error("unknown evidence option: $(arg)")

@@ -1,6 +1,8 @@
 """JuliaSyntax-native project harness for Julia package policy and agent context."""
 module JuliaLangProjectHarness
 
+using Base64
+
 include("model.jl")
 include("parser.jl")
 include("rules.jl")
@@ -49,6 +51,9 @@ include("cli/query.jl")
 include("cli/query_contract.jl")
 include("cli/project_resolution.jl")
 include("cli/project_resolution_codec.jl")
+include("asp_client_server/projection_batch.jl")
+include("asp_client_server/contract.jl")
+include("asp_client_server/http.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 

@@ -15,7 +15,7 @@ using Test
     include("unit/cli_search.jl")
 include("unit/cli_search_json.jl")
 include("unit/cli_dependency_topology.jl")
-include("unit/cli_project_resolution.jl")
+include("unit/asp_client_server.jl")
 include("unit/cli_query.jl")
 include("unit/cli_query_contract.jl")
     include("unit/cli_structural_selector.jl")

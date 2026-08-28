@@ -172,36 +172,25 @@ const JuliaProjectResolutionFailure = @NamedTuple begin
     state::String
     failure::JuliaProjectResolutionFailureDetail
 end
-function run_julia_project_resolution_cli(input::IO, out::IO)
-    response = try
-        request = julia_project_resolution_request_json(read(input, String))
-        julia_project_resolution_response(julia_project_resolution(request))
-    catch error
-        if error isa JuliaProjectResolutionError
-            typed_error = error::JuliaProjectResolutionError
-            julia_project_resolution_failure(
-                typed_error.message;
-                reason_kind=typed_error.reason_kind,
-                next_action=typed_error.next_action,
-            )
-        else
-            julia_project_resolution_failure(
-                "project-resolution request or Julia project entry is invalid";
-                reason_kind="project-entry-invalid",
-                next_action="send-valid-project-resolution-request",
-            )
-        end
-    end
-    JSON.json(out, response)
-    print(out, '\n')
-    return 0
+const JuliaProjectResolutionNotApplicable = @NamedTuple begin
+    schemaId::String
+    schemaVersion::String
+    languageId::String
+    providerId::String
+    state::String
 end
-
 function julia_project_resolution(request::JuliaProjectResolutionRequest)
     julia_validate_project_resolution_request(request)
     workspace_root = abspath(pwd())
     candidate_paths = julia_project_resolution_candidate_paths(request.candidatePaths)
     manifests = filter(path -> basename(path) == "Project.toml", candidate_paths)
+    isempty(manifests) && throw(
+        JuliaProjectResolutionError(
+            "provider has no tracked Project.toml candidate",
+            "provider-not-applicable",
+            "continue-without-julia-provider",
+        ),
+    )
     "Project.toml" in manifests || throw(
         JuliaProjectResolutionError(
             "provider project entry is required: tracked Project.toml",
@@ -244,7 +233,7 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
         schemaId=JULIA_PACKAGE_GRAPH_SCHEMA,
         schemaVersion="1",
         languageId="julia",
-        providerId="julia-lang-project-harness",
+        providerId="asp-julia",
         projectEntry=entry_manifest,
         parserId=JULIA_PROJECT_RESOLUTION_PARSER,
         manifests=JuliaProjectFile[
@@ -286,7 +275,7 @@ function julia_project_resolution(request::JuliaProjectResolutionRequest)
         state="resolved",
         completeness=isempty(unresolved) ? "exact" : "partial",
         languageId="julia",
-        providerId="julia-lang-project-harness",
+        providerId="asp-julia",
         parserId=JULIA_PROJECT_RESOLUTION_PARSER,
         candidateGenerationDigest=request.candidateGeneration.digest,
         projectEntry=entry_manifest,

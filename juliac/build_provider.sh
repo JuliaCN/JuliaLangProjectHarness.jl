@@ -3,7 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_dir="${ASP_JULIA_BUILD_DIR:-"${root}/build/juliac"}"
-output_exe="${ASP_JULIA_OUTPUT_EXE:-asp-julia-harness}"
+output_exe="${ASP_JULIA_OUTPUT_EXE:-asp-julia}"
 output_path="${build_dir}/${output_exe}"
 julia_cmd="${JULIA:-julia}"
 

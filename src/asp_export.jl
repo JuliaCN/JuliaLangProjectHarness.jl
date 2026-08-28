@@ -3,7 +3,7 @@ const JULIA_INDEX_EXPORT_SCHEMA_VERSION = "1"
 const JULIA_INDEX_EXPORT_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
 const JULIA_INDEX_EXPORT_PROTOCOL_VERSION = "1"
 const JULIA_INDEX_EXPORT_LANGUAGE_ID = "julia"
-const JULIA_INDEX_EXPORT_PROVIDER_ID = "julia-lang-project-harness"
+const JULIA_INDEX_EXPORT_PROVIDER_ID = "asp-julia"
 
 const JULIA_INDEX_FACT_KIND_MAP = Dict(
     "module" => "module",

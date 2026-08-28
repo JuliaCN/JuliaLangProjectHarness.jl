@@ -1,11 +1,15 @@
 {
+  "$schema": "../schemas/provider-workspace-install.schema.json",
   "schemaId": "agent.semantic-protocols.provider-workspace-install",
   "schemaVersion": "1",
   "schemaAuthority": "https://tao3k.github.io/agent-semantic-protocols/schemas/",
-  "providerId": "julia-lang-project-harness",
-  "binary": "asp-julia-harness",
+  "languageId": "julia",
+  "providerId": "asp-julia",
+  "binary": "asp-julia",
+  "providerRegistration": "asp-provider-registration.json",
+  "schemaBundleReceipt": "../schemas/.asp-schema-manager-receipt.json",
   "workspaceArtifact": {
-    "root": "languages/JuliaLangProjectHarness.jl/build/juliac-asp-local/asp-julia-harness",
+    "root": "languages/JuliaLangProjectHarness.jl/build/juliac-asp-local/asp-julia",
     "entrypoint": "."
   },
   "workspaceBuild": {

@@ -5,7 +5,7 @@ function julia_validate_project_resolution_request(request::JuliaProjectResoluti
         throw(ArgumentError("project-resolution request schema must be v1"))
     request.languageId == "julia" ||
         throw(ArgumentError("project-resolution language identity must be julia"))
-    request.providerId == "julia-lang-project-harness" ||
+    request.providerId == "asp-julia" ||
         throw(ArgumentError("project-resolution provider identity does not match"))
     request.candidateBase == "." ||
         throw(ArgumentError("project-resolution request requires candidateBase=."))
@@ -327,7 +327,7 @@ function julia_project_resolution_response(resolution::JuliaProjectResolution)
         schemaId=JULIA_PROJECT_RESOLUTION_RESPONSE_SCHEMA,
         schemaVersion="1",
         languageId="julia",
-        providerId="julia-lang-project-harness",
+        providerId="asp-julia",
         state="resolved",
         scope=resolution,
     ))
@@ -342,12 +342,22 @@ function julia_project_resolution_failure(
         schemaId=JULIA_PROJECT_RESOLUTION_RESPONSE_SCHEMA,
         schemaVersion="1",
         languageId="julia",
-        providerId="julia-lang-project-harness",
+        providerId="asp-julia",
         state="failed",
         failure=(
             reasonKind=reason_kind,
             message=message,
             nextAction=next_action,
         ),
+    ))
+end
+
+function julia_project_resolution_not_applicable()
+    return JuliaProjectResolutionNotApplicable((
+        schemaId=JULIA_PROJECT_RESOLUTION_RESPONSE_SCHEMA,
+        schemaVersion="1",
+        languageId="julia",
+        providerId="asp-julia",
+        state="not-applicable",
     ))
 end

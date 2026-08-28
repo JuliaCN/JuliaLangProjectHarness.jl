@@ -1,4 +1,4 @@
-module AspJuliaHarnessApp
+module AspJuliaApp
 
 using JuliaLangProjectHarness
 
@@ -79,20 +79,10 @@ function run_ingest_route(
     return Cint(0)
 end
 
-function run_project_resolution_route(
-    args::Vector{String},
-    out::NativeOutputIO,
-    err::NativeOutputIO,
-    input::NativeInputIO,
-)::Cint
-    length(args) == 1 ||
-        return invalid_provider_route("project-resolution-stdin accepts no arguments", err)
-    stream = native_input_iostream(input)
-    try
-        return Cint(JuliaLangProjectHarness.run_julia_project_resolution_cli(stream, out))
-    finally
-        close(stream)
-    end
+function run_serve_route(args, out, err)
+    args == ["serve"] ||
+        return invalid_provider_route("serve does not accept arguments", err)
+    return Cint(JuliaLangProjectHarness.run_asp_client_server())
 end
 
 run_dependency_topology_route(
@@ -141,8 +131,8 @@ function run_cli(
     try
         isempty(args) && return invalid_provider_route("missing provider route", err)
         command = first(args)
-        if command == "project-resolution-stdin"
-            return run_project_resolution_route(args, out, err, input)
+        if command == "serve"
+            return run_serve_route(args, out, err)
         elseif command == "search" && length(args) >= 2 && args[2] == "ingest"
             return run_ingest_route(args, out, err, input)
         end
@@ -186,12 +176,9 @@ end
 function native_route_needs_input(args::Vector{String})::Bool
     return !isempty(args) &&
            (
-               first(args) == "project-resolution-stdin" ||
-               (
-                   first(args) == "search" &&
-                   length(args) >= 2 &&
-                   args[2] == "ingest"
-               )
+               first(args) == "search" &&
+               length(args) >= 2 &&
+               args[2] == "ingest"
            )
 end
 
@@ -235,5 +222,5 @@ if abspath(PROGRAM_FILE) == @__FILE__
 end
 
 function (@main)(args::Vector{String})::Cint
-    return AspJuliaHarnessApp.run_app(args)
+    return AspJuliaApp.run_app(args)
 end

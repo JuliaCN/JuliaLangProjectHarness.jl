@@ -60,8 +60,8 @@ run_julia_project_harness_cli_checked(args::Vector{String}; out=stdout, err=stde
     run_julia_project_harness_cli_checked(args, out, err)
 
 function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, err::IO)
-    if args == ["project-resolution-stdin"]
-        return run_julia_project_resolution_cli(stdin, out)
+    if args == ["serve"]
+        return run_asp_client_server()
     end
     if !isempty(args) && first(args) == "query"
         return run_julia_harness_query_cli(args[2:end]; out=out)
