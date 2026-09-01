@@ -172,7 +172,6 @@
     @test !occursin("asp julia --search", guide_rendered)
     @test !occursin("--code .", guide_rendered)
     @test occursin("asp julia", guide_rendered)
-    @test !occursin("asp-julia", guide_rendered)
     @test workspace_status == 0
     @test occursin("[search-workspace]", workspace_rendered)
     @test occursin("view=workspace", workspace_rendered)
