@@ -24,7 +24,7 @@ end
         @test_throws ErrorException discover_pluto_notebooks(joinpath(@__DIR__, "missing"))
         """,
     )
-    parsed = JuliaLangProjectHarness.parse_julia_file(path)
+    parsed = AspJulia.parse_julia_file(path)
     observations = [
         observation for observation in parsed.syntax_facts.source_observations if observation.kind ==
         "test_throws"

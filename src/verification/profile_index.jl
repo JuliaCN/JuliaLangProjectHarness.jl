@@ -33,7 +33,7 @@ function test_profile_gate_candidate(
         ["harness_policy", "pkg_test"],
         verification_evidence(
             "hook" => string(has_hook),
-            "dependency" => "JuliaLangProjectHarness",
+            "dependency" => "AspJulia",
         ),
     )
 end

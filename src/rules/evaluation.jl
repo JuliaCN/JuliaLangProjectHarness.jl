@@ -1,7 +1,7 @@
 function evaluate_default_rule_packs(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
     ;
     workspace_member_scopes=JuliaProjectHarnessScope[],
 )
@@ -33,7 +33,7 @@ function evaluate_agent_policy_rules(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
 )
-    isnothing(scope) && return JuliaHarnessFinding[]
+    isnothing(scope) && return AspJuliaFinding[]
     rules = rules_by_id()
     findings = verification_test_profile_findings(scope, parsed_files, rules)
     append!(findings, test_control_flow_shape_findings(scope, parsed_files, rules))
@@ -140,9 +140,9 @@ function internal_traversal_shape_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -178,9 +178,9 @@ end
 function module_owner_fanout_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         isempty(parsed.syntax_facts.modules) && continue
@@ -227,10 +227,10 @@ function public_api_owner_conflict_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     records = public_api_definition_records(parsed_files, public_names)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, definitions) in sort(collect(records); by=first)
         owner_paths = sort(unique(definition.path for definition in definitions))
         syntax_families = sort(unique(definition.kind for definition in definitions))

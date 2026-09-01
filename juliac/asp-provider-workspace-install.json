@@ -9,22 +9,22 @@
   "providerRegistration": "asp-provider-registration.json",
   "schemaBundleReceipt": "../schemas/.asp-schema-manager-receipt.json",
   "workspaceArtifact": {
-    "root": "languages/JuliaLangProjectHarness.jl/build/juliac-asp-local/asp-julia",
+    "root": "languages/AspJulia.jl/build/juliac-asp-local/asp-julia",
     "entrypoint": "."
   },
   "workspaceBuild": {
     "program": "./juliac/build_provider.sh",
     "args": [],
-    "workingDirectory": "languages/JuliaLangProjectHarness.jl",
+    "workingDirectory": "languages/AspJulia.jl",
     "sourceSnapshotAnchors": [
-      "languages/JuliaLangProjectHarness.jl/Project.toml",
-      "languages/JuliaLangProjectHarness.jl/Manifest.toml",
-      "languages/JuliaLangProjectHarness.jl/juliac/Project.toml",
-      "languages/JuliaLangProjectHarness.jl/juliac/Manifest.toml",
-      "languages/JuliaLangProjectHarness.jl/juliac/build_provider.sh"
+      "languages/AspJulia.jl/Project.toml",
+      "languages/AspJulia.jl/Manifest.toml",
+      "languages/AspJulia.jl/juliac/Project.toml",
+      "languages/AspJulia.jl/juliac/Manifest.toml",
+      "languages/AspJulia.jl/juliac/build_provider.sh"
     ],
     "derivedPaths": [
-      "languages/JuliaLangProjectHarness.jl/build"
+      "languages/AspJulia.jl/build"
     ],
     "env": {
       "ASP_JULIA_ALLOW_WRAPPER_FALLBACK": "0",

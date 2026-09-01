@@ -1,7 +1,7 @@
 function evaluate_syntax_rules(parsed_files::Vector{ParsedJuliaFile})
     rules = syntax_rule_by_id()
     syntax_rule = rules[JULIA_SYN_R001]
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid && continue
         push!(
@@ -19,8 +19,8 @@ function evaluate_syntax_rules(parsed_files::Vector{ParsedJuliaFile})
     findings
 end
 
-function apply_config_to_findings(findings::Vector{JuliaHarnessFinding}, config::JuliaHarnessConfig)
-    selected = JuliaHarnessFinding[]
+function apply_config_to_findings(findings::Vector{AspJuliaFinding}, config::AspJuliaConfig)
+    selected = AspJuliaFinding[]
     for finding in findings
         finding.rule_id in config.disabled_rules && continue
         severity = get(config.rule_severity_overrides, finding.rule_id, finding.severity)
@@ -29,7 +29,7 @@ function apply_config_to_findings(findings::Vector{JuliaHarnessFinding}, config:
         else
             push!(
                 selected,
-                JuliaHarnessFinding(
+                AspJuliaFinding(
                     finding.rule_id,
                     finding.pack_id,
                     severity,
@@ -48,10 +48,10 @@ function apply_config_to_findings(findings::Vector{JuliaHarnessFinding}, config:
     selected
 end
 
-function config_escape_findings(config::JuliaHarnessConfig)
+function config_escape_findings(config::AspJuliaConfig)
     rules = rules_by_id()
     rule = rules[JULIA_PROJ_R014]
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     append!(findings, disabled_rule_escape_findings(config, rule))
     append!(findings, severity_override_escape_findings(config, rule, rules))
     append!(findings, blocking_severity_escape_findings(config, rule))
@@ -60,8 +60,8 @@ function config_escape_findings(config::JuliaHarnessConfig)
 end
 
 function disabled_rule_escape_findings(
-    config::JuliaHarnessConfig,
-    rule::JuliaHarnessRule,
+    config::AspJuliaConfig,
+    rule::AspJuliaRule,
 )
     [
         config_escape_finding(
@@ -76,11 +76,11 @@ function disabled_rule_escape_findings(
 end
 
 function severity_override_escape_findings(
-    config::JuliaHarnessConfig,
-    rule::JuliaHarnessRule,
-    rules::Dict{String,JuliaHarnessRule},
+    config::AspJuliaConfig,
+    rule::AspJuliaRule,
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (rule_id, severity) in sort(collect(config.rule_severity_overrides); by=first)
         canonical = get(rules, rule_id, nothing)
         !isnothing(canonical) && canonical.severity == severity && continue
@@ -98,10 +98,10 @@ function severity_override_escape_findings(
 end
 
 function blocking_severity_escape_findings(
-    config::JuliaHarnessConfig,
-    rule::JuliaHarnessRule,
+    config::AspJuliaConfig,
+    rule::AspJuliaRule,
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for severity in (Warning, Error)
         severity in config.blocking_severities && continue
         label = severity_label(severity)
@@ -119,11 +119,11 @@ function blocking_severity_escape_findings(
 end
 
 function advisory_allow_escape_findings(
-    config::JuliaHarnessConfig,
-    rule::JuliaHarnessRule,
+    config::AspJuliaConfig,
+    rule::AspJuliaRule,
 )
-    isnothing(config.agent_advice_allow_explanation) && return JuliaHarnessFinding[]
-    has_agent_advice_allow_explanation(config) && return JuliaHarnessFinding[]
+    isnothing(config.agent_advice_allow_explanation) && return AspJuliaFinding[]
+    has_agent_advice_allow_explanation(config) && return AspJuliaFinding[]
     [
         config_escape_finding(
             rule,
@@ -134,11 +134,11 @@ function advisory_allow_escape_findings(
 end
 
 function config_escape_finding(
-    rule::JuliaHarnessRule,
+    rule::AspJuliaRule,
     summary::AbstractString,
     label::AbstractString,
 )
-    JuliaHarnessFinding(
+    AspJuliaFinding(
         rule.rule_id,
         rule.pack_id,
         rule.severity,
@@ -159,7 +159,7 @@ function has_config_explanation(
     has_concrete_explanation(get(explanations, String(key), ""))
 end
 
-function has_agent_advice_allow_explanation(config::JuliaHarnessConfig)
+function has_agent_advice_allow_explanation(config::AspJuliaConfig)
     has_concrete_explanation(config.agent_advice_allow_explanation)
 end
 

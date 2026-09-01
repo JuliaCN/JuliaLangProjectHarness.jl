@@ -2,9 +2,9 @@ function public_mutating_method_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -27,10 +27,10 @@ function public_mutating_method_test_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     tested_mutating_names = tested_mutating_call_names(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -82,10 +82,10 @@ function public_mutating_method_contract_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
     reported::Set{String},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for function_fact in parsed.syntax_facts.functions
         name = function_fact.terminal_name
         name in public_names || continue

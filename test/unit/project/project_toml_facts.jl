@@ -46,7 +46,7 @@
         """,
     )
 
-    facts = JuliaLangProjectHarness.parse_project_toml_facts(root)
+    facts = AspJulia.parse_project_toml_facts(root)
 
     @test isnothing(facts.parse_error)
     @test facts.package_name == "Example"
@@ -85,7 +85,7 @@ end
         """,
     )
 
-    facts = JuliaLangProjectHarness.parse_project_toml_facts(root)
+    facts = AspJulia.parse_project_toml_facts(root)
 
     @test facts.parse_error == "invalid Project.toml field `workspace.projects`"
     @test isempty(facts.workspace_projects)

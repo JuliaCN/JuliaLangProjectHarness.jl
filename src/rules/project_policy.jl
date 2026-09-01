@@ -1,11 +1,11 @@
 function evaluate_project_policy_rules(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
-    isnothing(scope) && return JuliaHarnessFinding[]
+    isnothing(scope) && return AspJuliaFinding[]
     rules = rules_by_id()
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     if !isnothing(scope.project_parse_error)
         push!(
             findings,
@@ -77,10 +77,10 @@ end
 
 function scope_explanation_findings(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
-    rules::Dict{String,JuliaHarnessRule},
+    config::AspJuliaConfig,
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     append!(
         findings,
         custom_scope_explanation_findings(
@@ -136,9 +136,9 @@ function custom_scope_explanation_findings(
     explanations::Dict{String,String},
     conventional_names::Set{String},
     label::AbstractString,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for path_name in path_names
         path_name in conventional_names && continue
         full_path = joinpath(scope.project_root, path_name)
@@ -163,16 +163,16 @@ function conventional_scope_exclusion_findings(
     explanations::Dict{String,String},
     conventional_name::AbstractString,
     label::AbstractString,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     full_path = joinpath(scope.project_root, conventional_name)
-    ispath(full_path) || return JuliaHarnessFinding[]
+    ispath(full_path) || return AspJuliaFinding[]
     label == "source" && !pkg_owns_conventional_source_scope(scope, full_path) &&
-        return JuliaHarnessFinding[]
-    conventional_scope_is_monitored(scope, full_path, label) && return JuliaHarnessFinding[]
-    conventional_name in configured_names && return JuliaHarnessFinding[]
+        return AspJuliaFinding[]
+    conventional_scope_is_monitored(scope, full_path, label) && return AspJuliaFinding[]
+    conventional_name in configured_names && return AspJuliaFinding[]
     has_path_explanation(explanations, scope.project_root, conventional_name) &&
-        return JuliaHarnessFinding[]
+        return AspJuliaFinding[]
     [
         finding_from_rule_typed(
             rules[JULIA_PROJ_R006],
@@ -226,9 +226,9 @@ end
 
 function test_entrypoint_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for test_path in scope.test_paths
         isdir(test_path) || continue
         entrypoint = joinpath(test_path, "runtests.jl")
@@ -249,9 +249,9 @@ end
 function thin_runtests_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_runtests_file(scope, parsed.report.path) || continue
@@ -281,9 +281,9 @@ end
 
 function source_rev_lock_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, source) in sort!(collect(scope.sources); by = first)
         source_rev_is_locked(source) && continue
         rev = get(source, "rev", "")
@@ -318,10 +318,10 @@ end
 
 function dependency_contract_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (section, dependencies) in [
         ("deps", scope.direct_dependencies),
         ("weakdeps", scope.weak_dependencies),
@@ -347,9 +347,9 @@ end
 function undeclared_import_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     stdlib_roots = julia_stdlib_import_roots()
     for parsed in parsed_files
         parsed.report.is_valid || continue

@@ -89,33 +89,15 @@ function write_cli_docs_project(root::AbstractString)
     write(joinpath(root, "docs", "src", "index.md"), "# CliExample\n")
 end
 
-@testset "cli compact report" begin
-    root = mktempdir()
-    write_cli_project(root)
+@testset "cli without a command renders the current interface" begin
     out = IOBuffer()
     err = IOBuffer()
 
-    status = run_julia_project_harness_cli([root]; out, err)
+    status = run_julia_project_harness_cli(String[]; out, err)
 
     @test status == 0
-    @test String(take!(out)) == "[ok] julia\n"
+    @test occursin("asp-julia", String(take!(out)))
     @test isempty(String(take!(err)))
-end
-
-@testset "cli json and snapshot output" begin
-    root = mktempdir()
-    write_cli_project(root)
-    json_out = IOBuffer()
-    snapshot_out = IOBuffer()
-
-    json_status = run_julia_project_harness_cli(["--json", root]; out = json_out)
-    snapshot_status =
-        run_julia_project_harness_cli(["--agent-snapshot", root]; out = snapshot_out)
-
-    @test json_status == 0
-    @test occursin("\"files\"", String(take!(json_out)))
-    @test snapshot_status == 0
-    @test occursin("Package: CliExample", String(take!(snapshot_out)))
 end
 
 @testset "cli search output" begin
@@ -244,11 +226,12 @@ end
     protocol_schemas = normpath(joinpath(package_root, "..", "..", "schemas"))
     schema_dir = joinpath(package_root, "schemas")
     registrations = julia_schema_registrations()
+    @test_throws ErrorException julia_schema_registrations(joinpath(package_root, "missing-schemas"))
     registered_paths = Set(registration["path"] for registration in registrations)
     package_schema_paths = Set(
         "schemas/$file_name"
         for file_name in readdir(schema_dir)
-        if endswith(file_name, ".json")
+        if !startswith(file_name, ".") && endswith(file_name, ".json")
     )
 
     @test registered_paths == package_schema_paths
@@ -408,17 +391,4 @@ end
     @test occursin("kind=docs_build", rendered)
     @test occursin("owner=docs/make.jl", rendered)
     @test occursin("tool=Documenter", rendered)
-end
-
-@testset "cli rejects conflicting modes" begin
-    root = mktempdir()
-    write_cli_project(root)
-    out = IOBuffer()
-    err = IOBuffer()
-
-    status = run_julia_project_harness_cli(["--json", "--agent-snapshot", root]; out, err)
-
-    @test status == 2
-    @test isempty(String(take!(out)))
-    @test occursin("expected only one output mode", String(take!(err)))
 end

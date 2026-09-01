@@ -12,7 +12,6 @@
     policy_out = IOBuffer()
     miss_out = IOBuffer()
     ingest_out = IOBuffer()
-    check_out = IOBuffer()
 
     guide_status = run_julia_project_harness_cli(["guide", root]; out=guide_out)
     workspace_status = run_julia_project_harness_cli(
@@ -112,7 +111,6 @@
         ];
         out=miss_out,
     )
-    check_status = run_julia_project_harness_cli(["check", "--changed", root]; out=check_out)
     ingest_status = let input = "src/CliExample.jl:1:module CliExample\ntest/runtests.jl:3:@testset \"run\" begin\n",
         pipe = Pipe()
         writer = @async begin
@@ -157,7 +155,6 @@
     policy_rendered = String(take!(policy_out))
     miss_rendered = String(take!(miss_out))
     ingest_rendered = String(take!(ingest_out))
-    check_rendered = String(take!(check_out))
 
     @test guide_status == 0
     @test occursin("[julia-harness-guide]", guide_rendered)
@@ -175,7 +172,7 @@
     @test !occursin("asp julia --search", guide_rendered)
     @test !occursin("--code .", guide_rendered)
     @test occursin("asp julia", guide_rendered)
-    @test !occursin("julia-project-harness", guide_rendered)
+    @test !occursin("asp-julia", guide_rendered)
     @test workspace_status == 0
     @test occursin("[search-workspace]", workspace_rendered)
     @test occursin("view=workspace", workspace_rendered)
@@ -229,6 +226,4 @@
         "search does not accept positional WORKSPACE",
         String(take!(ingest_extra_root_err)),
     )
-    @test check_status == 0
-    @test check_rendered == "[ok] julia\n"
 end

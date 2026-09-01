@@ -2,7 +2,7 @@
 
 Status: ready for user review
 Date: 2026-05-20
-Repository: `julia-lang-project-harness`
+Repository: `asp-julia`
 
 ## Purpose
 
@@ -71,23 +71,23 @@ The first implementation will not:
 The package should be a normal Julia package:
 
 - `Project.toml`
-- `src/JuliaLangProjectHarness.jl`
+- `src/AspJulia.jl`
 - `src/parser/...`
 - `src/rules/...`
 - `src/render/...`
 - `src/runner/...`
 - `test/runtests.jl`
 - `test/unit/...`
-- `bin/julia-project-harness.jl`
+- `bin/asp-julia.jl`
 
 The root module should remain a facade. It should include owned modules and
 re-export stable public API, but implementation should live in leaf files. This
 is a Julia-native version of the "thin package boundary" lesson, not a Rust
 `lib.rs` clone.
 
-The public module name should be `JuliaLangProjectHarness` unless package
+The public module name should be `AspJulia` unless package
 registration constraints require a different name. The repository name can stay
-`julia-lang-project-harness`.
+`asp-julia`.
 
 ## Parser Boundary
 
@@ -474,7 +474,7 @@ Initial advisory rules:
 - `AGENT-JL-R020`: exported stringly domain methods with branch dispatch lack a
   typed domain model; if Moshi is chosen, it should stay optional through
   `[weakdeps]` and `[extensions]` unless it is core API. The harness self-applies
-  this by exposing `JuliaLangProjectHarnessMoshiExt`, which uses Moshi only when
+  this by exposing `AspJuliaMoshiExt`, which uses Moshi only when
   the weak dependency is loaded. Snapshot and search surfaces should still show
   the Moshi extension activation state and capability labels from project facts
   so agents can plan the typed-domain repair before loading the weak dependency.
@@ -577,11 +577,11 @@ The package test gate should be an ordinary Julia test assertion, for example:
 
 ```julia
 using Test
-using JuliaLangProjectHarness
+using AspJulia
 
 @testset "julia project harness" begin
     config = default_julia_harness_config()
-    assert_julia_project_harness_test_profile_clean(pkgdir(JuliaLangProjectHarness); config)
+    assert_julia_project_harness_test_profile_clean(pkgdir(AspJulia); config)
 end
 ```
 
@@ -594,8 +594,8 @@ The report model should be serializable and compact:
 
 - `JuliaDiagnosticSeverity`: `info`, `warning`, `error`
 - `JuliaRulePack`
-- `JuliaHarnessRule`
-- `JuliaHarnessFinding`
+- `AspJuliaRule`
+- `AspJuliaFinding`
 - `JuliaFileReport`
 - `JuliaSearchIndexEntry`
 - `JuliaSearchResult`
@@ -606,8 +606,8 @@ The report model should be serializable and compact:
 - `JuliaVerificationReceiptReview`
 - `JuliaVerificationProfile`
 - `JuliaProjectHarnessScope`
-- `JuliaHarnessConfig`
-- `JuliaHarnessReport`
+- `AspJuliaConfig`
+- `AspJuliaReport`
 
 Each finding should contain:
 

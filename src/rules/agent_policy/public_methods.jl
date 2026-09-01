@@ -7,9 +7,9 @@ function public_method_shape_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for function_fact in parsed.syntax_facts.functions
@@ -32,9 +32,9 @@ function public_method_shape_findings(
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     append!(findings, public_method_argument_shape_findings(parsed, function_fact, rules))
     append!(findings, public_method_algorithm_shape_findings(parsed, function_fact, rules))
     append!(
@@ -52,9 +52,9 @@ end
 function public_method_argument_shape_findings(
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     if length(function_fact.positional_args) >= 5
         push!(
             findings,
@@ -97,9 +97,9 @@ end
 function public_method_algorithm_shape_findings(
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     function_fact.kind == "function" || return findings
     if function_fact.control_flow_depth >= MAX_PUBLIC_METHOD_CONTROL_FLOW_DEPTH
         push!(
@@ -133,9 +133,9 @@ function public_method_macro_contract_findings(
     parsed::ParsedJuliaFile,
     function_fact::JuliaFunctionSyntax,
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     function_fact.kind == "function" || return findings
     haskey(function_docs_by_name, function_fact.terminal_name) || return findings
     function_fact.macro_invocation_count >= MAX_PUBLIC_METHOD_MACRO_INVOCATIONS ||

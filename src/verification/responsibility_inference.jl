@@ -25,7 +25,7 @@ const JULIA_VERIFICATION_TASKS_BY_RESPONSIBILITY = Dict(
     "availability_critical" => ["pkg_test", "chaos"],
 )
 
-const JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS = Set(["JuliaLangProjectHarness"])
+const ASP_JULIA_ONLY_DEPENDENCY_ROOTS = Set(["AspJulia"])
 const JULIA_NETWORK_ROOTS = Set(["Downloads", "HTTP", "LibCURL", "Sockets", "URIs"])
 const JULIA_PERSISTENCE_ROOTS = Set([
     "Arrow",
@@ -153,7 +153,7 @@ function runtime_direct_dependency_roots(
 )
     Set(
         root for root in keys(scope.direct_dependencies) if
-        !(root in stdlib_roots) && !(root in JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS)
+        !(root in stdlib_roots) && !(root in ASP_JULIA_ONLY_DEPENDENCY_ROOTS)
     )
 end
 
@@ -165,7 +165,7 @@ function collect_import_responsibility_signals!(
     for imported in parsed.syntax_facts.imports
         is_relative_import(imported) && continue
         root = imported.root
-        if root in direct_roots && !(root in JULIA_HARNESS_ONLY_DEPENDENCY_ROOTS)
+        if root in direct_roots && !(root in ASP_JULIA_ONLY_DEPENDENCY_ROOTS)
             push!(signals.imported_dependency_roots, root)
         end
         add_julia_dependency_root_signal!(signals, root)

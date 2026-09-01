@@ -83,7 +83,7 @@ end
 """Return Julia syntax parse rules backed by JuliaSyntax.jl."""
 function julia_syntax_rules()
     [
-        JuliaHarnessRule(
+        AspJuliaRule(
             JULIA_SYN_R001,
             JULIA_SYNTAX_PACK_ID,
             Error,
@@ -96,7 +96,7 @@ end
 
 """Return Project.toml and package-layout policy rules."""
 julia_project_policy_rules() = [
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R001,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -104,7 +104,7 @@ julia_project_policy_rules() = [
         "Package project runners must parse `Project.toml` and find a concrete package name before package policy runs.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R002,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -112,7 +112,7 @@ julia_project_policy_rules() = [
         "Julia packages should expose a parser-stable entry file at `src/<PackageName>.jl`, unless project config records a reason.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R003,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -120,7 +120,7 @@ julia_project_policy_rules() = [
         "Julia package test scopes should mount the `Pkg.test` entrypoint at `test/runtests.jl`.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R004,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -128,7 +128,7 @@ julia_project_policy_rules() = [
         "`test/runtests.jl` should stay a compact `Pkg.test` aggregate and move larger test bodies into included test files.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R005,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -136,7 +136,7 @@ julia_project_policy_rules() = [
         "Custom Julia source or test scope paths must carry a concrete project-local explanation.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R006,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -144,7 +144,7 @@ julia_project_policy_rules() = [
         "Excluding conventional Julia `src` or `test` scopes must carry a concrete project-local explanation.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R007,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -152,7 +152,7 @@ julia_project_policy_rules() = [
         "The package entry file should declare a top-level module matching the `Project.toml` package name.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R008,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -160,7 +160,7 @@ julia_project_policy_rules() = [
         "External Julia package imports should be declared in `Project.toml` as deps, weakdeps, or test extras according to their source scope.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R009,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -168,7 +168,7 @@ julia_project_policy_rules() = [
         "Registry Julia dependencies should carry `[compat]` bounds; source-tracked dependencies should be recorded in `[sources]`.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R010,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -176,7 +176,7 @@ julia_project_policy_rules() = [
         "URL-based Julia `[sources]` entries should lock `rev` to a commit SHA instead of a moving branch name.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R011,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -184,7 +184,7 @@ julia_project_policy_rules() = [
         "Every Julia `[extensions]` entry should resolve to `ext/<ExtensionName>.jl` or `ext/<ExtensionName>/<ExtensionName>.jl`.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R012,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -192,7 +192,7 @@ julia_project_policy_rules() = [
         "Every Julia `[extensions]` trigger dependency should be declared in `[weakdeps]` or `[deps]` unless it is a stdlib.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R013,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -200,7 +200,7 @@ julia_project_policy_rules() = [
         "Julia project policy should run from a `Project.toml` that `Pkg.Types.read_project` can read.",
         labels("project-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_PROJ_R014,
         JULIA_PROJECT_POLICY_PACK_ID,
         Warning,
@@ -212,7 +212,7 @@ julia_project_policy_rules() = [
 
 """Return source graph and file ownership policy rules."""
 julia_modularity_rules() = [
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R001,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -220,7 +220,7 @@ julia_modularity_rules() = [
         "Julia package entry files should stay compact facades that include named owner files and expose the public module surface.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R002,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -228,7 +228,7 @@ julia_modularity_rules() = [
         "Julia owner files under project-owned source, extension, and test scopes should stay within a bounded responsibility budget so agents can repair one owner at a time.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R003,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -236,7 +236,7 @@ julia_modularity_rules() = [
         "Keep Julia package source graphs parser-stable with literal `include(...)` targets, or record a project-local exception.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R004,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -244,7 +244,7 @@ julia_modularity_rules() = [
         "Every literal Julia `include(...)` target must resolve to an existing source file.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R005,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -252,7 +252,7 @@ julia_modularity_rules() = [
         "Julia package source graphs should stay acyclic so agents can follow one repair ownership path.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R006,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -260,7 +260,7 @@ julia_modularity_rules() = [
         "Julia source files under `src/` should be reachable from the package entry include graph, unless project config records a reason.",
         labels("modularity"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         JULIA_MOD_R007,
         JULIA_MODULARITY_PACK_ID,
         Warning,
@@ -286,7 +286,7 @@ function rules_by_id()
 end
 
 function finding_from_rule(
-    rule::JuliaHarnessRule;
+    rule::AspJuliaRule;
     summary::AbstractString,
     location::SourceLocation,
     source_line::Union{Nothing,AbstractString}=nothing,
@@ -297,14 +297,14 @@ function finding_from_rule(
 end
 
 function finding_from_rule_typed(
-    rule::JuliaHarnessRule,
+    rule::AspJuliaRule,
     summary::AbstractString,
     location::SourceLocation,
     source_line::Union{Nothing,AbstractString},
     label::AbstractString,
     extra_labels::Dict{String,String},
 )
-    JuliaHarnessFinding(
+    AspJuliaFinding(
         rule.rule_id,
         rule.pack_id,
         rule.severity,
@@ -319,7 +319,7 @@ function finding_from_rule_typed(
 end
 
 function finding_from_rule_typed(
-    rule::JuliaHarnessRule,
+    rule::AspJuliaRule,
     summary::AbstractString,
     location::SourceLocation,
     source_line::Union{Nothing,AbstractString},
@@ -336,7 +336,7 @@ function finding_from_rule_typed(
 end
 
 function finding_from_rule_typed(
-    rule::JuliaHarnessRule,
+    rule::AspJuliaRule,
     summary::AbstractString,
     location::SourceLocation,
     label::AbstractString,
@@ -345,7 +345,7 @@ function finding_from_rule_typed(
 end
 
 function finding_from_rule_typed(
-    rule::JuliaHarnessRule,
+    rule::AspJuliaRule,
     summary::AbstractString,
     location::SourceLocation,
     label::AbstractString,

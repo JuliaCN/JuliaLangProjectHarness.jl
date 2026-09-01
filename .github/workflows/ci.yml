@@ -53,7 +53,7 @@ jobs:
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using JuliaLangProjectHarness'
+          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using AspJulia'
       - name: Run package tests
         env:
           JULIA_NUM_THREADS: ${{ matrix.nthreads }}
@@ -86,13 +86,13 @@ jobs:
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using JuliaLangProjectHarness'
+          julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile(); using AspJulia'
       - name: Run strict self-apply profile gate
         env:
           JULIA_NUM_THREADS: "2"
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=. -e 'using JuliaLangProjectHarness; assert_julia_project_harness_test_profile_clean(pwd(); advice_io=stderr); println("self-profile-ok")'
+          julia --project=. -e 'using AspJulia; assert_julia_project_harness_test_profile_clean(pwd(); advice_io=stderr); println("self-profile-ok")'
 
   juliac_smoke:
     name: JuliaC app smoke - Julia 1.12 - ubuntu-latest
@@ -124,7 +124,7 @@ jobs:
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=juliac juliac/asp_julia_harness_app.jl guide . | grep '\[julia-harness-guide\]'
+          julia --project=juliac juliac/asp_julia_app.jl guide . | grep '\[julia-harness-guide\]'
           julia --project=juliac juliac/asp_julia_harness_app.jl export index . > build-index.json
           julia --project=juliac -e 'using JSON; packet = JSON.parse(read("build-index.json", String)); @assert packet["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index"; @assert packet["protocolId"] == "agent.semantic-protocols.semantic-language"; @assert packet["languageId"] == "julia"; @assert length(packet["facts"]) > 0; println("julia-index-export-ok")'
       - name: Compile JuliaC app
@@ -135,6 +135,6 @@ jobs:
           julia --project=juliac juliac/compile.jl
       - name: Smoke compiled JuliaC app
         run: |
-          build/juliac-ci/asp-julia-harness guide . | grep '\[julia-harness-guide\]'
-          build/juliac-ci/asp-julia-harness export index . > compiled-index.json
-          julia --project=juliac -e 'using JSON; packet = JSON.parse(read("compiled-index.json", String)); @assert packet["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index"; @assert packet["providerId"] == "julia-lang-project-harness"; @assert length(packet["facts"]) > 0; println("compiled-julia-index-export-ok")'
+          build/juliac-ci/asp-julia guide . | grep '\[julia-harness-guide\]'
+          build/juliac-ci/asp-julia export index . > compiled-index.json
+          julia --project=juliac -e 'using JSON; packet = JSON.parse(read("compiled-index.json", String)); @assert packet["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index"; @assert packet["providerId"] == "asp-julia"; @assert length(packet["facts"]) > 0; println("compiled-julia-index-export-ok")'

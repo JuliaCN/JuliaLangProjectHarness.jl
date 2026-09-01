@@ -15,10 +15,9 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
     owner_path = julia_evidence_owner_path(root)
     owner_id = evidence_node_id("julia:owner", owner_path)
     claim_id = evidence_node_id("julia:claim", owner_path)
-    receipt_id = evidence_node_id("julia:receipt", "julia-harness-check-changed")
-    action_id = evidence_node_id("julia:action", "run-julia-harness-check")
+    receipt_id = evidence_node_id("julia:receipt", "policy-api")
+    action_id = evidence_node_id("julia:action", "attach-policy-api-receipt")
     gap_id = evidence_node_id("julia:gap", "$(owner_path):receipt")
-    check_command = "asp-julia check --changed ."
     nodes = Dict{String,Any}[
         Dict{String,Any}(
             "nodeId" => owner_id,
@@ -52,24 +51,27 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
             ),
             "fields" => Dict{String,Any}(
                 "sourceRuleId" => "JL-EVIDENCE-GRAPH",
-                "receiptKind" => "harness-check",
+                "receiptKind" => "policy-evaluation",
             ),
         ),
         Dict{String,Any}(
             "nodeId" => receipt_id,
             "kind" => "verification-receipt",
-            "label" => check_command,
-            "receiptId" => "julia.harness.check.changed",
+            "label" => "Julia dependency policy API receipt",
+            "receiptId" => "julia.policy.api",
             "status" => "needs-injection",
             "summary" =>
-                "Run the Julia harness check and attach the receipt before treating the claim as verified.",
-            "fields" => Dict{String,Any}("command" => check_command),
+                "Attach the receipt emitted by the Julia dependency policy API before treating the claim as verified.",
+            "fields" => Dict{String,Any}(
+                "authority" => "AspJulia-api",
+                "trigger" => "Pkg.test",
+            ),
         ),
         Dict{String,Any}(
             "nodeId" => action_id,
             "kind" => "review-action",
-            "label" => "Run asp-julia check --changed .",
-            "actionId" => "julia.run-harness-check",
+            "label" => "Attach Julia dependency policy API receipt",
+            "actionId" => "julia.attach-policy-api-receipt",
             "status" => "missing",
             "summary" => "run-receipt",
             "fields" => Dict{String,Any}(
@@ -87,9 +89,9 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
         Dict{String,Any}(
             "gapId" => gap_id,
             "ownerPath" => owner_path,
-            "summary" => "No attached Julia harness check receipt for this evidence graph.",
+            "summary" => "No attached Julia dependency policy API receipt for this evidence graph.",
             "severity" => "warning",
-            "fields" => Dict{String,Any}("nextCommand" => check_command),
+            "fields" => Dict{String,Any}("requiredReceiptId" => "julia.policy.api"),
         ),
     ]
     Dict{String,Any}(

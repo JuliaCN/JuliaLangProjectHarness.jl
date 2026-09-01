@@ -1,7 +1,7 @@
-using JuliaLangProjectHarness
+using AspJulia
 using Test
 
-@testset "JuliaLangProjectHarness" begin
+@testset "AspJulia" begin
     include("unit/self_policy.jl")
     include("unit/parser.jl")
     include("unit/runner.jl")

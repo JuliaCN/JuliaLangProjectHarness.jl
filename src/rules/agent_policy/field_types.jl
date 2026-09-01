@@ -16,9 +16,9 @@ const BROAD_PUBLIC_FIELD_TYPE_NAMES = Set([
 function public_abstract_field_type_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for type_fact in parsed.syntax_facts.types

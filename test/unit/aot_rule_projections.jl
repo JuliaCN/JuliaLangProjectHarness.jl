@@ -12,7 +12,7 @@
         write(first_owner, "scatter(x::Int) = x\n")
         write(second_owner, "scatter(x::String) = x\n")
 
-        harness = JuliaLangProjectHarness
+        harness = AspJulia
         parsed_files = [
             harness.parse_julia_file(first_owner),
             harness.parse_julia_file(second_owner),
@@ -44,7 +44,7 @@
 end
 
 @testset "test throws call names use bounded lexical projection" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     call_names(expression) = harness.test_throws_call_names(
         harness.JuliaTestSyntax(
             1,
@@ -80,7 +80,7 @@ end
 end
 
 @testset "inferred call names reuse bounded lexical projection" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     call_names(expression) = harness.inferred_test_call_names(
         harness.JuliaTestSyntax(
             1,
@@ -130,7 +130,7 @@ end
             """,
         )
 
-        harness = JuliaLangProjectHarness
+        harness = AspJulia
         scope = harness.julia_project_harness_scope(
             root,
             harness.default_julia_harness_config(),
@@ -149,7 +149,7 @@ end
 end
 
 @testset "testset display names use explicit typed escaping" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     test_fact(label) = harness.JuliaTestSyntax(
         1,
         1,
@@ -174,7 +174,7 @@ end
 
 @testset "generic owner segments use normalized root prefixes" begin
     mktempdir() do root
-        harness = JuliaLangProjectHarness
+        harness = AspJulia
         source_root = joinpath(root, "src")
 
         @test harness.first_generic_owner_segment(
@@ -201,7 +201,7 @@ end
 end
 
 @testset "stdlib import roots use typed installed-project projection" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     roots = harness.julia_stdlib_import_roots()
     expected = Set{String}()
     for stdlib_dir::String in readdir(Sys.STDLIB; join = true)
@@ -224,7 +224,7 @@ end
 end
 
 @testset "project policy path ownership uses normalized root prefixes" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     root = joinpath(tempdir(), "asp-project-policy-root")
 
     @test harness.project_policy_path_under(root, root)
@@ -235,7 +235,7 @@ end
 end
 
 @testset "Julia source parse errors use typed formatting boundaries" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     mktempdir() do root
         missing_path = joinpath(root, "missing.jl")
         missing = harness.parse_julia_file(missing_path)
@@ -255,7 +255,7 @@ end
 end
 
 @testset "literal path arguments use typed segment folding" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     syntax = harness.JuliaSyntax
 
     literal = syntax.parsestmt(syntax.SyntaxNode, "\"literal.jl\"")

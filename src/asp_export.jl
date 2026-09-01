@@ -204,7 +204,7 @@ function julia_index_export_packet(project_root::AbstractString)
         "notes" => [
             Dict(
                 "kind" => "julia-syntax-authority",
-                "message" => "Facts are derived from JuliaSyntax-backed JuliaLangProjectHarness search entries.",
+                "message" => "Facts are derived from JuliaSyntax-backed AspJulia search entries.",
             ),
         ],
     )

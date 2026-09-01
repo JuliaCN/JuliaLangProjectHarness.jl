@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
 
-using JuliaLangProjectHarness
+using AspJulia
 
 exit(run_julia_project_harness_cli())

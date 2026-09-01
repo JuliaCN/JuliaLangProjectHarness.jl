@@ -1,8 +1,8 @@
 function extension_entrypoint_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for name in sort!(collect(keys(scope.extensions)))
         any(isfile, extension_entrypoint_candidates(scope.project_root, name)) && continue
         push!(
@@ -20,11 +20,11 @@ end
 
 function extension_dependency_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
     declared = union(Set(keys(scope.direct_dependencies)), Set(keys(scope.weak_dependencies)), stdlib_roots)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (extension_name, dependencies) in sort!(collect(scope.extensions))
         for dependency in sort!(copy(dependencies))
             dependency in declared && continue

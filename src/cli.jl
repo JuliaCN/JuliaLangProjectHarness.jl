@@ -1,8 +1,5 @@
-mutable struct JuliaHarnessCliOptions
+mutable struct AspJuliaCliOptions
     project_root::String
-    json::Bool
-    agent_snapshot::Bool
-    advice::Bool
     verification_tasks::Bool
     verification_tasks_json::Bool
     verification_profile::Bool
@@ -17,11 +14,8 @@ mutable struct JuliaHarnessCliOptions
 end
 
 function default_julia_harness_cli_options()
-    JuliaHarnessCliOptions(
+    AspJuliaCliOptions(
         pwd(),
-        false,
-        false,
-        false,
         false,
         false,
         false,
@@ -68,6 +62,10 @@ function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, er
     end
     protocol_status = run_julia_project_harness_protocol_cli(args; out)
     !isnothing(protocol_status) && return protocol_status
+    isempty(args) && begin
+        print(out, julia_harness_cli_usage())
+        return 0
+    end
 
     options = parse_julia_harness_cli_args(args)
     if options.help
@@ -124,21 +122,8 @@ function run_julia_project_harness_cli_checked(args::Vector{String}, out::IO, er
             )
         end
         return all(is_julia_verification_receipt_review_clean, reviews) ? 0 : 1
-    elseif options.agent_snapshot
-        print(out, render_julia_project_harness_agent_snapshot(options.project_root))
-        return 0
     end
-
-    report = run_julia_project_harness(options.project_root)
-    if options.json
-        print(out, render_julia_project_harness_json(report))
-        print(out, "\n")
-    elseif options.advice
-        print(out, render_julia_project_harness_advice(report))
-    else
-        print(out, render_julia_project_harness(report))
-    end
-    is_clean(report) ? 0 : 1
+    error("project policy evaluation is available only through the AspJulia API")
 end
 
 function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout)
@@ -177,8 +162,6 @@ function run_julia_project_harness_protocol_cli(args::Vector{String}; out=stdout
         return run_julia_harness_search_cli(args[2:end]; out)
     elseif command == "batch"
         return run_julia_harness_batch_cli(args[2:end]; out)
-    elseif command == "check"
-        return run_julia_harness_check_cli(args[2:end]; out)
     elseif command == "evidence"
         return run_julia_harness_evidence_cli(args[2:end]; out)
     elseif command == "export"
@@ -208,17 +191,6 @@ function run_julia_harness_batch_cli(args::Vector{String}; out=stdout)
     status
 end
 
-run_julia_harness_check_cli(args::Vector{String}; out=stdout) =
-    run_julia_harness_check_cli(args, out)
-
-function run_julia_harness_check_cli(args::Vector{String}, out::IO)
-    isempty(args) || args[1] == "--changed" || error("unknown check option: $(args[1])")
-    project_root = length(args) >= 2 ? args[2] : pwd()
-    report = run_julia_project_harness(project_root)
-    print(out, render_julia_project_harness(report))
-    is_clean(report) ? 0 : 1
-end
-
 function parse_julia_harness_cli_args(args::Vector{String})
     options = default_julia_harness_cli_options()
     positionals = String[]
@@ -227,12 +199,6 @@ function parse_julia_harness_cli_args(args::Vector{String})
         arg = args[index]
         if arg in ("-h", "--help")
             options.help = true
-        elseif arg == "--json"
-            options.json = true
-        elseif arg == "--agent-snapshot"
-            options.agent_snapshot = true
-        elseif arg == "--advice"
-            options.advice = true
         elseif arg == "--verification-tasks"
             options.verification_tasks = true
         elseif arg == "--verification-tasks-json"
@@ -276,11 +242,8 @@ function parse_julia_harness_cli_args(args::Vector{String})
     options
 end
 
-function validate_julia_harness_cli_options(options::JuliaHarnessCliOptions)
+function validate_julia_harness_cli_options(options::AspJuliaCliOptions)
     modes = count(identity, [
-        options.json,
-        options.agent_snapshot,
-        options.advice,
         options.verification_tasks,
         options.verification_tasks_json,
         options.verification_profile,
@@ -300,14 +263,12 @@ end
 
 function julia_harness_cli_usage()
     """
-    julia-project-harness [guide | agent doctor --json | search policy RULE owner tests --view seeds | evidence graph --json | evidence analyze --json | --json | --agent-snapshot | --advice | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
+    asp-julia [guide | agent doctor --json | search policy RULE owner tests --view seeds | evidence graph --json | evidence analyze --json | --verification-tasks | --verification-tasks-json | --verification-profile | --verification-profile-json | --verification-receipt-template | --verification-receipts FILE | --verification-receipts-json FILE | --search QUERY] [options] [PROJECT_ROOT]
 
-    Compact text is the default agent-facing repair surface.
     Use guide to print provider-owned agent commands.
     Use search policy RULE owner tests --view seeds to resolve policy handles.
     Use evidence graph --json to emit a semantic-evidence-graph packet.
     Use evidence analyze --json to emit a graph-turbo evidence-quality request.
-    Use --agent-snapshot to emit a low-noise project summary.
     Use --verification-tasks to emit agent-runnable verification duties.
     Use --verification-receipt-template to emit a JSON receipt skeleton.
     Use --verification-receipts FILE to review agent-submitted verification receipts.

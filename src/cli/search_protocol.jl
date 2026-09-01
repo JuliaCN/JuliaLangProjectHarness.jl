@@ -85,7 +85,7 @@ function julia_harness_agent_guide(project_root::AbstractString)
     |cmd asp julia search compare <axis> [left right] --workspace . --view seeds
     |cmd asp julia search query --from-hook direct-source-read --selector <glob-or-path> --term <term> --surface owner,tests --workspace <workspace-root> --view seeds
     |pipe <candidate-lines> | asp julia search ingest owner tests --workspace . --view seeds
-    |cmd asp julia check --changed .
+    |policy authority=AspJulia-api trigger=Pkg.test
     |rule selector queries do not need a trailing project root; --workspace <workspace-root> is the independent workspace override
     |rule exact query is unavailable until Julia declares typed native exact projection; search returns structural locators/frontier
     |rule provider-knowledge-axes env/lang/std/pattern/runtime-source return facts or explicit frontier gaps; do not fill missing facts from memory

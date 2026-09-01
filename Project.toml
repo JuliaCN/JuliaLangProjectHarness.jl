@@ -1,4 +1,4 @@
-name = "JuliaLangProjectHarness"
+name = "AspJulia"
 uuid = "67259778-f152-405a-bc38-ee6219bce977"
 version = "0.1.0"
 
@@ -15,7 +15,7 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 Moshi = "2e0e35c7-a2e4-4343-998d-7ef72827ed2d"
 
 [extensions]
-JuliaLangProjectHarnessMoshiExt = "Moshi"
+AspJuliaMoshiExt = "Moshi"
 
 [sources]
 JuliaSyntax = {rev = "a713779e3a8dbf1fe03c659009dab6eb006cbb31", url = "https://github.com/JuliaLang/JuliaSyntax.jl"}

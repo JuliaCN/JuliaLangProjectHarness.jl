@@ -5,9 +5,9 @@
 
     report = run_julia_lang_harness([source])
 
-    @test JuliaLangProjectHarness.file_count(report) == 1
-    @test JuliaLangProjectHarness.parsed_count(report) == 1
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.file_count(report) == 1
+    @test AspJulia.parsed_count(report) == 1
+    @test AspJulia.is_clean(report)
     @test isnothing(report.project_resolution)
     @test render_julia_project_harness(report) == "[ok] julia\n"
 end
@@ -20,9 +20,9 @@ end
     report = run_julia_lang_harness([source])
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.file_count(report) == 1
-    @test JuliaLangProjectHarness.parsed_count(report) == 0
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.file_count(report) == 1
+    @test AspJulia.parsed_count(report) == 0
+    @test !AspJulia.is_clean(report)
     @test startswith(rendered, "[fail] julia blockingFindings=1 parsed=0/1")
     @test occursin("JULIA-SYN-R001", rendered)
     @test occursin("|failureFrontier rule=JULIA-SYN-R001 severity=error", rendered)

@@ -37,7 +37,7 @@ end
 function render_julia_package_snapshot(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    findings::Vector{JuliaHarnessFinding},
+    findings::Vector{AspJuliaFinding},
     ;
     workspace_member_scopes=JuliaProjectHarnessScope[],
     config=default_julia_harness_config(),
@@ -359,7 +359,7 @@ function dynamic_include_lines(scope::JuliaProjectHarnessScope, parsed_files::Ve
     lines
 end
 
-function snapshot_finding_lines(scope::JuliaProjectHarnessScope, findings::Vector{JuliaHarnessFinding})
+function snapshot_finding_lines(scope::JuliaProjectHarnessScope, findings::Vector{AspJuliaFinding})
     grouped = Dict{String,Int}()
     for finding in findings
         grouped[finding.rule_id] = get(grouped, finding.rule_id, 0) + 1

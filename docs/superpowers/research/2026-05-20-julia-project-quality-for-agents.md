@@ -2,7 +2,7 @@
 
 Status: research note
 Date: 2026-05-20
-Repository: `julia-lang-project-harness`
+Repository: `asp-julia`
 
 ## Purpose
 
@@ -346,7 +346,7 @@ Already implemented or designed:
 - Moshi is treated as an optional expression layer for ADTs and pattern
   matching. The harness parses `@data`, `@match`, and `@derive` as JuliaSyntax
   facts, keeps Moshi behind `[weakdeps]` and `[extensions]`, and self-applies
-  that policy through `JuliaLangProjectHarnessMoshiExt` instead of adding
+  that policy through `AspJuliaMoshiExt` instead of adding
   Moshi to the core runtime dependencies. Agent snapshots and search entries
   expose the configured Moshi extension, activation state, and compact
   capability labels without requiring the core process to load Moshi first.

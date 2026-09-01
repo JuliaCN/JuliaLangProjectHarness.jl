@@ -1,22 +1,22 @@
 using JSON
 
 """Render blocking findings and agent advice as compact text."""
-render_julia_project_harness(report::JuliaHarnessReport) =
+render_julia_project_harness(report::AspJuliaReport) =
     render_julia_project_harness_with_options(report; severities=nothing, include_advice=true)
 
 """Render only advisory findings from a Julia project harness report."""
-function render_julia_project_harness_advice(report::JuliaHarnessReport)
+function render_julia_project_harness_advice(report::AspJuliaReport)
     render_finding_list(advisory_findings(report))
 end
 
 function render_julia_project_harness_with_options(
-    report::JuliaHarnessReport;
+    report::AspJuliaReport;
     severities=nothing,
     include_advice::Bool=true,
 )
     blocking = blocking_findings(report; severities)
     advice = include_advice ? deduplicate_advice(advisory_findings(report), blocking) :
-             JuliaHarnessFinding[]
+             AspJuliaFinding[]
     findings = copy(blocking)
     sizehint!(findings, length(blocking) + length(advice))
     for finding in advice
@@ -31,14 +31,14 @@ function render_julia_project_harness_with_options(
     rendered
 end
 
-function render_finding_list(findings::Vector{JuliaHarnessFinding})
+function render_finding_list(findings::Vector{AspJuliaFinding})
     isempty(findings) && return ""
     join(map(render_finding, findings), "\n")
 end
 
 function render_julia_failure_frontier(
-    report::JuliaHarnessReport,
-    findings::Vector{JuliaHarnessFinding},
+    report::AspJuliaReport,
+    findings::Vector{AspJuliaFinding},
 )
     root = failure_frontier_root(report)
     lines = String[
@@ -69,20 +69,20 @@ end
 
 failure_frontier_text(value::AbstractString) = join(split(String(value)), " ")
 
-function failure_frontier_root(report::JuliaHarnessReport)
+function failure_frontier_root(report::AspJuliaReport)
     if !isnothing(report.project_resolution)
         return slash_path(report.project_resolution.project_root)
     end
     isempty(report.root_paths) ? "." : slash_path(first(report.root_paths))
 end
 
-function failure_frontier_selector(finding::JuliaHarnessFinding)
+function failure_frontier_selector(finding::AspJuliaFinding)
     isnothing(finding.location.path) && return nothing
     line = max(finding.location.line, 1)
     "$(slash_path(finding.location.path)):$(line):$(line)"
 end
 
-function render_finding(finding::JuliaHarnessFinding)
+function render_finding(finding::AspJuliaFinding)
     path = isnothing(finding.location.path) ? "<memory>" : slash_path(finding.location.path)
     display_column = finding.location.column + 1
     rendered = "[$(finding.rule_id)] $(titlecase(severity_label(finding.severity))): $(finding.title)\n"
@@ -113,13 +113,13 @@ function compact_rule_visibility(visibility::JuliaRuleVisibility)
     isempty(lines) ? "" : join(lines, "\n") * "\n"
 end
 
-function deduplicate_advice(advice::Vector{JuliaHarnessFinding}, blocking::Vector{JuliaHarnessFinding})
+function deduplicate_advice(advice::Vector{AspJuliaFinding}, blocking::Vector{AspJuliaFinding})
     blocking_keys = Tuple{String,Union{Nothing,String},Int,Int}[]
     sizehint!(blocking_keys, length(blocking))
     for finding in blocking
         push!(blocking_keys, finding_key(finding))
     end
-    retained = JuliaHarnessFinding[]
+    retained = AspJuliaFinding[]
     sizehint!(retained, length(advice))
     for finding in advice
         key = finding_key(finding)
@@ -137,18 +137,18 @@ function deduplicate_advice(advice::Vector{JuliaHarnessFinding}, blocking::Vecto
     retained
 end
 
-function finding_key(finding::JuliaHarnessFinding)
+function finding_key(finding::AspJuliaFinding)
     (finding.rule_id, finding.location.path, finding.location.line, finding.location.column)
 end
 
 slash_path(path::AbstractString) = replace(String(path), '\\' => '/')
 
 """Render a Julia project harness report as JSON for tools."""
-function render_julia_project_harness_json(report::JuliaHarnessReport)
+function render_julia_project_harness_json(report::AspJuliaReport)
     JSON.json(report_dict(report))
 end
 
-function report_dict(report::JuliaHarnessReport)
+function report_dict(report::AspJuliaReport)
     Dict(
         "files" => map(file_report_dict, report.files),
         "findings" => map(finding_dict, report.findings),
@@ -168,7 +168,7 @@ function file_report_dict(file::JuliaFileReport)
     )
 end
 
-function finding_dict(finding::JuliaHarnessFinding)
+function finding_dict(finding::AspJuliaFinding)
     Dict(
         "rule_id" => finding.rule_id,
         "pack_id" => finding.pack_id,

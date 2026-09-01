@@ -27,9 +27,9 @@ function public_api_doc_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     documented_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{Tuple{String,String}}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -45,10 +45,10 @@ function public_method_family_scattering_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     records = public_api_definition_records(parsed_files, public_names)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, definitions) in sort(collect(records); by=first)
         method_definitions = PublicApiDefinitionRecord[]
         for definition in definitions
@@ -90,9 +90,9 @@ end
 function public_type_field_shape_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(findings, public_type_field_shape_findings(parsed, public_names, rules))
@@ -103,9 +103,9 @@ end
 function public_type_field_shape_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         name = terminal_public_name(type_fact.name)
@@ -133,9 +133,9 @@ end
 function public_type_stringly_field_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(findings, public_type_stringly_field_findings(parsed, public_names, rules))
@@ -146,9 +146,9 @@ end
 function public_type_stringly_field_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         name = terminal_public_name(type_fact.name)
@@ -193,9 +193,9 @@ function public_mutable_type_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     type_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(
@@ -215,9 +215,9 @@ function public_mutable_type_contract_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
     type_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         type_fact.is_mutable || continue
@@ -264,9 +264,9 @@ function public_type_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         name = terminal_public_name(type_fact.name)
         name in public_names || continue
@@ -290,9 +290,9 @@ function public_function_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for function_fact in parsed.syntax_facts.functions
         name = function_fact.terminal_name
         name in public_names || continue
@@ -316,9 +316,9 @@ function public_binding_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for binding_fact in parsed.syntax_facts.bindings
         name = binding_fact.terminal_name
         name in public_names || continue

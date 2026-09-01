@@ -3,7 +3,7 @@ using Test
 @testset "legacy direct source read projection stays unavailable" begin
     project_root = normpath(joinpath(@__DIR__, "..", ".."))
     out = IOBuffer()
-    status = JuliaLangProjectHarness.run_julia_harness_query_cli(
+    status = AspJulia.run_julia_harness_query_cli(
         [
             "--from-hook",
             "direct-source-read",

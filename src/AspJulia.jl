@@ -1,5 +1,5 @@
-"""JuliaSyntax-native project harness for Julia package policy and agent context."""
-module JuliaLangProjectHarness
+"""JuliaSyntax-native policy and semantic tooling for Julia package agent context."""
+module AspJulia
 
 using Base64
 
@@ -79,10 +79,10 @@ function configure_juliac_aot_syntax!()
 end
 
 export JuliaDiagnosticSeverity,
-    JuliaHarnessConfig,
-    JuliaHarnessFinding,
-    JuliaHarnessReport,
-    JuliaHarnessRule,
+    AspJuliaConfig,
+    AspJuliaFinding,
+    AspJuliaReport,
+    AspJuliaRule,
     JuliaRuleVisibility,
     JuliaFileReport,
     JuliaSearchIndexEntry,

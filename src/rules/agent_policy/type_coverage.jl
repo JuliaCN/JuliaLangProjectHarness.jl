@@ -4,9 +4,9 @@ function public_generic_type_coverage_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     input_types_by_name = test_literal_input_types_by_call_name(scope, parsed_files)
     reported = Set{String}()
     for parsed in parsed_files

@@ -13,7 +13,7 @@ using Test
         "ASP_CLIENT_SERVER_HOST" => "127.0.0.1:0",
     )
     bootstrap_output = IOBuffer()
-    task = @async JuliaLangProjectHarness.run_asp_client_server(
+    task = @async AspJulia.run_asp_client_server(
         ; environment, bootstrap_output,
     )
     bootstrap_deadline = time() + 10

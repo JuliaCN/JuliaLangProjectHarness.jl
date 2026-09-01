@@ -51,7 +51,7 @@ end
 
 function run_paths(
     paths::Vector{String},
-    config::JuliaHarnessConfig;
+    config::AspJuliaConfig;
     scope=nothing,
     workspace_member_scopes=JuliaProjectHarnessScope[],
 )
@@ -59,7 +59,7 @@ function run_paths(
     harness_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
 end
 
-function julia_project_harness_scope(project_root::AbstractString, config::JuliaHarnessConfig)
+function julia_project_harness_scope(project_root::AbstractString, config::AspJuliaConfig)
     project_facts = parse_project_toml_facts(project_root)
     root = project_facts.project_root
     source_paths = pkg_source_paths(root, project_facts, config)
@@ -93,7 +93,7 @@ end
 
 function julia_workspace_member_scopes(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     scopes = JuliaProjectHarnessScope[]
     seen_roots = Set([scope.project_root])
@@ -121,7 +121,7 @@ end
 function pkg_source_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     roots = String[]
     pkg_root = package_entry_source_root(
@@ -154,7 +154,7 @@ end
 function pkg_test_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     existing_configured_paths(project_root, config.test_dir_names)
 end
@@ -233,7 +233,7 @@ function package_entry_path(
     isfile(path) ? path : nothing
 end
 
-function discover_julia_files(paths::Vector{String}, config::JuliaHarnessConfig)
+function discover_julia_files(paths::Vector{String}, config::AspJuliaConfig)
     files = Set{String}()
     for path in paths
         discover_julia_path!(files, path, config.ignored_dir_names)

@@ -1,6 +1,6 @@
-# JuliaLangProjectHarness
+# AspJulia.jl
 
-JuliaLangProjectHarness is a JuliaSyntax-native project harness for coding
+AspJulia.jl is a JuliaSyntax-native project policy and semantic tooling package for coding
 agents. Its purpose is to help an agent write higher-quality Julia project code:
 parser-stable, package-aware, easier for the next agent to understand, and
 verified through the same `Pkg.test` loop the package already owns.
@@ -61,7 +61,7 @@ verification, or domain modeling is hidden in broad stringly code.
 The package exposes several low-noise surfaces:
 
 ```julia
-using JuliaLangProjectHarness
+using AspJulia
 
 run_julia_project_harness(pwd())
 render_julia_project_harness(run_julia_project_harness(pwd()))
@@ -73,10 +73,10 @@ search_julia_project(pwd(), "Mode"; tags=["moshi", "method"])
 The CLI has the same shape:
 
 ```sh
-julia --project=. bin/julia-project-harness.jl .
-julia --project=. bin/julia-project-harness.jl --agent-snapshot .
-julia --project=. bin/julia-project-harness.jl --verification-tasks .
-julia --project=. bin/julia-project-harness.jl --search route --tag method .
+julia --project=. bin/asp-julia.jl .
+julia --project=. bin/asp-julia.jl --agent-snapshot .
+julia --project=. bin/asp-julia.jl --verification-tasks .
+julia --project=. bin/asp-julia.jl --search route --tag method .
 ```
 
 Use compact text first when another agent needs to repair the project. Use JSON
@@ -114,7 +114,7 @@ For this harness repository, use:
 
 ```sh
 julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
-julia --project=. -e 'using Pkg; Pkg.instantiate(); using JuliaLangProjectHarness; assert_julia_project_harness_test_profile_clean(pwd())'
+julia --project=. -e 'using Pkg; Pkg.instantiate(); using AspJulia; assert_julia_project_harness_test_profile_clean(pwd())'
 ```
 
 `Manifest.toml` is generated locally by `Pkg.instantiate()` and `Pkg.test()`.
@@ -125,7 +125,7 @@ Downstream packages should mount the in-test profile when they depend on this
 harness:
 
 ```julia
-using JuliaLangProjectHarness
+using AspJulia
 using Test
 
 @testset "package" begin
@@ -143,7 +143,7 @@ in the same loop the agent already runs.
 Moshi is optional. The harness models it with Julia package extension mechanics:
 
 - root `[weakdeps]` declares `Moshi`;
-- `[extensions]` declares `JuliaLangProjectHarnessMoshiExt = "Moshi"`;
+- `[extensions]` declares `AspJuliaMoshiExt = "Moshi"`;
 - `[targets] test` activates Moshi for package tests;
 - core harness code does not require Moshi to load first.
 
@@ -154,7 +154,7 @@ literals. A covered `@data` model should then be wired into real project logic
 with parser-visible `@match` cases or typed methods, so agents use Moshi as a
 domain bridge rather than as an unused policy token.
 
-Downstream packages that set `[tool.JuliaLangProjectHarness] moshi = "enable"`
+Downstream packages that set `[tool.AspJulia] moshi = "enable"`
 are declaring Moshi as a source-level modeling practice, not as a test-only
 experiment. The harness therefore requires `Moshi` in `[deps]` and uses native
 Julia parser facts to point agents at the nearest stringly branch domain that

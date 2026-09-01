@@ -9,11 +9,11 @@ const TYPE_PIRACY_CONTRACT_DOC_TOKENS = (
 function external_method_extension_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     owned_type_names = package_owned_type_names(parsed_files)
     local_method_roots = package_method_roots(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue

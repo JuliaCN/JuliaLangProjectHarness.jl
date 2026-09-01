@@ -1,19 +1,19 @@
-const JULIA_HARNESS_TEST_PROFILE_CALL_NAMES = Set([
+const ASP_JULIA_TEST_PROFILE_CALL_NAMES = Set([
     "assert_julia_project_harness_test_profile_clean",
 ])
 
 function verification_test_profile_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    has_harness_dependency(scope) || return JuliaHarnessFinding[]
-    has_test_profile_hook(scope, parsed_files) && return JuliaHarnessFinding[]
+    has_harness_dependency(scope) || return AspJuliaFinding[]
+    has_test_profile_hook(scope, parsed_files) && return AspJuliaFinding[]
     owner_path = preferred_test_owner_path(scope)
     [
         finding_from_rule_typed(
             rules[AGENT_JL_R014],
-            "Project `$(something(scope.package_name, "<unnamed>"))` depends on JuliaLangProjectHarness, but its test files do not call `assert_julia_project_harness_test_profile_clean`.",
+            "Project `$(something(scope.package_name, "<unnamed>"))` depends on AspJulia, but its test files do not call `assert_julia_project_harness_test_profile_clean`.",
             SourceLocation(owner_path, 1, 0),
             test_profile_owner_source_line(owner_path, parsed_files),
             "add a compact harness testset that calls `assert_julia_project_harness_test_profile_clean(pkgdir(<PackageModule>))`",
@@ -29,7 +29,7 @@ function has_test_profile_hook(
         parsed.report.is_valid || return false
         is_test_path(scope, parsed.report.path) || return false
         any(
-            call -> call.terminal_name in JULIA_HARNESS_TEST_PROFILE_CALL_NAMES,
+            call -> call.terminal_name in ASP_JULIA_TEST_PROFILE_CALL_NAMES,
             parsed.syntax_facts.calls,
         )
     end

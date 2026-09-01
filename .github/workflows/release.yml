@@ -30,7 +30,7 @@ jobs:
           - os: macos-14
             target: aarch64-apple-darwin
     env:
-      BINARY: asp-julia-harness
+      BINARY: asp-julia
       GH_TOKEN: ${{ github.token }}
       JULIA_PKG_PRECOMPILE_AUTO: "0"
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag || github.ref_name }}

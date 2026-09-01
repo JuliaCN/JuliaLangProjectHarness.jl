@@ -7,7 +7,7 @@ function write_verification_project(root::AbstractString)
         version = "0.1.0"
 
         [deps]
-        JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
+        AspJulia = "67259778-f152-405a-bc38-ee6219bce977"
 
         [weakdeps]
         JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
@@ -17,7 +17,7 @@ function write_verification_project(root::AbstractString)
 
         [compat]
         JSON = "1"
-        JuliaLangProjectHarness = "0.1"
+        AspJulia = "0.1"
 
         [extras]
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -42,7 +42,7 @@ function write_verification_project(root::AbstractString)
     write(
         joinpath(root, "test", "runtests.jl"),
         """
-        using JuliaLangProjectHarness
+        using AspJulia
         using Test
 
         @test true

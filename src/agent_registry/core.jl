@@ -6,58 +6,6 @@ const JULIA_AGENT_PROVIDER_NAMESPACE =
     "agent.semantic-protocols.languages.julia.asp-julia"
 const JULIA_AGENT_BINARY = "asp-julia"
 
-const JULIA_AGENT_SCHEMA_FILES = [
-    ("semantic-graph.v1.schema.json", "agent.semantic-protocols.semantic-graph"),
-    ("semantic-graph-turbo-request.v1.schema.json", "agent.semantic-protocols.semantic-graph-turbo-request"),
-    ("semantic-fact-graph.v1.schema.json", "agent.semantic-protocols.semantic-fact-graph"),
-    ("semantic-fact-ontology.v1.schema.json", "agent.semantic-protocols.semantic-fact-ontology"),
-    ("semantic-search-packet.v1.schema.json", "agent.semantic-protocols.semantic-search-packet"),
-    ("semantic-dependency-topology.v1.schema.json", "agent.semantic-protocols.semantic-dependency-topology"),
-    ("semantic-type-surface.v1.schema.json", "agent.semantic-protocols.semantic-type-surface"),
-    ("semantic-query-packet.v1.schema.json", "agent.semantic-protocols.semantic-query-packet"),
-    ("semantic-content-compaction.v1.schema.json", "agent.semantic-protocols.semantic-content-compaction"),
-    ("semantic-read-packet.v1.schema.json", "agent.semantic-protocols.semantic-read-packet"),
-    ("semantic-source-location.v1.schema.json", "agent.semantic-protocols.semantic-source-location"),
-    ("semantic-tree-sitter-provenance.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-provenance"),
-    ("semantic-tree-sitter-query.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-query"),
-    ("semantic-tree-sitter-grammar-profile.v1.schema.json", "agent.semantic-protocols.semantic-tree-sitter-grammar-profile"),
-    ("semantic-relation-plan.v1.schema.json", "agent.semantic-protocols.semantic-relation-plan"),
-    ("semantic-flow-lite.v1.schema.json", "agent.semantic-protocols.semantic-flow-lite"),
-    ("semantic-codeql-evidence.v1.schema.json", "agent.semantic-protocols.semantic-codeql-evidence"),
-    ("semantic-handle.v1.schema.json", "agent.semantic-protocols.semantic-handle"),
-    ("semantic-structural-index.v1.schema.json", "agent.semantic-protocols.semantic-structural-index"),
-    ("semantic-language-registry.v1.schema.json", "agent.semantic-protocols.semantic-language-registry"),
-    ("semantic-native-syntax-fact-index.v1.schema.json", "agent.semantic-protocols.semantic-native-syntax-fact-index"),
-    ("semantic-verification-receipt.v1.schema.json", "agent.semantic-protocols.semantic-verification-receipt"),
-    ("semantic-behavior-snapshot.v1.schema.json", "agent.semantic-protocols.semantic-behavior-snapshot"),
-    ("semantic-determinism-readiness.v1.schema.json", "agent.semantic-protocols.semantic-determinism-readiness"),
-    ("semantic-dev-command-log.v1.schema.json", "agent.semantic-protocols.semantic-dev-command-log"),
-    ("semantic-formal-proof-pilot.v1.schema.json", "agent.semantic-protocols.semantic-formal-proof-pilot"),
-    ("semantic-review-packet.v1.schema.json", "agent.semantic-protocols.semantic-review-packet"),
-    ("semantic-evidence-graph.v1.schema.json", "agent.semantic-protocols.semantic-evidence-graph"),
-    ("semantic-assurance-case.v1.schema.json", "agent.semantic-protocols.semantic-assurance-case"),
-    ("semantic-ast-patch.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch"),
-    ("semantic-ast-patch-receipt.v1.schema.json", "agent.semantic-protocols.semantic-ast-patch-receipt"),
-    ("semantic-exact-selector-receipt.v1.schema.json", "agent.semantic-protocols.semantic-exact-selector-receipt"),
-    ("semantic-language-projection.v1.schema.json", "agent.semantic-protocols.semantic-language-projection"),
-    ("software-criterion-catalog.v1.schema.json", "agent.semantic-protocols.software-criterion-catalog"),
-    ("callable-skeleton.schema.json", "agent.semantic-protocols.callable-skeleton"),
-    ("canonical-item-selector.v1.schema.json", "asp.canonical-item-selector.v1"),
-    ("exact-structural-selector.v1.schema.json", "asp.exact-structural-selector.v1"),
-    ("language-package-graph.v1.schema.json", "agent.semantic-protocols.language-package-graph"),
-    ("project-resolution.v1.schema.json", "agent.semantic-protocols.project-resolution"),
-    ("provider-document-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-document-resolution-descriptor"),
-    ("provider-native-exact-request.v1.schema.json", "agent.semantic-protocols.provider-native-exact-request"),
-    ("provider-native-exact-response.v1.schema.json", "agent.semantic-protocols.provider-native-exact-projection"),
-    ("provider-project-resolution-descriptor.v1.schema.json", "agent.semantic-protocols.provider-project-resolution-descriptor"),
-    ("provider-project-resolution-request.v1.schema.json", "agent.semantic-protocols.provider-project-resolution-request"),
-    ("provider-project-resolution-response.v1.schema.json", "agent.semantic-protocols.provider-project-resolution-response"),
-    ("provider-query-pack-descriptor.v1.schema.json", "agent.semantic-protocols.provider-query-pack-descriptor"),
-    ("resolved-source-scope.v1.schema.json", "agent.semantic-protocols.resolved-source-scope"),
-    ("semantic-invariant-candidate.v1.schema.json", "agent.semantic-protocols.semantic-invariant-candidate"),
-    ("source-snapshot-evidence.v1.schema.json", "agent.semantic-protocols.source-snapshot-evidence"),
-]
-
 function julia_agent_capability(name::AbstractString; namespace::AbstractString="julia")
     Dict(
         "languageId" => JULIA_INDEX_EXPORT_LANGUAGE_ID,
@@ -184,15 +132,6 @@ function julia_query_owner_items_method_descriptor()
     )
 end
 
-function julia_check_method_descriptor()
-    Dict{String,Any}(
-        "method" => "check/changed",
-        "command" => "check",
-        "supportsCompact" => true,
-        "supportsJson" => false,
-    )
-end
-
 function julia_evidence_method_descriptors()
     [
         Dict{String,Any}(
@@ -211,7 +150,7 @@ function julia_evidence_method_descriptors()
                 "agent.semantic-protocols.semantic-graph-turbo-request",
             ],
             "packetSchemas" => ["semantic-graph-turbo-request.v1"],
-            "clients" => ["asp-graph-turbo"],
+                "clients" => ["asp-python-graphs"],
             "supportsCompact" => true,
             "supportsJson" => true,
         ),

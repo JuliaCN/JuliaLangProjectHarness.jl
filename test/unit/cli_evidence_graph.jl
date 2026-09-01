@@ -57,7 +57,7 @@ end
     @test graph.summary.gaps == 1
     @test any(node -> node.kind == "owner", graph.nodes)
     @test any(edge -> edge.kind == "requires-evidence", graph.edges)
-    @test only(graph.gaps).fields.nextCommand == "asp-julia check --changed ."
+    @test only(graph.gaps).fields.requiredReceiptId == "julia.policy.api"
     @test analysis_status == 0
     @test analysis.schemaId == "agent.semantic-protocols.semantic-graph-turbo-request"
     @test analysis.packetKind == "graph-turbo-request"

@@ -21,9 +21,9 @@ const MUTABLE_GLOBAL_INITIALIZER_KINDS = Set([
 function mutable_global_state_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue

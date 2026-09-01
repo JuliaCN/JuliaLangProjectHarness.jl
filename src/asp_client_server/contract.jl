@@ -7,13 +7,13 @@ const ASP_CLIENT_SERVER_RECEIPT_SCHEMA =
     "agent.semantic-protocols.provider-runtime-contract-receipt"
 const ASP_CLIENT_SERVER_PROJECT_RESOLUTION_OPERATION = Dict(
     "operation" => "project-resolution",
-    "requestSchemaId" => "https://schemas.agent-semantic-protocols.dev/provider-project-resolution-request.schema.json",
-    "responseSchemaId" => "https://schemas.agent-semantic-protocols.dev/provider-project-resolution-response.schema.json",
+    "requestSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-project-resolution-request", "schemaVersion" => "1"),
+    "responseSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-project-resolution-response", "schemaVersion" => "1"),
 )
 const ASP_CLIENT_SERVER_PROJECTION_BATCH_OPERATION = Dict(
     "operation" => "projection-batch",
-    "requestSchemaId" => "https://schemas.agent-semantic-protocols.dev/provider-language-projection-batch-request.schema.json",
-    "responseSchemaId" => "https://schemas.agent-semantic-protocols.dev/provider-language-projection-batch-response.schema.json",
+    "requestSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-language-projection-batch-request", "schemaVersion" => "1"),
+    "responseSchema" => Dict("schemaId" => "agent.semantic-protocols.provider-language-projection-batch-response", "schemaVersion" => "1"),
 )
 
 function asp_client_server_contract(environment)::Dict{String,Any}

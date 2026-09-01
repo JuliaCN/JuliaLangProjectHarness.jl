@@ -46,7 +46,7 @@ end
 
 function verification_task_records_for_scope(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
     parsed_files::Vector{ParsedJuliaFile}=parsed_julia_files_for_scope(scope, config),
 )
     records = JuliaVerificationTaskRecord[]
@@ -72,7 +72,7 @@ function verification_task_records_for_scope(
     filter(!isnothing, records)
 end
 
-function parsed_julia_files_for_scope(scope::JuliaProjectHarnessScope, config::JuliaHarnessConfig)
+function parsed_julia_files_for_scope(scope::JuliaProjectHarnessScope, config::AspJuliaConfig)
     [
         parse_julia_file(path) for path in discover_julia_files(
             scope_monitored_paths(scope),
@@ -123,11 +123,11 @@ function harness_self_policy_verification_task(scope::JuliaProjectHarnessScope)
             "julia",
             "--project=$(scope.project_root)",
             "-e",
-            "using JuliaLangProjectHarness; assert_julia_project_harness_test_profile_clean(pwd())",
+            "using AspJulia; assert_julia_project_harness_test_profile_clean(pwd())",
         ],
         verification_evidence(
             "package" => something(scope.package_name, "<unnamed>"),
-            "dependency" => "JuliaLangProjectHarness",
+            "dependency" => "AspJulia",
             "profile" => "test",
         ),
         "Run the in-test harness verification profile that agents should keep green.",
@@ -152,7 +152,7 @@ function syntax_search_verification_task(scope::JuliaProjectHarnessScope)
             "julia",
             "--project=$(scope.project_root)",
             "-e",
-            "using JuliaLangProjectHarness; julia_project_search_index(pwd())",
+            "using AspJulia; julia_project_search_index(pwd())",
         ],
         verification_evidence(
             "sources" => string(length(scope.source_paths)),
@@ -269,9 +269,9 @@ function inferred_verification_task_reason(task_kind::AbstractString)
 end
 
 function has_harness_dependency(scope::JuliaProjectHarnessScope)
-    scope.package_name == "JuliaLangProjectHarness" ||
-        haskey(scope.direct_dependencies, "JuliaLangProjectHarness") ||
-        haskey(scope.extra_dependencies, "JuliaLangProjectHarness")
+    scope.package_name == "AspJulia" ||
+        haskey(scope.direct_dependencies, "AspJulia") ||
+        haskey(scope.extra_dependencies, "AspJulia")
 end
 
 function preferred_test_owner_path(scope::JuliaProjectHarnessScope)

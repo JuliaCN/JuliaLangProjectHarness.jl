@@ -39,7 +39,7 @@ end
 
 function julia_policy_rule_matches(query::AbstractString)
     normalized_query = normalized_policy_query(query)
-    isempty(normalized_query) && return JuliaHarnessRule[]
+    isempty(normalized_query) && return AspJuliaRule[]
     [
         rule for rule in vcat(
             julia_syntax_rules(),
@@ -50,7 +50,7 @@ function julia_policy_rule_matches(query::AbstractString)
     ]
 end
 
-function normalized_policy_rule_text(rule::JuliaHarnessRule)
+function normalized_policy_rule_text(rule::AspJuliaRule)
     normalized_policy_query(
         join(
             vcat(
@@ -66,12 +66,12 @@ function normalized_policy_query(value::AbstractString)
     replace(lowercase(strip(String(value))), r"[^a-z0-9]+" => " ")
 end
 
-function julia_policy_rule_owner(rule::JuliaHarnessRule)
+function julia_policy_rule_owner(rule::AspJuliaRule)
     rule.pack_id == JULIA_AGENT_POLICY_PACK_ID && return "src/rules/agent_catalog.jl"
     "src/rules/catalog.jl"
 end
 
-function julia_policy_rule_tests(rule::JuliaHarnessRule)
+function julia_policy_rule_tests(rule::AspJuliaRule)
     if rule.pack_id == JULIA_AGENT_POLICY_PACK_ID
         ["test/unit/rule_catalog.jl", "test/unit/project/agent_verification.jl"]
     elseif rule.pack_id == JULIA_PROJECT_POLICY_PACK_ID

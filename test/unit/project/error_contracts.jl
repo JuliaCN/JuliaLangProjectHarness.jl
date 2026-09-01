@@ -19,11 +19,11 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R026", rendered)
     @test occursin("Public failure path lacks a contract", rendered)
     @test occursin("failure paths without a failure contract: error", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner reports public assertion contract advice" begin
@@ -47,10 +47,10 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R026", rendered)
     @test occursin("failure paths without a failure contract: @assert", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner reports documented public failure contract without test" begin
@@ -77,13 +77,13 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R027", rendered)
     @test occursin("Public failure contract lacks a test", rendered)
     @test occursin("lacks a parser-visible `@test_throws` call", rendered)
     @test occursin("Detected covered methods: none", rendered)
     @test occursin("@test_throws ExceptionType parse_payload(...)", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts documented public failure contract test" begin
@@ -119,8 +119,8 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner accepts direct parser-visible failure tests in included files" begin
@@ -161,6 +161,6 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end

@@ -97,7 +97,7 @@ function julia_search_hit_row(
     )
 end
 
-function julia_search_policy_hit(rule::JuliaHarnessRule)
+function julia_search_policy_hit(rule::AspJuliaRule)
     owner = julia_policy_rule_owner(rule)
     Dict{String,Any}(
         "kind" => "policy-rule",
@@ -116,7 +116,7 @@ function julia_search_policy_hit(rule::JuliaHarnessRule)
     )
 end
 
-function julia_search_policy_handle(rule::JuliaHarnessRule, query::AbstractString)
+function julia_search_policy_handle(rule::AspJuliaRule, query::AbstractString)
     owner = julia_policy_rule_owner(rule)
     tests = julia_policy_rule_tests(rule)
     Dict{String,Any}(

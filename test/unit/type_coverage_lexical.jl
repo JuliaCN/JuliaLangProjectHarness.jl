@@ -1,5 +1,5 @@
 @testset "type coverage reuses lexical call projection" begin
-    harness = JuliaLangProjectHarness
+    harness = AspJulia
     classify(expression) = harness.literal_input_type_for_call(
         harness.JuliaCallSyntax(1, 1, "f", "f", 1, String[], expression),
     )

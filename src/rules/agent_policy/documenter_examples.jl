@@ -4,14 +4,14 @@ const MAX_DOCUMENTER_EXAMPLE_MISSING_NAMES = 8
 function public_documenter_example_findings(
     scope::JuliaProjectHarnessScope,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    isempty(public_names) && return JuliaHarnessFinding[]
+    isempty(public_names) && return AspJuliaFinding[]
     docs = documenter_docs_surface(scope)
-    isnothing(docs) && return JuliaHarnessFinding[]
+    isnothing(docs) && return AspJuliaFinding[]
     covered_names = documenter_executable_example_public_names(docs.root, public_names)
     missing_names = sort!(collect(setdiff(public_names, covered_names)))
-    isempty(missing_names) && return JuliaHarnessFinding[]
+    isempty(missing_names) && return AspJuliaFinding[]
     [
         finding_from_rule_typed(
             rules[AGENT_JL_R019],

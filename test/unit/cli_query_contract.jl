@@ -1,5 +1,5 @@
 @testset "cli query facade metadata contract" begin
-    normalized = JuliaLangProjectHarness.strip_julia_query_facade_options([
+    normalized = AspJulia.strip_julia_query_facade_options([
         "--asp-provider-id",
         "asp-julia",
         "--selector",
@@ -18,7 +18,7 @@
         "julia://src/example.jl#item/function/example",
         "--code",
     ]
-    @test_throws ErrorException JuliaLangProjectHarness.strip_julia_query_facade_options([
+    @test_throws ErrorException AspJulia.strip_julia_query_facade_options([
         "--asp-provider-id",
     ])
 end

@@ -1,9 +1,9 @@
 module AspJuliaApp
 
-using JuliaLangProjectHarness
+using AspJulia
 
 if get(ENV, "ASP_JULIA_AOT_BUILD", "0") == "1"
-    JuliaLangProjectHarness.configure_juliac_aot_syntax!()
+    AspJulia.configure_juliac_aot_syntax!()
 end
 
 const NativeOutputIO = IOStream
@@ -27,8 +27,8 @@ function read_native_input(input::NativeInputIO)::String
 end
 
 function run_prime_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
-    options = JuliaLangProjectHarness.parse_julia_search_args(args[3:end])
-    rendered = JuliaLangProjectHarness.render_julia_native_prime_packet_json(
+    options = AspJulia.parse_julia_search_args(args[3:end])
+    rendered = AspJulia.render_julia_native_prime_packet_json(
         options.project_root,
         options.render_view,
     )
@@ -39,8 +39,8 @@ end
 function run_owner_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
     length(args) >= 3 || error("search owner requires an owner path")
     owner_path = args[3]
-    options = JuliaLangProjectHarness.parse_julia_search_args(args[4:end])
-    return Cint(JuliaLangProjectHarness.run_julia_native_owner_items_query_cli(
+    options = AspJulia.parse_julia_search_args(args[4:end])
+    return Cint(AspJulia.run_julia_native_owner_items_query_cli(
         owner_path,
         options.query_terms,
         options.project_root,
@@ -49,10 +49,10 @@ function run_owner_route(args::Vector{String}, out::NativeOutputIO, err::NativeO
 end
 
 function run_lexical_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
-    query_terms, rest = JuliaLangProjectHarness.parse_julia_lexical_search_args(args[3:end])
-    options = JuliaLangProjectHarness.parse_julia_search_args(rest)
+    query_terms, rest = AspJulia.parse_julia_lexical_search_args(args[3:end])
+    options = AspJulia.parse_julia_search_args(rest)
     query = join(query_terms, " ")
-    rendered = JuliaLangProjectHarness.render_julia_native_lexical_packet_json(
+    rendered = AspJulia.render_julia_native_lexical_packet_json(
         query,
         query_terms,
         options.project_root,
@@ -68,9 +68,9 @@ function run_ingest_route(
     err::NativeOutputIO,
     input::NativeInputIO,
 )::Cint
-    options = JuliaLangProjectHarness.parse_julia_search_args(args[3:end])
+    options = AspJulia.parse_julia_search_args(args[3:end])
     stdin_text = read_native_input(input)
-    rendered = JuliaLangProjectHarness.render_julia_native_ingest_packet_json(
+    rendered = AspJulia.render_julia_native_ingest_packet_json(
         stdin_text,
         options.project_root,
         options.render_view,
@@ -82,7 +82,7 @@ end
 function run_serve_route(args, out, err)
     args == ["serve"] ||
         return invalid_provider_route("serve does not accept arguments", err)
-    return Cint(JuliaLangProjectHarness.run_asp_client_server())
+    return Cint(AspJulia.run_asp_client_server())
 end
 
 run_dependency_topology_route(
@@ -90,26 +90,19 @@ run_dependency_topology_route(
     out::NativeOutputIO,
     err::NativeOutputIO,
 )::Cint =
-    Cint(JuliaLangProjectHarness.run_julia_dependency_topology_cli(args[3:end], out))
-
-run_check_changed_route(
-    args::Vector{String},
-    out::NativeOutputIO,
-    err::NativeOutputIO,
-)::Cint =
-    Cint(JuliaLangProjectHarness.run_julia_harness_check_cli(args[2:end], out))
+    Cint(AspJulia.run_julia_dependency_topology_cli(args[3:end], out))
 
 run_export_route(
     args::Vector{String},
     out::NativeOutputIO,
     err::NativeOutputIO,
 )::Cint =
-    Cint(JuliaLangProjectHarness.run_julia_harness_export_cli(args[2:end]; out))
+    Cint(AspJulia.run_julia_harness_export_cli(args[2:end]; out))
 
 function run_guide_route(args::Vector{String}, out::NativeOutputIO, err::NativeOutputIO)::Cint
     try
         project_root = length(args) >= 3 ? args[3] : pwd()
-        print(out, JuliaLangProjectHarness.julia_harness_agent_guide(project_root))
+        print(out, AspJulia.julia_harness_agent_guide(project_root))
         return Cint(0)
     catch
         println(err, "error: guide route failed")
@@ -159,8 +152,6 @@ function run_cli_without_stdin(
             route == "lexical" && return run_lexical_route(args, out, err)
             route == "dependency-topology" && return run_dependency_topology_route(args, out, err)
             return invalid_provider_route("unsupported search route: $(route)", err)
-        elseif command == "check"
-            return run_check_changed_route(args, out, err)
         elseif command == "export"
             return run_export_route(args, out, err)
         elseif command == "guide" || (command == "agent" && length(args) >= 2 && args[2] == "guide")
@@ -218,7 +209,7 @@ end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    exit(AspJuliaHarnessApp.run_app(ARGS))
+    exit(AspJuliaApp.run_app(ARGS))
 end
 
 function (@main)(args::Vector{String})::Cint

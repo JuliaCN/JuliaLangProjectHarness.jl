@@ -148,7 +148,7 @@
     language = only(filter(language -> language.languageId == "julia", registry.languages))
     relative_prime_packet = cd(root) do
         JSON.parse(
-            JuliaLangProjectHarness.render_julia_native_prime_packet_json(".", "seeds"),
+            AspJulia.render_julia_native_prime_packet_json(".", "seeds"),
         )
     end
 

@@ -2,9 +2,9 @@ function evaluate_modularity_rules(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
 )
-    isnothing(scope) && return JuliaHarnessFinding[]
+    isnothing(scope) && return AspJuliaFinding[]
     rules = rules_by_id()
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     parsed_by_path = Dict(parsed.report.path => parsed for parsed in parsed_files)
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -44,9 +44,9 @@ end
 function project_jl_owner_budget_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         owner_root = first_project_jl_owner_root(scope, parsed.report.path)
@@ -92,9 +92,9 @@ end
 
 function include_cycle_findings(
     parsed_by_path::Dict{String,ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     states = Dict{String,Symbol}()
     reported_cycles = Set{String}()
     for path in sort!(collect(keys(parsed_by_path)))
@@ -113,13 +113,13 @@ function include_cycle_findings(
 end
 
 function visit_include_graph!(
-    findings::Vector{JuliaHarnessFinding},
+    findings::Vector{AspJuliaFinding},
     states::Dict{String,Symbol},
     reported_cycles::Set{String},
     stack::Vector{String},
     path::String,
     parsed_by_path::Dict{String,ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     states[path] = :visiting
     push!(stack, path)
@@ -159,9 +159,9 @@ function orphan_source_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     parsed_by_path::Dict{String,ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    isnothing(scope.package_entry_path) && return JuliaHarnessFinding[]
+    isnothing(scope.package_entry_path) && return AspJuliaFinding[]
     source_files = Set(
         parsed.report.path for parsed in parsed_files if any(
             source_path -> is_path_under(parsed.report.path, source_path),
@@ -170,7 +170,7 @@ function orphan_source_findings(
     )
     reachable = reachable_source_files(scope.package_entry_path, parsed_by_path)
     orphaned = sort!(collect(setdiff(source_files, reachable)))
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for path in orphaned
         push!(
             findings,
@@ -225,9 +225,9 @@ end
 function generic_owner_bucket_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         source_root = first_source_root(scope, parsed.report.path)
         isnothing(source_root) && continue

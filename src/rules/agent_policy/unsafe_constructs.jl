@@ -38,9 +38,9 @@ const UNSAFE_CONSTRUCT_EVIDENCE_DOC_TOKENS = (
 function unsafe_construct_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{Tuple{String,String,String}}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -55,10 +55,10 @@ function public_unsafe_evidence_test_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     tested_names = tested_public_call_names(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -94,10 +94,10 @@ end
 
 function unsafe_construct_call_findings(
     parsed::ParsedJuliaFile,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
     reported::Set{Tuple{String,String,String}},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for call in parsed.syntax_facts.calls
         construct = unsafe_call_construct(call)
         isnothing(construct) && continue
@@ -121,10 +121,10 @@ end
 
 function unsafe_construct_macro_findings(
     parsed::ParsedJuliaFile,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
     reported::Set{Tuple{String,String,String}},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for invocation in parsed.syntax_facts.macro_invocations
         invocation.terminal_name in JULIA_ESCAPE_MACROS || continue
         construct = "@$(invocation.terminal_name)"

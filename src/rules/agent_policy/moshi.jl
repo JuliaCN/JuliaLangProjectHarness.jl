@@ -3,10 +3,10 @@ const MOSHI_DOMAIN_BRANCH_THRESHOLD = 2
 function moshi_policy_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    project_moshi_policy(scope) == "enable" || return JuliaHarnessFinding[]
-    haskey(scope.direct_dependencies, "Moshi") && return JuliaHarnessFinding[]
+    project_moshi_policy(scope) == "enable" || return AspJuliaFinding[]
+    haskey(scope.direct_dependencies, "Moshi") && return AspJuliaFinding[]
     application::Union{Nothing,MoshiNearestApplication} =
         moshi_nearest_application(scope, parsed_files)
     repair_target = isnothing(application) ?
@@ -17,7 +17,7 @@ function moshi_policy_findings(
     [
         finding_from_rule_typed(
             rules[AGENT_JL_R020],
-            "Project.toml enables Moshi support through `[tool.JuliaLangProjectHarness]`, but Moshi is not a direct package dependency available to `src/`.$(summary_suffix)",
+            "Project.toml enables Moshi support through `[tool.AspJulia]`, but Moshi is not a direct package dependency available to `src/`.$(summary_suffix)",
             SourceLocation(scope.project_toml_path, 1, 0),
             "declare Moshi in `[deps]` and model the nearest stringly domain in `$(repair_target)`",
             moshi_policy_labels(scope, application, repair_target),
@@ -29,10 +29,10 @@ function moshi_domain_model_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     modeling_facts = moshi_modeling_facts(parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -68,10 +68,10 @@ function moshi_domain_bridge_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     modeling_facts = moshi_modeling_facts(parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -197,7 +197,7 @@ function moshi_domain_model_repair_path(scope::JuliaProjectHarnessScope)
     elseif state == "direct_dep_enabled"
         return "Moshi is a direct dependency because Project.toml enables Moshi; add parser-visible `@data` variants and `@match` branches under `$(moshi_source_repair_target(scope))`."
     end
-    "If Moshi is chosen as a source policy, set `[tool.JuliaLangProjectHarness] moshi = \"enable\"`, declare Moshi in `[deps]` and `[compat]`, and add parser-visible `@data`/`@match` under `$(moshi_source_repair_target(scope))`. If this is only an optional experiment, keep Moshi behind `[weakdeps]`, `[extensions]`, `[extras]`, and the `test` target. Otherwise use a package-owned enum, Symbol, or value type."
+    "If Moshi is chosen as a source policy, set `[tool.AspJulia] moshi = \"enable\"`, declare Moshi in `[deps]` and `[compat]`, and add parser-visible `@data`/`@match` under `$(moshi_source_repair_target(scope))`. If this is only an optional experiment, keep Moshi behind `[weakdeps]`, `[extensions]`, `[extras]`, and the `test` target. Otherwise use a package-owned enum, Symbol, or value type."
 end
 
 function moshi_domain_bridge_summary(function_fact::JuliaFunctionSyntax)

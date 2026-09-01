@@ -23,7 +23,7 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
@@ -54,7 +54,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-011", rendered)
     @test occursin("Project extension entrypoint is missing", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-011", report.findings) == 1
@@ -79,7 +79,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-009", rendered)
     @test occursin("Project dependency lacks compat or source override", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-009", report.findings) == 1
@@ -107,7 +107,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-010", rendered)
     @test occursin("Source-tracked dependency rev is not locked", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-010", report.findings) == 1
@@ -161,7 +161,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
@@ -178,7 +178,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-003", rendered)
     @test occursin("Pkg.test entrypoint is missing", rendered)
     @test occursin("test/runtests.jl", rendered)
@@ -197,7 +197,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-004", rendered)
     @test occursin("Pkg.test entrypoint is no longer a thin aggregate", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-004", report.findings) == 1
@@ -213,7 +213,7 @@ end
         version = "0.1.0"
 
         [deps]
-        JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
+        AspJulia = "67259778-f152-405a-bc38-ee6219bce977"
 
         [extras]
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -222,7 +222,7 @@ end
         test = ["Test"]
 
         [compat]
-        JuliaLangProjectHarness = "0.1"
+        AspJulia = "0.1"
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -233,10 +233,10 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R014", rendered)
     @test occursin("Pkg.test lacks the harness verification profile", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts harness test profile hook" begin
@@ -249,7 +249,7 @@ end
         version = "0.1.0"
 
         [deps]
-        JuliaLangProjectHarness = "67259778-f152-405a-bc38-ee6219bce977"
+        AspJulia = "67259778-f152-405a-bc38-ee6219bce977"
 
         [extras]
         Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -258,7 +258,7 @@ end
         test = ["Test"]
 
         [compat]
-        JuliaLangProjectHarness = "0.1"
+        AspJulia = "0.1"
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -267,7 +267,7 @@ end
     write(
         joinpath(root, "test", "runtests.jl"),
         """
-        using JuliaLangProjectHarness
+        using AspJulia
         using Test
 
         @test true
@@ -277,8 +277,8 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner reports custom source scope without explanation" begin
@@ -293,7 +293,7 @@ end
     report = run_julia_project_harness(root; config)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-005", rendered)
     @test occursin("Custom source or test scope lacks explanation", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", report.findings) == 1
@@ -301,7 +301,7 @@ end
     config.source_path_explanations["lib"] = "todo"
     placeholder_report = run_julia_project_harness(root; config)
 
-    @test !JuliaLangProjectHarness.is_clean(placeholder_report)
+    @test !AspJulia.is_clean(placeholder_report)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-005", placeholder_report.findings) == 1
 end
 
@@ -323,7 +323,7 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test report.project_resolution.source_paths == [joinpath(root, "lib")]
 end
 
@@ -334,7 +334,7 @@ end
     mkpath(joinpath(root, "test"))
     write(joinpath(root, "src", "Example.jl"), "module Example\nend\n")
     default_config = default_julia_harness_config()
-    config = JuliaHarnessConfig(
+    config = AspJuliaConfig(
         copy(default_config.ignored_dir_names),
         copy(default_config.blocking_severities),
         copy(default_config.disabled_rules),
@@ -355,7 +355,7 @@ end
     report = run_julia_project_harness(root; config)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-006", rendered)
     @test occursin("Conventional source or test scope was excluded", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-006", report.findings) == 1
@@ -370,7 +370,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-001", rendered)
     @test occursin("Project.toml lacks a package name", rendered)
 end
@@ -394,7 +394,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test !isnothing(report.project_resolution.project_parse_error)
     @test occursin("JULIA-AGENT-PROJECT-013", rendered)
     @test occursin("Project.toml is not readable by Pkg", rendered)
@@ -412,7 +412,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-007", rendered)
     @test occursin("Package entry file lacks package module declaration", rendered)
 end

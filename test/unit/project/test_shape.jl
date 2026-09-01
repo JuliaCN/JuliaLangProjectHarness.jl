@@ -34,11 +34,11 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R029", rendered)
     @test occursin("Testset nests scenario scaffolding", rendered)
     @test occursin("control-flow depth=3, branches=1, loops=2, loop_depth=2", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts named flat test scenarios" begin
@@ -75,6 +75,6 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end

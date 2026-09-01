@@ -27,9 +27,9 @@ function public_failure_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for function_fact in parsed.syntax_facts.functions
@@ -66,11 +66,11 @@ function public_failure_test_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     test_throws_calls = test_throws_call_names_by_public_name(scope, parsed_files)
     detected_summary = isempty(test_throws_calls) ? "none" : join(sort(collect(test_throws_calls)), ", ")
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue

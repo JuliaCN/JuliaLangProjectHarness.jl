@@ -25,7 +25,7 @@
         )
 
         out = IOBuffer()
-        @test JuliaLangProjectHarness.run_julia_harness_search_cli(
+        @test AspJulia.run_julia_harness_search_cli(
             ["dependency-topology", "--json", "--workspace", root];
             out=out,
         ) == 0
@@ -61,10 +61,12 @@
     end
 
     provider_manifest = JSON.parse(
-    read(joinpath(@__DIR__, "..", "..", "schemas", "asp-provider.json"), String),
+        read(
+            joinpath(@__DIR__, "..", "..", "juliac", "asp-provider-registration.json"),
+            String,
+        ),
         Dict{String,Any},
     )
     @test provider_manifest["searchCapabilities"]["dependencyTopology"] === true
-    @test provider_manifest["routeBindings"]["dependencyTopology"] ==
-          "search/dependency-topology"
+    @test any(route -> route["operation"] == "search", provider_manifest["routes"])
 end

@@ -1,8 +1,8 @@
-const PROJECT_HARNESS_TOOL_TABLE = "JuliaLangProjectHarness"
+const PROJECT_HARNESS_TOOL_TABLE = "AspJulia"
 
 function project_toml_harness_config(
     project_root::AbstractString,
-    base_config::JuliaHarnessConfig,
+    base_config::AspJuliaConfig,
 )
     project_toml = Base.current_project(project_search_start(project_root))
     isnothing(project_toml) && return base_config
@@ -21,10 +21,10 @@ function project_harness_tool_table(project_toml::AbstractString)
 end
 
 function merge_project_harness_tool_config(
-    base_config::JuliaHarnessConfig,
+    base_config::AspJuliaConfig,
     table::Dict{String,Any},
 )
-    JuliaHarnessConfig(
+    AspJuliaConfig(
         Set(project_config_string_list(
             table,
             "ignored_dir_names",
@@ -213,5 +213,5 @@ function parse_harness_severity(value::AbstractString)
     normalized == "info" && return Info
     normalized == "warning" && return Warning
     normalized == "error" && return Error
-    throw(ArgumentError("unknown JuliaLangProjectHarness severity `$(value)`"))
+    throw(ArgumentError("unknown AspJulia severity `$(value)`"))
 end

@@ -7,7 +7,7 @@
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test !isnothing(report.project_resolution)
     @test report.project_resolution.package_name == "Example"
     @test isnothing(report.project_resolution.project_parse_error)
@@ -24,7 +24,7 @@ end
 
     report = run_julia_project_harness(joinpath(root, "src", "internal"))
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test report.project_resolution.project_root == root
     @test report.project_resolution.project_toml_path == joinpath(root, "Project.toml")
     @test report.project_resolution.package_entry_path == joinpath(root, "src", "Example.jl")
@@ -47,7 +47,7 @@ end
     report = run_julia_project_harness(root)
     snapshot = render_julia_project_harness_agent_snapshot(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test report.project_resolution.project_entryfile == "src/Entry.jl"
     @test report.project_resolution.package_entry_path == joinpath(root, "src", "Entry.jl")
     @test occursin("Entry: src/Entry.jl", snapshot)
@@ -72,7 +72,7 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test report.project_resolution.source_paths == [joinpath(root, "lib")]
     @test any(file -> file.path == joinpath(root, "lib", "Entry.jl"), report.files)
     @test !any(file -> file.path == joinpath(root, "src", "Stale.jl"), report.files)
@@ -101,7 +101,7 @@ end
     report = run_julia_project_harness(root)
     scope = report.project_resolution
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test scope.package_paths == sort!(
         [
             joinpath(root, "benchmark"),
@@ -155,7 +155,7 @@ end
     report = run_julia_project_harness(root)
     scope = report.project_resolution
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test scope.package_uuid == "11111111-1111-1111-1111-111111111111"
     @test scope.direct_dependencies["JSON"] == "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
     @test scope.direct_dependencies["JuliaSyntax"] == "70703baa-626e-46a2-a12c-08ffd08c73b4"
@@ -192,7 +192,7 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
 end
 
 @testset "project runner captures and scans package extensions" begin
@@ -222,7 +222,7 @@ end
     report = run_julia_project_harness(root)
     snapshot = render_julia_project_harness_agent_snapshot(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test any(file -> file.path == joinpath(root, "ext", "ExampleJSONExt.jl"), report.files)
     @test report.project_resolution.extensions["ExampleJSONExt"] == ["JSON"]
     @test occursin("Files: source=1 test=0 ext=1", snapshot)
@@ -270,7 +270,7 @@ end
     report = run_julia_project_harness(root)
     snapshot = render_julia_project_harness_agent_snapshot(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("weakdeps=Moshi", snapshot)
     @test occursin("extensions=ExampleMoshiExt=Moshi", snapshot)
     @test occursin("Moshi:", snapshot)
@@ -291,7 +291,7 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test isempty(report.project_resolution.extension_paths)
     @test !any(file -> file.path == joinpath(root, "ext", "LooseExt.jl"), report.files)
 end
@@ -323,7 +323,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test occursin("Imported package is missing from Project.toml", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
@@ -357,7 +357,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test report.project_resolution.source_dependency_projects == ["deps/LocalDep"]
     @test length(report.workspace_member_scopes) == 1
     @test only(report.workspace_member_scopes).package_name == "LocalDep"
@@ -387,7 +387,7 @@ end
     report = run_julia_project_harness(root)
     snapshot = render_julia_project_harness_agent_snapshot(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test length(report.workspace_member_scopes) == 1
     @test only(report.workspace_member_scopes).package_name == "Member"
     @test occursin("Workspace:", snapshot)
@@ -422,7 +422,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-008", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-008", report.findings) == 1
     @test occursin("packages/Member/src/Member.jl", rendered)
@@ -449,7 +449,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-AGENT-PROJECT-012", rendered)
     @test occursin("Project extension dependency is undeclared", rendered)
     @test count(finding -> finding.rule_id == "JULIA-AGENT-PROJECT-012", report.findings) == 1

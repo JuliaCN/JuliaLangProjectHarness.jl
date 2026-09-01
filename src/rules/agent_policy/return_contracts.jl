@@ -14,9 +14,9 @@ function public_return_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for function_fact in parsed.syntax_facts.functions
@@ -50,10 +50,10 @@ function public_return_contract_test_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     inferred_names = inferred_test_call_names(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue

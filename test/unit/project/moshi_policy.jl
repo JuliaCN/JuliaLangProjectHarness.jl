@@ -7,7 +7,7 @@
         uuid = "11111111-1111-1111-1111-111111111111"
         version = "0.1.0"
 
-        [tool.JuliaLangProjectHarness]
+        [tool.AspJulia]
         moshi = "enable"
         """,
     )
@@ -17,12 +17,12 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("Project.toml enables Moshi support", rendered)
     @test occursin("Moshi is not a direct package dependency available to `src/`", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
     )
     @test finding.labels["configured_policy"] == "enable"
@@ -41,7 +41,7 @@ end
         uuid = "11111111-1111-1111-1111-111111111111"
         version = "0.1.0"
 
-        [tool.JuliaLangProjectHarness]
+        [tool.AspJulia]
         moshi = "enable"
         """,
     )
@@ -68,11 +68,11 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("Nearest parser-visible application", rendered)
     @test occursin("`route` at src/Example.jl:", rendered)
     @test finding.labels["moshi_repair_target"] == "src/Example.jl"
@@ -92,7 +92,7 @@ end
         uuid = "11111111-1111-1111-1111-111111111111"
         version = "0.1.0"
 
-        [tool.JuliaLangProjectHarness]
+        [tool.AspJulia]
         moshi = "enable"
 
         [weakdeps]
@@ -119,11 +119,11 @@ end
 
     report = run_julia_project_harness(root)
     findings = [
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
     ]
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test length(findings) == 1
     @test only(findings).labels["moshi_repair_target"] == "src/Example.jl"
 end
@@ -137,7 +137,7 @@ end
         uuid = "11111111-1111-1111-1111-111111111111"
         version = "0.1.0"
 
-        [tool.JuliaLangProjectHarness]
+        [tool.AspJulia]
         moshi = "enable"
 
         [deps]
@@ -152,9 +152,9 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test isempty([
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         get(finding.labels, "configured_policy", "") == "enable"
     ])
 end
