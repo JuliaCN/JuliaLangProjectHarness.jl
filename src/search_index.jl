@@ -308,9 +308,9 @@ function search_index_entry(
     detail::AbstractString="",
     tags::Vector{String}=String[],
 )
-    line_text = something(source_line(parsed.source, line), "")
+    line_text = String(something(source_line(parsed.source, line), ""))
     search_text = join(
-        filter(!isempty, [String(kind), String(name), String(detail), line_text]),
+        filter(!isempty, String[String(kind), String(name), String(detail), line_text]),
         " ",
     )
     JuliaSearchIndexEntry(

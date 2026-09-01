@@ -1,4 +1,7 @@
 function run_julia_harness_search_cli(args::Vector{String}; out=stdout)
+    if !isempty(args) && first(args) == "dependency-topology"
+        return run_julia_dependency_topology_cli(args[2:end]; out=out)
+    end
     length(args) >= 1 || error("search requires a view")
     view = args[1]
     if view == "workspace"

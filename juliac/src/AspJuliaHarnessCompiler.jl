@@ -1,3 +1,0 @@
-module AspJuliaHarnessCompiler
-
-end

@@ -3,7 +3,7 @@ const MAX_AGENT_SNAPSHOT_VERIFICATION_TASKS = 10
 function snapshot_verification_lines(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     records = verification_task_records_for_scope(scope, config, parsed_files)
     isempty(records) && return String[]

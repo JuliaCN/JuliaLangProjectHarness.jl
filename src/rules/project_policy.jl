@@ -1,19 +1,19 @@
 function evaluate_project_policy_rules(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
-    isnothing(scope) && return JuliaHarnessFinding[]
+    isnothing(scope) && return AspJuliaFinding[]
     rules = rules_by_id()
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     if !isnothing(scope.project_parse_error)
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R013];
-                summary="Pkg could not read `$(scope.project_toml_path)`: $(scope.project_parse_error)",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="repair Project.toml until Pkg.Types.read_project can load it",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R013],
+                "Pkg could not read `$(scope.project_toml_path)`: $(scope.project_parse_error)",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "repair Project.toml until Pkg.Types.read_project can load it",
             ),
         )
         return findings
@@ -21,21 +21,21 @@ function evaluate_project_policy_rules(
     if isnothing(scope.package_name)
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R001];
-                summary="Project.toml was not found or did not define a `name` field.",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="add a package name to Project.toml before running package policy",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R001],
+                "Project.toml was not found or did not define a `name` field.",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "add a package name to Project.toml before running package policy",
             ),
         )
     elseif isnothing(scope.package_entry_path)
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R002];
-                summary="Package `$(scope.package_name)` does not expose entry file `$(expected_entry_file(scope))`.",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="add the package entry module or configure an explicit source-scope exception",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R002],
+                "Package `$(scope.package_name)` does not expose entry file `$(expected_entry_file(scope))`.",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "add the package entry module or configure an explicit source-scope exception",
             ),
         )
     else
@@ -46,12 +46,12 @@ function evaluate_project_policy_rules(
             if !(scope.package_name in module_names)
                 push!(
                     findings,
-                    finding_from_rule(
-                        rules[JULIA_PROJ_R007];
-                        summary="`$(scope.package_entry_path)` does not declare module `$(scope.package_name)`.",
-                        location=SourceLocation(scope.package_entry_path, 1, 0),
-                        source_line=source_line(parsed.source, 1),
-                        label="declare the package module in the entry file so Pkg and syntax facts agree",
+                    finding_from_rule_typed(
+                        rules[JULIA_PROJ_R007],
+                        "`$(scope.package_entry_path)` does not declare module `$(scope.package_name)`.",
+                        SourceLocation(scope.package_entry_path, 1, 0),
+                        source_line(parsed.source, 1),
+                        "declare the package module in the entry file so Pkg and syntax facts agree",
                     ),
                 )
             end
@@ -77,10 +77,10 @@ end
 
 function scope_explanation_findings(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
-    rules::Dict{String,JuliaHarnessRule},
+    config::AspJuliaConfig,
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     append!(
         findings,
         custom_scope_explanation_findings(
@@ -136,9 +136,9 @@ function custom_scope_explanation_findings(
     explanations::Dict{String,String},
     conventional_names::Set{String},
     label::AbstractString,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for path_name in path_names
         path_name in conventional_names && continue
         full_path = joinpath(scope.project_root, path_name)
@@ -146,11 +146,11 @@ function custom_scope_explanation_findings(
         has_path_explanation(explanations, scope.project_root, path_name) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R005];
-                summary="Configured $(label) scope `$(path_name)` exists but has no concrete explanation.",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="add a concrete scope explanation or use the conventional Julia path",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R005],
+                "Configured $(label) scope `$(path_name)` exists but has no concrete explanation.",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "add a concrete scope explanation or use the conventional Julia path",
             ),
         )
     end
@@ -163,22 +163,22 @@ function conventional_scope_exclusion_findings(
     explanations::Dict{String,String},
     conventional_name::AbstractString,
     label::AbstractString,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     full_path = joinpath(scope.project_root, conventional_name)
-    ispath(full_path) || return JuliaHarnessFinding[]
+    ispath(full_path) || return AspJuliaFinding[]
     label == "source" && !pkg_owns_conventional_source_scope(scope, full_path) &&
-        return JuliaHarnessFinding[]
-    conventional_scope_is_monitored(scope, full_path, label) && return JuliaHarnessFinding[]
-    conventional_name in configured_names && return JuliaHarnessFinding[]
+        return AspJuliaFinding[]
+    conventional_scope_is_monitored(scope, full_path, label) && return AspJuliaFinding[]
+    conventional_name in configured_names && return AspJuliaFinding[]
     has_path_explanation(explanations, scope.project_root, conventional_name) &&
-        return JuliaHarnessFinding[]
+        return AspJuliaFinding[]
     [
-        finding_from_rule(
-            rules[JULIA_PROJ_R006];
-            summary="Conventional Julia $(label) scope `$(conventional_name)` exists but is not monitored.",
-            location=SourceLocation(scope.project_toml_path, 1, 0),
-            label="add a concrete exclusion explanation or restore the conventional scope",
+        finding_from_rule_typed(
+            rules[JULIA_PROJ_R006],
+            "Conventional Julia $(label) scope `$(conventional_name)` exists but is not monitored.",
+            SourceLocation(scope.project_toml_path, 1, 0),
+            "add a concrete exclusion explanation or restore the conventional scope",
         ),
     ]
 end
@@ -209,8 +209,7 @@ function pkg_owns_conventional_source_scope(
 end
 
 function project_policy_path_under(path::AbstractString, root::AbstractString)
-    relative = relpath(path, root)
-    relative == "." || (!startswith(relative, "..") && !isabspath(relative))
+    is_path_under(path, root)
 end
 
 function has_path_explanation(
@@ -227,20 +226,20 @@ end
 
 function test_entrypoint_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for test_path in scope.test_paths
         isdir(test_path) || continue
         entrypoint = joinpath(test_path, "runtests.jl")
         isfile(entrypoint) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R003];
-                summary="Test scope `$(test_path)` exists, but `$(entrypoint)` is missing.",
-                location=SourceLocation(entrypoint, 1, 0),
-                label="add test/runtests.jl so Pkg.test has a stable package test entrypoint",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R003],
+                "Test scope `$(test_path)` exists, but `$(entrypoint)` is missing.",
+                SourceLocation(entrypoint, 1, 0),
+                "add test/runtests.jl so Pkg.test has a stable package test entrypoint",
             ),
         )
     end
@@ -250,9 +249,9 @@ end
 function thin_runtests_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_runtests_file(scope, parsed.report.path) || continue
@@ -260,12 +259,12 @@ function thin_runtests_findings(
         has_literal_includes(parsed) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R004];
-                summary="`$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines and no literal included test files.",
-                location=SourceLocation(parsed.report.path, 1, 0),
-                source_line=source_line(parsed.source, 1),
-                label="move larger test bodies into included test files and keep runtests.jl as the aggregate",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R004],
+                "`$(parsed.report.path)` has $(parsed.metrics.nonblank_line_count) nonblank lines and no literal included test files.",
+                SourceLocation(parsed.report.path, 1, 0),
+                source_line(parsed.source, 1),
+                "move larger test bodies into included test files and keep runtests.jl as the aggregate",
             ),
         )
     end
@@ -282,9 +281,9 @@ end
 
 function source_rev_lock_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, source) in sort!(collect(scope.sources); by = first)
         source_rev_is_locked(source) && continue
         rev = get(source, "rev", "")
@@ -292,11 +291,11 @@ function source_rev_lock_findings(
                       "uses moving `rev = \"$(rev)\"`"
         push!(
             findings,
-            finding_from_rule(
-                rules[JULIA_PROJ_R010];
-                summary="Project source `$(name)` $(rev_summary).",
-                location=SourceLocation(scope.project_toml_path, 1, 0),
-                label="lock the source dependency to a commit SHA from the intended branch",
+            finding_from_rule_typed(
+                rules[JULIA_PROJ_R010],
+                "Project source `$(name)` $(rev_summary).",
+                SourceLocation(scope.project_toml_path, 1, 0),
+                "lock the source dependency to a commit SHA from the intended branch",
             ),
         )
     end
@@ -319,10 +318,10 @@ end
 
 function dependency_contract_findings(
     scope::JuliaProjectHarnessScope,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     stdlib_roots = julia_stdlib_import_roots()
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (section, dependencies) in [
         ("deps", scope.direct_dependencies),
         ("weakdeps", scope.weak_dependencies),
@@ -333,11 +332,11 @@ function dependency_contract_findings(
             haskey(scope.sources, name) && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[JULIA_PROJ_R009];
-                    summary="Project dependency `$(name)` is declared in `[$(section)]` but has no `[compat]` entry or `[sources]` override.",
-                    location=SourceLocation(scope.project_toml_path, 1, 0),
-                    label="add a compat bound or record the source-tracked dependency in Project.toml",
+                finding_from_rule_typed(
+                    rules[JULIA_PROJ_R009],
+                    "Project dependency `$(name)` is declared in `[$(section)]` but has no `[compat]` entry or `[sources]` override.",
+                    SourceLocation(scope.project_toml_path, 1, 0),
+                    "add a compat bound or record the source-tracked dependency in Project.toml",
                 ),
             )
         end
@@ -348,9 +347,9 @@ end
 function undeclared_import_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     stdlib_roots = julia_stdlib_import_roots()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -361,12 +360,12 @@ function undeclared_import_findings(
             dependency_root in allowed && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[JULIA_PROJ_R008];
-                    summary="`$(imported.expression)` imports `$(imported.root)`, but package root `$(dependency_root)` is not declared for this project scope.",
-                    location=SourceLocation(parsed.report.path, imported.line, imported.column),
-                    source_line=source_line(parsed.source, imported.line),
-                    label="add the package to Project.toml or make the import relative if it is project-local",
+                finding_from_rule_typed(
+                    rules[JULIA_PROJ_R008],
+                    "`$(imported.expression)` imports `$(imported.root)`, but package root `$(dependency_root)` is not declared for this project scope.",
+                    SourceLocation(parsed.report.path, imported.line, imported.column),
+                    source_line(parsed.source, imported.line),
+                    "add the package to Project.toml or make the import relative if it is project-local",
                 ),
             )
         end
@@ -407,8 +406,14 @@ end
 
 function julia_stdlib_import_roots()
     roots = Set{String}()
-    for (_, info) in Pkg.Types.stdlibs()
-        push!(roots, String(info[1]))
+    for stdlib_dir::String in readdir(Sys.STDLIB; join = true)
+        project_path::String = joinpath(stdlib_dir, "Project.toml")
+        isfile(project_path) || continue
+        project::Dict{String,Any} = TOML.parsefile(project_path)
+        raw_name::Any = get(project, "name", nothing)
+        raw_name isa String || continue
+        name::String = raw_name
+        push!(roots, name)
     end
     roots
 end

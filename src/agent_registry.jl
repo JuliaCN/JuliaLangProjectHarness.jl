@@ -111,7 +111,6 @@ function julia_agent_method_descriptors()
         ),
         julia_query_owner_items_method_descriptor(),
         julia_query_method_descriptor(),
-        julia_check_method_descriptor(),
         julia_evidence_method_descriptors()...,
         Dict{String,Any}(
             "method" => "agent/doctor",
@@ -137,26 +136,52 @@ function julia_agent_method_descriptors()
     ]
 end
 
-"""Return package-local schema registrations advertised by the Julia provider."""
-function julia_schema_registrations()
-    schema_registrations(JULIA_AGENT_SCHEMA_FILES)
-end
+"""Return schema registrations advertised by the Julia provider from `schema_root`.
 
-"""Return package-local schema registrations for a provider language entry."""
-function schema_registrations(schema_files)
-    package_root = normpath(joinpath(@__DIR__, ".."))
+Throws `ErrorException` when the schema root is missing or a schema document
+does not declare a string `schemaId`, `registryId`, or `\$id` identity.
+"""
+function julia_schema_registrations(
+    schema_root::AbstractString=joinpath(normpath(joinpath(@__DIR__, "..")), "schemas"),
+)
+    isdir(schema_root) || error("schema root does not exist: $(schema_root)")
     registrations = Dict{String,String}[]
-    for (file_name, schema_id) in schema_files
-        path = joinpath("schemas", file_name)
-        isfile(joinpath(package_root, path)) || continue
-        push!(
-            registrations,
-            Dict(
-                "path" => replace(path, '\\' => '/'),
-                "schemaId" => schema_id,
-                "schemaVersion" => "1",
-            ),
-        )
+    schema_files = filter(
+        name -> !startswith(name, ".") && endswith(name, ".json"),
+        readdir(schema_root),
+    )
+    for file_name in sort!(schema_files)
+        document = JSON.parsefile(joinpath(schema_root, file_name))
+        properties = get(document, "properties", Dict{String,Any}())
+        schema_id = get(document, "schemaId", nothing)
+        if !(schema_id isa AbstractString)
+            schema_id = get(get(properties, "schemaId", Dict{String,Any}()), "const", nothing)
+        end
+        if !(schema_id isa AbstractString)
+            schema_id = get(get(properties, "registryId", Dict{String,Any}()), "const", nothing)
+        end
+        schema_id isa AbstractString || (schema_id = get(document, "\$id", nothing))
+        schema_id isa AbstractString || error("schema $file_name has no string schema identity")
+        schema_version = get(document, "schemaVersion", nothing)
+        if isnothing(schema_version)
+            schema_version = get(
+                get(properties, "schemaVersion", Dict{String,Any}()),
+                "const",
+                nothing,
+            )
+        end
+        if isnothing(schema_version)
+            schema_version = get(
+                get(properties, "registryVersion", Dict{String,Any}()),
+                "const",
+                "1",
+            )
+        end
+        push!(registrations, Dict(
+            "path" => "schemas/$file_name",
+            "schemaId" => String(schema_id),
+            "schemaVersion" => string(schema_version),
+        ))
     end
     registrations
 end
@@ -179,7 +204,7 @@ function julia_agent_registry_packet(project_root::AbstractString=pwd())
                 "binary" => JULIA_AGENT_BINARY,
                 "providerCommandPrefix" => [JULIA_AGENT_BINARY],
                 "namespace" => JULIA_AGENT_PROVIDER_NAMESPACE,
-                "displayName" => "Julia Harness",
+                "displayName" => "AspJulia.jl",
                 "methods" => methods,
                 "methodDescriptors" => descriptors,
                 "schemas" => julia_schema_registrations(),
@@ -190,7 +215,7 @@ end
 
 """Render the Julia semantic-language registry packet as JSON."""
 function render_julia_agent_registry_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_agent_registry_packet(project_root))
+    JSON.json(julia_agent_registry_packet(project_root))
 end
 
 """Render a compact Julia provider registry status line."""

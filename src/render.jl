@@ -1,23 +1,27 @@
-using JSON3
+using JSON
 
 """Render blocking findings and agent advice as compact text."""
-render_julia_project_harness(report::JuliaHarnessReport) =
+render_julia_project_harness(report::AspJuliaReport) =
     render_julia_project_harness_with_options(report; severities=nothing, include_advice=true)
 
 """Render only advisory findings from a Julia project harness report."""
-function render_julia_project_harness_advice(report::JuliaHarnessReport)
+function render_julia_project_harness_advice(report::AspJuliaReport)
     render_finding_list(advisory_findings(report))
 end
 
 function render_julia_project_harness_with_options(
-    report::JuliaHarnessReport;
+    report::AspJuliaReport;
     severities=nothing,
     include_advice::Bool=true,
 )
     blocking = blocking_findings(report; severities)
     advice = include_advice ? deduplicate_advice(advisory_findings(report), blocking) :
-             JuliaHarnessFinding[]
-    findings = vcat(blocking, advice)
+             AspJuliaFinding[]
+    findings = copy(blocking)
+    sizehint!(findings, length(blocking) + length(advice))
+    for finding in advice
+        push!(findings, finding)
+    end
     isempty(findings) && return "[ok] julia\n"
     rendered = isempty(blocking) ? "" : render_julia_failure_frontier(report, blocking)
     if !isempty(advice)
@@ -27,14 +31,14 @@ function render_julia_project_harness_with_options(
     rendered
 end
 
-function render_finding_list(findings::Vector{JuliaHarnessFinding})
+function render_finding_list(findings::Vector{AspJuliaFinding})
     isempty(findings) && return ""
     join(map(render_finding, findings), "\n")
 end
 
 function render_julia_failure_frontier(
-    report::JuliaHarnessReport,
-    findings::Vector{JuliaHarnessFinding},
+    report::AspJuliaReport,
+    findings::Vector{AspJuliaFinding},
 )
     root = failure_frontier_root(report)
     lines = String[
@@ -65,20 +69,20 @@ end
 
 failure_frontier_text(value::AbstractString) = join(split(String(value)), " ")
 
-function failure_frontier_root(report::JuliaHarnessReport)
-    if !isnothing(report.project_scope)
-        return slash_path(report.project_scope.project_root)
+function failure_frontier_root(report::AspJuliaReport)
+    if !isnothing(report.project_resolution)
+        return slash_path(report.project_resolution.project_root)
     end
     isempty(report.root_paths) ? "." : slash_path(first(report.root_paths))
 end
 
-function failure_frontier_selector(finding::JuliaHarnessFinding)
+function failure_frontier_selector(finding::AspJuliaFinding)
     isnothing(finding.location.path) && return nothing
     line = max(finding.location.line, 1)
     "$(slash_path(finding.location.path)):$(line):$(line)"
 end
 
-function render_finding(finding::JuliaHarnessFinding)
+function render_finding(finding::AspJuliaFinding)
     path = isnothing(finding.location.path) ? "<memory>" : slash_path(finding.location.path)
     display_column = finding.location.column + 1
     rendered = "[$(finding.rule_id)] $(titlecase(severity_label(finding.severity))): $(finding.title)\n"
@@ -109,31 +113,50 @@ function compact_rule_visibility(visibility::JuliaRuleVisibility)
     isempty(lines) ? "" : join(lines, "\n") * "\n"
 end
 
-function deduplicate_advice(advice::Vector{JuliaHarnessFinding}, blocking::Vector{JuliaHarnessFinding})
-    blocking_keys = Set(finding_key.(blocking))
-    [finding for finding in advice if !(finding_key(finding) in blocking_keys)]
+function deduplicate_advice(advice::Vector{AspJuliaFinding}, blocking::Vector{AspJuliaFinding})
+    blocking_keys = Tuple{String,Union{Nothing,String},Int,Int}[]
+    sizehint!(blocking_keys, length(blocking))
+    for finding in blocking
+        push!(blocking_keys, finding_key(finding))
+    end
+    retained = AspJuliaFinding[]
+    sizehint!(retained, length(advice))
+    for finding in advice
+        key = finding_key(finding)
+        duplicate = false
+        for blocking_key in blocking_keys
+            if key == blocking_key
+                duplicate = true
+                break
+            end
+        end
+        if !duplicate
+            push!(retained, finding)
+        end
+    end
+    retained
 end
 
-function finding_key(finding::JuliaHarnessFinding)
+function finding_key(finding::AspJuliaFinding)
     (finding.rule_id, finding.location.path, finding.location.line, finding.location.column)
 end
 
 slash_path(path::AbstractString) = replace(String(path), '\\' => '/')
 
 """Render a Julia project harness report as JSON for tools."""
-function render_julia_project_harness_json(report::JuliaHarnessReport)
-    JSON3.write(report_dict(report))
+function render_julia_project_harness_json(report::AspJuliaReport)
+    JSON.json(report_dict(report))
 end
 
-function report_dict(report::JuliaHarnessReport)
+function report_dict(report::AspJuliaReport)
     Dict(
         "files" => map(file_report_dict, report.files),
         "findings" => map(finding_dict, report.findings),
         "root_paths" => slash_path.(report.root_paths),
         "blocking_severities" => sort(severity_label.(collect(report.blocking_severities))),
-        "project_scope" => isnothing(report.project_scope) ? nothing :
-                           project_scope_dict(report.project_scope),
-        "workspace_member_scopes" => map(project_scope_dict, report.workspace_member_scopes),
+        "project_resolution" => isnothing(report.project_resolution) ? nothing :
+                           project_resolution_dict(report.project_resolution),
+        "workspace_member_scopes" => map(project_resolution_dict, report.workspace_member_scopes),
     )
 end
 
@@ -145,7 +168,7 @@ function file_report_dict(file::JuliaFileReport)
     )
 end
 
-function finding_dict(finding::JuliaHarnessFinding)
+function finding_dict(finding::AspJuliaFinding)
     Dict(
         "rule_id" => finding.rule_id,
         "pack_id" => finding.pack_id,
@@ -168,7 +191,7 @@ function location_dict(location::SourceLocation)
     )
 end
 
-function project_scope_dict(scope::JuliaProjectHarnessScope)
+function project_resolution_dict(scope::JuliaProjectHarnessScope)
     Dict(
         "project_root" => slash_path(scope.project_root),
         "project_toml_path" => isnothing(scope.project_toml_path) ? nothing :

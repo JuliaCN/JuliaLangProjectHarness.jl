@@ -1,6 +1,6 @@
 function verification_search_entries(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
     parsed_files::Vector{ParsedJuliaFile},
 )
     [

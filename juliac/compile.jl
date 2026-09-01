@@ -2,17 +2,18 @@ using JuliaC
 
 const ROOT = abspath(joinpath(@__DIR__, ".."))
 const BUILD_DIR = abspath(get(ENV, "ASP_JULIA_BUILD_DIR", joinpath(ROOT, "build", "juliac")))
-const OUTPUT_EXE = get(ENV, "ASP_JULIA_OUTPUT_EXE", "asp-julia-harness")
-const APP_FILE = joinpath(@__DIR__, "asp_julia_harness_app.jl")
+const OUTPUT_EXE = get(ENV, "ASP_JULIA_OUTPUT_EXE", "asp-julia")
+const APP_FILE = joinpath(@__DIR__, "asp_julia_app.jl")
+
+ENV["ASP_JULIA_AOT_BUILD"] = "1"
 
 mkpath(BUILD_DIR)
 
 args = String[
     "--output-exe",
     OUTPUT_EXE,
-    "--trim=no",
     "--project",
-    @__DIR__,
+    ROOT,
     APP_FILE,
 ]
 

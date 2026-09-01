@@ -1,7 +1,7 @@
 function evaluate_default_rule_packs(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
     ;
     workspace_member_scopes=JuliaProjectHarnessScope[],
 )
@@ -33,7 +33,7 @@ function evaluate_agent_policy_rules(
     scope::Union{Nothing,JuliaProjectHarnessScope},
     parsed_files::Vector{ParsedJuliaFile},
 )
-    isnothing(scope) && return JuliaHarnessFinding[]
+    isnothing(scope) && return AspJuliaFinding[]
     rules = rules_by_id()
     findings = verification_test_profile_findings(scope, parsed_files, rules)
     append!(findings, test_control_flow_shape_findings(scope, parsed_files, rules))
@@ -140,9 +140,9 @@ function internal_traversal_shape_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -152,12 +152,12 @@ function internal_traversal_shape_findings(
             is_nested_internal_traversal(function_fact) || continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R015];
-                    summary="Internal method `$(function_fact.terminal_name)` nests traversal shape: $(julia_algorithm_shape_summary(function_fact))",
-                    location=SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="extract traversal into named iterator, predicate, or data-processing helpers",
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R015],
+                    "Internal method `$(function_fact.terminal_name)` nests traversal shape: $(julia_algorithm_shape_summary(function_fact))",
+                    SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
+                    source_line(parsed.source, function_fact.line),
+                    "extract traversal into named iterator, predicate, or data-processing helpers",
                 ),
             )
         end
@@ -178,9 +178,9 @@ end
 function module_owner_fanout_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         isempty(parsed.syntax_facts.modules) && continue
@@ -196,12 +196,12 @@ function module_owner_fanout_findings(
         ]
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R006];
-                summary="Module owner `$(module_fact.name)` includes $(length(literal_local_includes)) local owners without a Julia docstring: $(join(owner_targets, ", ")).",
-                location=SourceLocation(parsed.report.path, module_fact.line, module_fact.column),
-                source_line=source_line(parsed.source, module_fact.line),
-                label="add a module docstring that explains the include owner boundary",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R006],
+                "Module owner `$(module_fact.name)` includes $(length(literal_local_includes)) local owners without a Julia docstring: $(join(owner_targets, ", ")).",
+                SourceLocation(parsed.report.path, module_fact.line, module_fact.column),
+                source_line(parsed.source, module_fact.line),
+                "add a module docstring that explains the include owner boundary",
             ),
         )
     end
@@ -227,10 +227,10 @@ function public_api_owner_conflict_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     records = public_api_definition_records(parsed_files, public_names)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, definitions) in sort(collect(records); by=first)
         owner_paths = sort(unique(definition.path for definition in definitions))
         syntax_families = sort(unique(definition.kind for definition in definitions))
@@ -249,23 +249,30 @@ function public_api_owner_conflict_findings(
                      " Document the extension pattern on the owning public method or move the family behind one owner file."
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R005];
-                summary="Exported/public API `$(name)` spans owners: $(owner_summary); syntax families: $(family_summary).$(shape_hint)",
-                location=SourceLocation(
+            finding_from_rule_typed(
+                rules[AGENT_JL_R005],
+                "Exported/public API `$(name)` spans owners: $(owner_summary); syntax families: $(family_summary).$(shape_hint)",
+                SourceLocation(
                     first_definition.path,
                     first_definition.line,
                     first_definition.column,
                 ),
-                source_line=first_definition.source_line,
-                label="move the public API family behind one owner file or document the exact dispatch/constructor extension pattern",
+                first_definition.source_line,
+                "move the public API family behind one owner file or document the exact dispatch/constructor extension pattern",
             ),
         )
     end
     findings
 end
 
-function documented_same_owner_constructor_family(definitions::Vector{NamedTuple})
+const PublicApiDefinitionRecord = NamedTuple{
+    (:kind, :path, :line, :column, :source_line),
+    Tuple{String,String,Int,Int,Union{Nothing,SubString{String}}},
+}
+
+function documented_same_owner_constructor_family(
+    definitions::Vector{PublicApiDefinitionRecord},
+)
     owner_paths = unique(definition.path for definition in definitions)
     length(owner_paths) == 1 || return false
     syntax_families = Set(definition.kind for definition in definitions)
@@ -283,7 +290,7 @@ function public_api_definition_records(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
 )
-    records = Dict{String,Vector{NamedTuple}}()
+    records = Dict{String,Vector{PublicApiDefinitionRecord}}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for type_fact in parsed.syntax_facts.types
@@ -327,14 +334,14 @@ function public_api_definition_records(
 end
 
 function push_public_api_definition!(
-    records::Dict{String,Vector{NamedTuple}},
+    records::Dict{String,Vector{PublicApiDefinitionRecord}},
     name::AbstractString,
     kind::AbstractString,
     parsed::ParsedJuliaFile,
     line::Int,
     column::Int,
 )
-    definitions = get!(records, String(name), NamedTuple[])
+    definitions = get!(records, String(name), PublicApiDefinitionRecord[])
     push!(
         definitions,
         (
@@ -348,10 +355,15 @@ function push_public_api_definition!(
 end
 
 function display_public_owner_path(scope::JuliaProjectHarnessScope, path::AbstractString)
-    relative_path = relpath(path, scope.project_root)
-    parts = splitpath(relative_path)
-    if !isabspath(relative_path) && (isempty(parts) || first(parts) != "..")
-        return replace(relative_path, '\\' => '/')
+    normalized_path = normalized_absolute_path(path)
+    normalized_root = normalized_absolute_path(scope.project_root)
+    if path_has_root_prefix(normalized_path, normalized_root)
+        normalized_path == normalized_root && return "."
+        separator = string(Base.Filesystem.path_separator)
+        root_prefix = endswith(normalized_root, separator) ?
+                      normalized_root :
+                      normalized_root * separator
+        return replace(String(chopprefix(normalized_path, root_prefix)), '\\' => '/')
     end
     replace(String(path), '\\' => '/')
 end

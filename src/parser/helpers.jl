@@ -8,7 +8,12 @@ function literal_path_argument(node::JuliaSyntax.SyntaxNode)
         isnothing(segment) && return nothing
         push!(segments, segment)
     end
-    isempty(segments) ? nothing : joinpath(segments...)
+    isempty(segments) && return nothing
+    path::String = first(segments)
+    for index::Int in 2:length(segments)
+        path = joinpath(path, segments[index])
+    end
+    path
 end
 
 function string_literal_value(node::JuliaSyntax.SyntaxNode)

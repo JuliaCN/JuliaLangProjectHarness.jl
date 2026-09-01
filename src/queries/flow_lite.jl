@@ -227,7 +227,7 @@ function julia_flow_lite_packet(
         "protocolId" => "agent.semantic-protocols.semantic-language",
         "protocolVersion" => "1",
         "languageId" => "julia",
-        "providerId" => "julia-lang-project-harness",
+        "providerId" => "asp-julia",
         "projectRoot" => abspath(String(project_root)),
         "packageName" => basename(abspath(String(project_root))),
         "flowId" => "flow-lite:julia:$(where["scope.fn"]):$(where["source.call"]):$(where["sink.constructs"])",

@@ -27,9 +27,9 @@ function public_api_doc_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     documented_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{Tuple{String,String}}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -45,16 +45,22 @@ function public_method_family_scattering_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     records = public_api_definition_records(parsed_files, public_names)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for (name, definitions) in sort(collect(records); by=first)
-        method_definitions = [
-            definition for definition in definitions if definition.kind == "function"
-        ]
+        method_definitions = PublicApiDefinitionRecord[]
+        for definition in definitions
+            definition.kind == "function" || continue
+            push!(method_definitions, definition)
+        end
         length(method_definitions) >= 2 || continue
-        owner_paths = sort(unique(definition.path for definition in method_definitions))
+        owner_paths = String[]
+        for definition in method_definitions
+            definition.path in owner_paths || push!(owner_paths, definition.path)
+        end
+        sort!(owner_paths)
         length(owner_paths) >= 2 || continue
         has_extension_pattern_doc(function_docs_by_name, name) && continue
         first_definition = first(sort(method_definitions; by=definition -> (
@@ -65,16 +71,16 @@ function public_method_family_scattering_findings(
         owner_summary = join(display_public_owner_path.(Ref(scope), owner_paths), ", ")
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R009];
-                summary="Exported/public method family `$(name)` is implemented across $(length(owner_paths)) owner files without a documented dispatch pattern: $(owner_summary).",
-                location=SourceLocation(
+            finding_from_rule_typed(
+                rules[AGENT_JL_R009],
+                "Exported/public method family `$(name)` is implemented across $(length(owner_paths)) owner files without a documented dispatch pattern: $(owner_summary).",
+                SourceLocation(
                     first_definition.path,
                     first_definition.line,
                     first_definition.column,
                 ),
-                source_line=first_definition.source_line,
-                label="document the Julia dispatch or extension pattern for this public method family",
+                first_definition.source_line,
+                "document the Julia dispatch or extension pattern for this public method family",
             ),
         )
     end
@@ -84,9 +90,9 @@ end
 function public_type_field_shape_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(findings, public_type_field_shape_findings(parsed, public_names, rules))
@@ -97,9 +103,9 @@ end
 function public_type_field_shape_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         name = terminal_public_name(type_fact.name)
@@ -112,12 +118,12 @@ function public_type_field_shape_findings(
         field_names = join([field.name for field in untyped_fields], ", ")
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R011];
-                summary="Exported/public struct `$(name)` has fields without type annotations: $(field_names).",
-                location=SourceLocation(parsed.report.path, first_field.line, first_field.column),
-                source_line=source_line(parsed.source, first_field.line),
-                label="add explicit field type annotations to the public struct",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R011],
+                "Exported/public struct `$(name)` has fields without type annotations: $(field_names).",
+                SourceLocation(parsed.report.path, first_field.line, first_field.column),
+                source_line(parsed.source, first_field.line),
+                "add explicit field type annotations to the public struct",
             ),
         )
     end
@@ -127,9 +133,9 @@ end
 function public_type_stringly_field_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(findings, public_type_stringly_field_findings(parsed, public_names, rules))
@@ -140,9 +146,9 @@ end
 function public_type_stringly_field_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         name = terminal_public_name(type_fact.name)
@@ -155,12 +161,12 @@ function public_type_stringly_field_findings(
         field_names = join([field.name for field in stringly_fields], ", ")
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R012];
-                summary="Exported/public struct `$(name)` exposes stringly domain fields: $(field_names).",
-                location=SourceLocation(parsed.report.path, first_field.line, first_field.column),
-                source_line=source_line(parsed.source, first_field.line),
-                label="replace stringly domain fields with Symbol, enum, or named value carriers",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R012],
+                "Exported/public struct `$(name)` exposes stringly domain fields: $(field_names).",
+                SourceLocation(parsed.report.path, first_field.line, first_field.column),
+                source_line(parsed.source, first_field.line),
+                "replace stringly domain fields with Symbol, enum, or named value carriers",
             ),
         )
     end
@@ -187,9 +193,9 @@ function public_mutable_type_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     type_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         append!(
@@ -209,9 +215,9 @@ function public_mutable_type_contract_findings(
     parsed::ParsedJuliaFile,
     public_names::Set{String},
     type_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         type_fact.kind == "struct" || continue
         type_fact.is_mutable || continue
@@ -221,12 +227,12 @@ function public_mutable_type_contract_findings(
         has_mutation_contract_doc(type_docs_by_name, name) && continue
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R013];
-                summary="Exported/public mutable struct `$(name)` is documented without a mutation contract.",
-                location=SourceLocation(parsed.report.path, type_fact.line, type_fact.column),
-                source_line=source_line(parsed.source, type_fact.line),
-                label="document mutation ownership, lifecycle, or invariants for this public mutable type",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R013],
+                "Exported/public mutable struct `$(name)` is documented without a mutation contract.",
+                SourceLocation(parsed.report.path, type_fact.line, type_fact.column),
+                source_line(parsed.source, type_fact.line),
+                "document mutation ownership, lifecycle, or invariants for this public mutable type",
             ),
         )
     end
@@ -258,9 +264,9 @@ function public_type_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for type_fact in parsed.syntax_facts.types
         name = terminal_public_name(type_fact.name)
         name in public_names || continue
@@ -268,12 +274,12 @@ function public_type_doc_findings(
         key = ("type", name)
         key in reported && continue
         push!(reported, key)
-        push!(findings, finding_from_rule(
-            rules[AGENT_JL_R001];
-            summary="Exported/public type `$(name)` lacks a Julia docstring that states its agent-facing intent.",
-            location=SourceLocation(parsed.report.path, type_fact.line, type_fact.column),
-            source_line=source_line(parsed.source, type_fact.line),
-            label="add a Julia docstring before the public type definition",
+        push!(findings, finding_from_rule_typed(
+            rules[AGENT_JL_R001],
+            "Exported/public type `$(name)` lacks a Julia docstring that states its agent-facing intent.",
+            SourceLocation(parsed.report.path, type_fact.line, type_fact.column),
+            source_line(parsed.source, type_fact.line),
+            "add a Julia docstring before the public type definition",
         ))
     end
     findings
@@ -284,9 +290,9 @@ function public_function_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for function_fact in parsed.syntax_facts.functions
         name = function_fact.terminal_name
         name in public_names || continue
@@ -294,12 +300,12 @@ function public_function_doc_findings(
         key = ("function", name)
         key in reported && continue
         push!(reported, key)
-        push!(findings, finding_from_rule(
-            rules[AGENT_JL_R001];
-            summary="Exported/public function `$(name)` lacks a Julia docstring that states its agent-facing intent.",
-            location=SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
-            source_line=source_line(parsed.source, function_fact.line),
-            label="add a Julia docstring before the public function definition",
+        push!(findings, finding_from_rule_typed(
+            rules[AGENT_JL_R001],
+            "Exported/public function `$(name)` lacks a Julia docstring that states its agent-facing intent.",
+            SourceLocation(parsed.report.path, function_fact.line, function_fact.column),
+            source_line(parsed.source, function_fact.line),
+            "add a Julia docstring before the public function definition",
         ))
     end
     findings
@@ -310,9 +316,9 @@ function public_binding_doc_findings(
     public_names::Set{String},
     documented_names::Set{String},
     reported::Set{Tuple{String,String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for binding_fact in parsed.syntax_facts.bindings
         name = binding_fact.terminal_name
         name in public_names || continue
@@ -320,12 +326,12 @@ function public_binding_doc_findings(
         key = ("binding", name)
         key in reported && continue
         push!(reported, key)
-        push!(findings, finding_from_rule(
-            rules[AGENT_JL_R001];
-            summary="Exported/public binding `$(name)` lacks a Julia docstring that states its agent-facing intent.",
-            location=SourceLocation(parsed.report.path, binding_fact.line, binding_fact.column),
-            source_line=source_line(parsed.source, binding_fact.line),
-            label="add a Julia docstring before the public binding definition",
+        push!(findings, finding_from_rule_typed(
+            rules[AGENT_JL_R001],
+            "Exported/public binding `$(name)` lacks a Julia docstring that states its agent-facing intent.",
+            SourceLocation(parsed.report.path, binding_fact.line, binding_fact.column),
+            source_line(parsed.source, binding_fact.line),
+            "add a Julia docstring before the public binding definition",
         ))
     end
     findings

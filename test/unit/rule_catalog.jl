@@ -16,7 +16,7 @@
     syntax_rules = julia_syntax_rules()
     @test length(syntax_rules) == 1
     @test only(syntax_rules).rule_id == "JULIA-SYN-R001"
-    @test only(syntax_rules).severity == JuliaLangProjectHarness.Error
+    @test only(syntax_rules).severity == AspJulia.Error
     @test [rule.rule_id for rule in julia_project_policy_rules()] == [
         "JULIA-AGENT-PROJECT-001",
         "JULIA-AGENT-PROJECT-002",
@@ -78,12 +78,12 @@
 end
 
 @testset "self apply public api" begin
-    @test isdefined(JuliaLangProjectHarness, :assert_julia_project_harness_pkg_test_clean)
-    @test isdefined(JuliaLangProjectHarness, :assert_julia_project_harness_test_profile_clean)
-    @test isdefined(JuliaLangProjectHarness, :build_julia_project_verification_profile)
-    @test isdefined(JuliaLangProjectHarness, :build_julia_verification_profile_index)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_project_harness_agent_snapshot)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_pending_advice)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_profile)
-    @test isdefined(JuliaLangProjectHarness, :render_julia_verification_profile_index)
+    @test isdefined(AspJulia, :assert_julia_project_harness_pkg_test_clean)
+    @test isdefined(AspJulia, :assert_julia_project_harness_test_profile_clean)
+    @test isdefined(AspJulia, :build_julia_project_verification_profile)
+    @test isdefined(AspJulia, :build_julia_verification_profile_index)
+    @test isdefined(AspJulia, :render_julia_project_harness_agent_snapshot)
+    @test isdefined(AspJulia, :render_julia_verification_pending_advice)
+    @test isdefined(AspJulia, :render_julia_verification_profile)
+    @test isdefined(AspJulia, :render_julia_verification_profile_index)
 end

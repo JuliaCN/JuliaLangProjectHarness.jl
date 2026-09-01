@@ -1,10 +1,23 @@
+function julia_source_read_error_message(err::SystemError)
+    string("failed to read Julia source: SystemError: ", err.prefix)
+end
+
+function julia_syntax_parse_error_message(err::JuliaSyntax.ParseError)
+    isempty(err.diagnostics) && return "failed to parse Julia source"
+    diagnostic::JuliaSyntax.Diagnostic = first(err.diagnostics)
+    string("ParseError: ", diagnostic.message)
+end
+
 function parse_julia_file(path::AbstractString)
     path_string = String(path)
     source = try
         read(path_string, String)
     catch err
+        error_message = err isa SystemError ?
+                        julia_source_read_error_message(err) :
+                        "failed to read Julia source"
         return ParsedJuliaFile(
-            JuliaFileReport(path_string, false, "failed to read Julia source: $(err)"),
+            JuliaFileReport(path_string, false, error_message),
             "",
             JuliaSourceMetrics(0, 0),
             empty_julia_native_syntax_facts(),
@@ -21,8 +34,11 @@ function parse_julia_file(path::AbstractString)
             julia_native_syntax_facts(syntax, path_string),
         )
     catch err
+        error_message = err isa JuliaSyntax.ParseError ?
+                        julia_syntax_parse_error_message(err) :
+                        "failed to parse Julia source"
         ParsedJuliaFile(
-            JuliaFileReport(path_string, false, sprint(showerror, err)),
+            JuliaFileReport(path_string, false, error_message),
             source,
             metrics,
             empty_julia_native_syntax_facts(),
@@ -60,7 +76,10 @@ function empty_julia_native_syntax_facts()
     )
 end
 
-function julia_native_syntax_facts(syntax::JuliaSyntax.SyntaxNode, source_path::AbstractString)
+function julia_native_syntax_facts(
+    syntax::JuliaSyntax.SyntaxNode,
+    source_path::String,
+)::JuliaNativeSyntaxFacts
     collector = JuliaSyntaxFactCollector(
         JuliaModuleSyntax[],
         JuliaIncludeSyntax[],
@@ -117,10 +136,10 @@ end
 function collect_julia_syntax_facts!(
     collector::JuliaSyntaxFactCollector,
     node::JuliaSyntax.SyntaxNode,
-    source_path::AbstractString,
-    parent::Union{Nothing,JuliaSyntax.SyntaxNode}=nothing,
-    local_scope_depth::Int=0,
-)
+    source_path::String,
+    parent::JuliaSyntax.SyntaxNode,
+    local_scope_depth::Int,
+)::Nothing
     kind = syntax_kind(node)
     if kind == "doc"
         docstring_fact = docstring_syntax_from_node(node)
@@ -175,6 +194,16 @@ function collect_julia_syntax_facts!(
             child_local_scope_depth,
         )
     end
+    return nothing
+end
+
+function collect_julia_syntax_facts!(
+    collector::JuliaSyntaxFactCollector,
+    node::JuliaSyntax.SyntaxNode,
+    source_path::String,
+)::Nothing
+    collect_julia_syntax_facts!(collector, node, source_path, node, 0)
+    return nothing
 end
 
 function starts_local_syntax_scope(kind::AbstractString)

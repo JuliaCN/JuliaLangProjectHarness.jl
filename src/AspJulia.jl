@@ -1,5 +1,7 @@
-"""JuliaSyntax-native project harness for Julia package policy and agent context."""
-module JuliaLangProjectHarness
+"""JuliaSyntax-native policy and semantic tooling for Julia package agent context."""
+module AspJulia
+
+using Base64
 
 include("model.jl")
 include("parser.jl")
@@ -40,19 +42,47 @@ include("verification/profile_index.jl")
 include("moshi_extension.jl")
 include("evidence_graph.jl")
 include("cli/search_protocol.jl")
+include("cli/dependency_topology.jl")
 include("cli/search_query.jl")
 include("cli/search_cli.jl")
 include("asp_search.jl")
 include("queries/flow_lite.jl")
 include("cli/query.jl")
+include("cli/query_contract.jl")
+include("cli/project_resolution.jl")
+include("cli/project_resolution_codec.jl")
+include("asp_client_server/projection_batch.jl")
+include("asp_client_server/contract.jl")
+include("asp_client_server/http.jl")
 include("cli/query_code.jl")
 include("cli.jl")
 
+"""Configure JuliaSyntax only for the closed JuliaC build process.
+
+Safety contract: this fixed parser override runs only while `ASP_JULIA_AOT_BUILD=1`,
+before the compiler snapshots the Harness dependency graph; it never mutates a normal
+Harness process. The JuliaC compile smoke and compiled `guide`/`export index` tests
+verify that the override preserves the parser block contract.
+"""
+function configure_juliac_aot_syntax!()
+    Core.eval(
+        JuliaSyntax,
+        quote
+            function parse_block(ps::ParseState)
+                mark = position(ps)
+                parse_block_inner(ps, parse_eq)
+                emit(ps, mark, K"block")
+            end
+        end,
+    )
+    nothing
+end
+
 export JuliaDiagnosticSeverity,
-    JuliaHarnessConfig,
-    JuliaHarnessFinding,
-    JuliaHarnessReport,
-    JuliaHarnessRule,
+    AspJuliaConfig,
+    AspJuliaFinding,
+    AspJuliaReport,
+    AspJuliaRule,
     JuliaRuleVisibility,
     JuliaFileReport,
     JuliaSearchIndexEntry,
@@ -102,6 +132,8 @@ export JuliaDiagnosticSeverity,
     render_julia_evidence_graph_json,
     render_julia_query_owner_items,
     render_julia_query_owner_items_json,
+    render_julia_native_owner_items_query_json,
+    run_julia_native_owner_items_query_cli,
     render_julia_rule_visibility,
     render_julia_search_results,
     render_julia_verification_pending_advice,

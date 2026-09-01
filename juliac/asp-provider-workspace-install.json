@@ -1,0 +1,34 @@
+{
+  "$schema": "../schemas/provider-workspace-install.schema.json",
+  "schemaId": "agent.semantic-protocols.provider-workspace-install",
+  "schemaVersion": "1",
+  "schemaAuthority": "https://tao3k.github.io/agent-semantic-protocols/schemas/",
+  "languageId": "julia",
+  "providerId": "asp-julia",
+  "binary": "asp-julia",
+  "providerRegistration": "asp-provider-registration.json",
+  "schemaBundleReceipt": "../schemas/.asp-schema-manager-receipt.json",
+  "workspaceArtifact": {
+    "root": "languages/AspJulia.jl/build/juliac-asp-local/asp-julia",
+    "entrypoint": "."
+  },
+  "workspaceBuild": {
+    "program": "./juliac/build_provider.sh",
+    "args": [],
+    "workingDirectory": "languages/AspJulia.jl",
+    "sourceSnapshotAnchors": [
+      "languages/AspJulia.jl/Project.toml",
+      "languages/AspJulia.jl/Manifest.toml",
+      "languages/AspJulia.jl/juliac/Project.toml",
+      "languages/AspJulia.jl/juliac/Manifest.toml",
+      "languages/AspJulia.jl/juliac/build_provider.sh"
+    ],
+    "derivedPaths": [
+      "languages/AspJulia.jl/build"
+    ],
+    "env": {
+      "ASP_JULIA_ALLOW_WRAPPER_FALLBACK": "0",
+      "ASP_JULIA_BUILD_DIR": "build/juliac-asp-local"
+    }
+  }
+}

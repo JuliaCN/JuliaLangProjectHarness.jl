@@ -14,9 +14,9 @@ function public_return_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for function_fact in parsed.syntax_facts.functions
@@ -28,16 +28,16 @@ function public_return_contract_findings(
                 continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R023];
-                    summary="Exported/public method `$(function_fact.terminal_name)` has concrete return annotation `::$(function_fact.return_type)` without a return contract doc.",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R023],
+                    "Exported/public method `$(function_fact.terminal_name)` has concrete return annotation `::$(function_fact.return_type)` without a return contract doc.",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="document the return/type-stability contract or remove the narrow return annotation",
+                    source_line(parsed.source, function_fact.line),
+                    "document the return/type-stability contract or remove the narrow return annotation",
                 ),
             )
         end
@@ -50,10 +50,10 @@ function public_return_contract_test_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     inferred_names = inferred_test_call_names(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -69,16 +69,16 @@ function public_return_contract_test_findings(
             push!(reported, name)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R031];
-                    summary="Exported/public method `$(name)` documents return/type-stability contract `::$(function_fact.return_type)` but package tests do not cover it with `@inferred`.",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R031],
+                    "Exported/public method `$(name)` documents return/type-stability contract `::$(function_fact.return_type)` but package tests do not cover it with `@inferred`.",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add an @inferred package test for this public return contract",
+                    source_line(parsed.source, function_fact.line),
+                    "add an @inferred package test for this public return contract",
                 ),
             )
         end
@@ -117,25 +117,7 @@ function inferred_test_call_names(
 end
 
 function inferred_test_call_names(test_fact::JuliaTestSyntax)
-    try
-        syntax = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, test_fact.expression)
-        names = Set{String}()
-        collect_inferred_test_call_names!(names, syntax)
-        names
-    catch
-        Set{String}()
-    end
-end
-
-function collect_inferred_test_call_names!(names::Set{String}, node::JuliaSyntax.SyntaxNode)
-    if syntax_kind(node) == "call"
-        name = call_expression_name(node)
-        !isnothing(name) && push!(names, terminal_public_name(name))
-    end
-    for child in syntax_children(node)
-        collect_inferred_test_call_names!(names, child)
-    end
-    names
+    lexical_call_names(test_fact.expression)
 end
 
 function where_parameter_names(parameters::Vector{String})

@@ -33,7 +33,7 @@ function test_profile_gate_candidate(
         ["harness_policy", "pkg_test"],
         verification_evidence(
             "hook" => string(has_hook),
-            "dependency" => "JuliaLangProjectHarness",
+            "dependency" => "AspJulia",
         ),
     )
 end
@@ -96,12 +96,12 @@ end
 
 """Render verification profile candidates as JSON."""
 function render_julia_verification_profile_index_json(index::JuliaVerificationProfileIndex)
-    JSON3.write(verification_profile_index_dict(index))
+    JSON.json(verification_profile_index_dict(index))
 end
 
 """Render the full in-test verification profile as JSON."""
 function render_julia_verification_profile_json(profile::JuliaVerificationProfile)
-    JSON3.write(verification_profile_dict(profile))
+    JSON.json(verification_profile_dict(profile))
 end
 
 function verification_profile_dict(profile::JuliaVerificationProfile)

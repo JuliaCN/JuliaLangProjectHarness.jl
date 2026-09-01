@@ -77,9 +77,9 @@ end
         "chaos",
         "security",
     ]
-    @test candidate.evidence["direct_deps"] == "HTTP,JSON3"
+    @test candidate.evidence["direct_deps"] == "HTTP,JSON"
     @test candidate.evidence["network_roots"] == "HTTP"
-    @test candidate.evidence["persistence_roots"] == "JSON3"
+    @test candidate.evidence["persistence_roots"] == "JSON"
     @test candidate.evidence["security_roots"] == "SHA"
     @test candidate.evidence["performance_roots"] == "LinearAlgebra"
     @test occursin("responsibilities=public_api,external_dependency", rendered)
@@ -119,7 +119,7 @@ end
 @testset "verification profile reviews default agent receipt file" begin
     root = mktempdir()
     write_verification_project(root)
-    receipt_root = joinpath(root, ".julia-harness")
+    receipt_root = joinpath(root, ".asp-julia")
     mkpath(receipt_root)
     receipt_path = joinpath(receipt_root, "verification-receipts.json")
 

@@ -1,6 +1,6 @@
 """Return advisory rules that shape agent-friendly Julia APIs."""
 julia_agent_policy_rules() = [
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R001,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -8,7 +8,7 @@ julia_agent_policy_rules() = [
         "Document exported or public Julia API with a JuliaSyntax docstring so agents can reason from native syntax without guessing intent.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R002,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -16,7 +16,7 @@ julia_agent_policy_rules() = [
         "Prefer keyword options or a named config object when exported Julia methods need many arguments.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R003,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -24,7 +24,7 @@ julia_agent_policy_rules() = [
         "Prefer keyword Bool options or a named config object when exported Julia methods need multiple flags.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R004,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -32,7 +32,7 @@ julia_agent_policy_rules() = [
         "Prefer a named domain carrier when exported Julia methods accept stringly state, mode, kind, phase, status, tag, or type arguments.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R005,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -40,7 +40,7 @@ julia_agent_policy_rules() = [
         "Keep exported Julia API names owned by one file or document a deliberate extension pattern when a public method family spans owners. Same-file struct plus constructor families are accepted when the public API remains owned by one file.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R006,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -48,7 +48,7 @@ julia_agent_policy_rules() = [
         "Document module owner files that fan out to many local include owners so agents can understand the aggregation boundary.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R007,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -56,7 +56,7 @@ julia_agent_policy_rules() = [
         "Prefer named pipeline steps when exported Julia methods hide algorithm shape behind deeply nested control flow.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R008,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -64,7 +64,7 @@ julia_agent_policy_rules() = [
         "Split broad exported Julia methods into named pipeline steps when the public body has many top-level statements.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R009,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -72,7 +72,7 @@ julia_agent_policy_rules() = [
         "Document an explicit Julia dispatch or extension pattern when an exported method family is implemented across multiple owner files.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R010,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -80,7 +80,7 @@ julia_agent_policy_rules() = [
         "Document macro-heavy exported Julia methods with a syntax, macro expansion, or generated-code contract so agents can preserve parser-visible behavior.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R011,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -88,7 +88,7 @@ julia_agent_policy_rules() = [
         "Give exported Julia struct fields explicit type annotations so agents can understand public data shape without inferring `Any` from implementation details.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R012,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -96,7 +96,7 @@ julia_agent_policy_rules() = [
         "Prefer Symbol, enum, or named value carriers when exported Julia structs expose mode, status, category, or type fields.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R013,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -104,15 +104,15 @@ julia_agent_policy_rules() = [
         "Document mutation ownership, lifecycle, or invariants when exported Julia types are mutable.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R014,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
         "Pkg.test lacks the harness verification profile",
-        "Projects that depend on JuliaLangProjectHarness should mount `assert_julia_project_harness_test_profile_clean` inside package tests so agents receive policy, search, and verification feedback during `Pkg.test`.",
+        "Projects that depend on AspJulia should mount `assert_julia_project_harness_test_profile_clean` inside package tests so agents receive policy, search, and verification feedback during `Pkg.test`.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R015,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -120,7 +120,7 @@ julia_agent_policy_rules() = [
         "Extract internal traversal bodies with nested loops and guard branches into named iterators, predicates, or data-processing helpers so agents can repair algorithm steps without untangling scaffolding.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R016,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -128,7 +128,7 @@ julia_agent_policy_rules() = [
         "Document which arguments or state are mutated when exported Julia methods use the `!` mutating-name convention.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R017,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -136,7 +136,7 @@ julia_agent_policy_rules() = [
         "Document a concrete safety or performance reason and focused verification evidence when non-test Julia code uses `eval`, `ccall`, external process execution, `@eval`, or `@inbounds`.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R018,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -144,7 +144,7 @@ julia_agent_policy_rules() = [
         "Exercise exported Julia methods with explicit `where` type parameters against more than one relevant input type when the API claims generic behavior.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R019,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -152,15 +152,15 @@ julia_agent_policy_rules() = [
         "When a Julia package uses Documenter, document exported/public API with executable `jldoctest`, `@example`, or `@repl` examples instead of prose-only references.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R020,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
         "Stringly branch dispatch lacks a typed domain model",
-        "When exported Julia methods branch over stringly domains, prefer a typed carrier. If `[tool.JuliaLangProjectHarness] moshi = \"enable\"` is configured, Moshi must be a direct source dependency with parser-visible `@data` and `@match`; otherwise optional Moshi experiments should stay behind `[weakdeps]` and `[extensions]`.",
+        "When exported Julia methods branch over stringly domains, prefer a typed carrier. If `[tool.AspJulia] moshi = \"enable\"` is configured, Moshi must be a direct source dependency with parser-visible `@data` and `@match`; otherwise optional Moshi experiments should stay behind `[weakdeps]` and `[extensions]`.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R021,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -168,7 +168,7 @@ julia_agent_policy_rules() = [
         "Extending an external Julia function should dispatch on at least one package-owned type, or carry a concrete interop/type-piracy contract for why the foreign-function/foreign-type method is intentional.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R022,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -176,7 +176,7 @@ julia_agent_policy_rules() = [
         "When Moshi `@data` covers a stringly branch domain, add parser-visible `@match` cases or typed methods so agents see how the real project logic uses the domain model.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R023,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -184,7 +184,7 @@ julia_agent_policy_rules() = [
         "Document concrete return annotations on exported Julia methods so agents do not add narrow runtime assertions without understanding the API contract.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R024,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -192,7 +192,7 @@ julia_agent_policy_rules() = [
         "Avoid non-const mutable global bindings in package source; prefer explicit state objects, const handles with reset contracts, or dependency-injected caches.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R025,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -200,7 +200,7 @@ julia_agent_policy_rules() = [
         "Avoid `Any`, `Function`, and broad abstract field annotations in exported Julia structs; prefer concrete fields or type parameters that preserve the public data contract.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R026,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -208,7 +208,7 @@ julia_agent_policy_rules() = [
         "Document failure, exception, assertion, or precondition behavior when exported Julia methods throw errors or use parser-visible assertions.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R027,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -216,7 +216,7 @@ julia_agent_policy_rules() = [
         "Cover documented exported Julia failure contracts with direct parser-visible `@test_throws ExceptionType function_name(...)` tests so invalid-input behavior stays executable in `Pkg.test`.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R028,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -224,7 +224,7 @@ julia_agent_policy_rules() = [
         "Cover documented exported mutating Julia methods with parser-visible package tests that call the `!` API.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R029,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -232,7 +232,7 @@ julia_agent_policy_rules() = [
         "Split parser-visible package testsets with nested loops and branches into named scenario testsets or helpers so agents can repair one behavior at a time.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R030,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,
@@ -240,7 +240,7 @@ julia_agent_policy_rules() = [
         "Cover documented exported Julia safety or performance evidence contracts with parser-visible package tests that call the public API.",
         labels("agent-policy"),
     ),
-    JuliaHarnessRule(
+    AspJuliaRule(
         AGENT_JL_R031,
         JULIA_AGENT_POLICY_PACK_ID,
         Info,

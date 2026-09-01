@@ -144,7 +144,7 @@ end
         source,
         """
         function run(x; verbose=false)
-            JSON3.read(x; allow_inf=true)
+            JSON.parse(x; allownan=true)
             local total = x + 1
         end
         short(y) = helper(y)
@@ -160,7 +160,7 @@ end
     calls = parsed.syntax_facts.calls
 
     @test [(item.name, item.terminal_name, item.argument_count, item.keyword_args) for item in calls] == [
-        ("JSON3.read", "read", 1, ["allow_inf"]),
+        ("JSON.parse", "parse", 1, ["allownan"]),
         ("helper", "helper", 1, String[]),
         ("println", "println", 1, String[]),
         ("run", "run", 1, String[]),

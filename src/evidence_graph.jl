@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 using TOML
 
 const JULIA_EVIDENCE_GRAPH_SCHEMA_ID =
@@ -15,10 +15,9 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
     owner_path = julia_evidence_owner_path(root)
     owner_id = evidence_node_id("julia:owner", owner_path)
     claim_id = evidence_node_id("julia:claim", owner_path)
-    receipt_id = evidence_node_id("julia:receipt", "julia-harness-check-changed")
-    action_id = evidence_node_id("julia:action", "run-julia-harness-check")
+    receipt_id = evidence_node_id("julia:receipt", "policy-api")
+    action_id = evidence_node_id("julia:action", "attach-policy-api-receipt")
     gap_id = evidence_node_id("julia:gap", "$(owner_path):receipt")
-    check_command = "asp-julia-harness check --changed ."
     nodes = Dict{String,Any}[
         Dict{String,Any}(
             "nodeId" => owner_id,
@@ -52,24 +51,27 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
             ),
             "fields" => Dict{String,Any}(
                 "sourceRuleId" => "JL-EVIDENCE-GRAPH",
-                "receiptKind" => "harness-check",
+                "receiptKind" => "policy-evaluation",
             ),
         ),
         Dict{String,Any}(
             "nodeId" => receipt_id,
             "kind" => "verification-receipt",
-            "label" => check_command,
-            "receiptId" => "julia.harness.check.changed",
+            "label" => "Julia dependency policy API receipt",
+            "receiptId" => "julia.policy.api",
             "status" => "needs-injection",
             "summary" =>
-                "Run the Julia harness check and attach the receipt before treating the claim as verified.",
-            "fields" => Dict{String,Any}("command" => check_command),
+                "Attach the receipt emitted by the Julia dependency policy API before treating the claim as verified.",
+            "fields" => Dict{String,Any}(
+                "authority" => "AspJulia-api",
+                "trigger" => "Pkg.test",
+            ),
         ),
         Dict{String,Any}(
             "nodeId" => action_id,
             "kind" => "review-action",
-            "label" => "Run asp-julia-harness check --changed .",
-            "actionId" => "julia.run-harness-check",
+            "label" => "Attach Julia dependency policy API receipt",
+            "actionId" => "julia.attach-policy-api-receipt",
             "status" => "missing",
             "summary" => "run-receipt",
             "fields" => Dict{String,Any}(
@@ -87,9 +89,9 @@ function julia_evidence_graph_packet(project_root::AbstractString=pwd())
         Dict{String,Any}(
             "gapId" => gap_id,
             "ownerPath" => owner_path,
-            "summary" => "No attached Julia harness check receipt for this evidence graph.",
+            "summary" => "No attached Julia dependency policy API receipt for this evidence graph.",
             "severity" => "warning",
-            "fields" => Dict{String,Any}("nextCommand" => check_command),
+            "fields" => Dict{String,Any}("requiredReceiptId" => "julia.policy.api"),
         ),
     ]
     Dict{String,Any}(
@@ -117,7 +119,7 @@ end
 
 """Render the provider-owned Julia evidence graph JSON packet for agent receipts."""
 function render_julia_evidence_graph_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_evidence_graph_packet(project_root))
+    JSON.json(julia_evidence_graph_packet(project_root))
 end
 
 function julia_evidence_analysis_request_packet(project_root::AbstractString=pwd())
@@ -165,7 +167,7 @@ end
 
 """Render the Julia evidence graph-turbo request JSON for evidence-quality ranking."""
 function render_julia_evidence_analysis_request_json(project_root::AbstractString=pwd())
-    JSON3.write(julia_evidence_analysis_request_packet(project_root))
+    JSON.json(julia_evidence_analysis_request_packet(project_root))
 end
 
 function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
@@ -179,8 +181,8 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
         if arg == "--json"
             json = true
         elseif arg in ("--help", "-h")
-            print(out, "asp-julia-harness evidence graph [--json] [PROJECT_ROOT]\n")
-            print(out, "asp-julia-harness evidence analyze [--json] [PROJECT_ROOT]\n")
+            print(out, "asp-julia evidence graph [--json] [PROJECT_ROOT]\n")
+            print(out, "asp-julia evidence analyze [--json] [PROJECT_ROOT]\n")
             return 0
         elseif startswith(arg, "--")
             error("unknown evidence option: $(arg)")
@@ -194,7 +196,7 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
     if action == "graph"
         packet = julia_evidence_graph_packet(project_root)
         if json
-            print(out, JSON3.write(packet))
+            print(out, JSON.json(packet))
             print(out, "\n")
         else
             print(out, render_julia_evidence_graph(packet))
@@ -202,7 +204,7 @@ function run_julia_harness_evidence_cli(args::Vector{String}; out=stdout)
     else
         packet = julia_evidence_analysis_request_packet(project_root)
         if json
-            print(out, JSON3.write(packet))
+            print(out, JSON.json(packet))
             print(out, "\n")
         else
             print(out, render_julia_evidence_analysis_request(packet))

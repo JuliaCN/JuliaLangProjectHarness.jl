@@ -3,7 +3,7 @@ const JULIA_INDEX_EXPORT_SCHEMA_VERSION = "1"
 const JULIA_INDEX_EXPORT_PROTOCOL_ID = "agent.semantic-protocols.semantic-language"
 const JULIA_INDEX_EXPORT_PROTOCOL_VERSION = "1"
 const JULIA_INDEX_EXPORT_LANGUAGE_ID = "julia"
-const JULIA_INDEX_EXPORT_PROVIDER_ID = "julia-lang-project-harness"
+const JULIA_INDEX_EXPORT_PROVIDER_ID = "asp-julia"
 
 const JULIA_INDEX_FACT_KIND_MAP = Dict(
     "module" => "module",
@@ -118,11 +118,14 @@ function asp_entry_relations(entry::JuliaSearchIndexEntry, owner_path::AbstractS
     relations
 end
 
-function asp_search_index_fact(entry::JuliaSearchIndexEntry, project_root::AbstractString)
+function asp_search_index_fact(
+    entry::JuliaSearchIndexEntry,
+    project_root::AbstractString,
+)::Dict{String,Any}
     owner_path = search_entry_owner_path(entry, project_root)
     qualified_name = asp_qualified_name(entry, owner_path)
     relations = asp_entry_relations(entry, owner_path)
-    fact = Dict(
+    fact = Dict{String,Any}(
         "id" => asp_fact_id(entry, owner_path),
         "kind" => asp_fact_kind(entry),
         "source" => asp_fact_source(entry),
@@ -201,7 +204,7 @@ function julia_index_export_packet(project_root::AbstractString)
         "notes" => [
             Dict(
                 "kind" => "julia-syntax-authority",
-                "message" => "Facts are derived from JuliaSyntax-backed JuliaLangProjectHarness search entries.",
+                "message" => "Facts are derived from JuliaSyntax-backed AspJulia search entries.",
             ),
         ],
     )
@@ -209,7 +212,7 @@ end
 
 """Render the ASP Julia index export packet as one JSON document."""
 function render_julia_index_export_json(project_root::AbstractString)
-    JSON3.write(julia_index_export_packet(project_root))
+    JSON.json(julia_index_export_packet(project_root))
 end
 
 """Run the agent-facing `export index` CLI used by ASP cache refreshes.

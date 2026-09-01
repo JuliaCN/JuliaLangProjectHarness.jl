@@ -1,4 +1,4 @@
-using JuliaLangProjectHarness: parse_julia_file
+using AspJulia: parse_julia_file
 
 include("parser/core.jl")
 include("parser/control_flow.jl")

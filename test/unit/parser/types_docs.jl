@@ -54,7 +54,7 @@ end
         struct Payload
             value::Int
         end
-        run(value::Payload) = JSON3.read(string(value))
+        run(value::Payload) = JSON.parse(string(value))
         end
         """,
     )
@@ -73,9 +73,9 @@ end
         identifiers,
     )
     @test any(
-        item -> item.name == "JSON3" &&
+        item -> item.name == "JSON" &&
                 item.parent_kind == "." &&
-                item.parent_expression == "JSON3.read",
+                item.parent_expression == "JSON.parse",
         identifiers,
     )
     @test any(

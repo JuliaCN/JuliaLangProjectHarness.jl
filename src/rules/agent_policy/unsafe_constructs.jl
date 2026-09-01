@@ -38,9 +38,9 @@ const UNSAFE_CONSTRUCT_EVIDENCE_DOC_TOKENS = (
 function unsafe_construct_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{Tuple{String,String,String}}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -55,10 +55,10 @@ function public_unsafe_evidence_test_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     tested_names = tested_public_call_names(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     reported = Set{String}()
     for parsed in parsed_files
         parsed.report.is_valid || continue
@@ -75,16 +75,16 @@ function public_unsafe_evidence_test_findings(
             push!(reported, name)
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R030];
-                    summary="Exported/public method `$(name)` documents unsafe or performance evidence for $(join(constructs, ", ")) but package tests do not call it.",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R030],
+                    "Exported/public method `$(name)` documents unsafe or performance evidence for $(join(constructs, ", ")) but package tests do not call it.",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add a package test that calls this public safety/performance API",
+                    source_line(parsed.source, function_fact.line),
+                    "add a package test that calls this public safety/performance API",
                 ),
             )
         end
@@ -94,10 +94,10 @@ end
 
 function unsafe_construct_call_findings(
     parsed::ParsedJuliaFile,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
     reported::Set{Tuple{String,String,String}},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for call in parsed.syntax_facts.calls
         construct = unsafe_call_construct(call)
         isnothing(construct) && continue
@@ -107,12 +107,12 @@ function unsafe_construct_call_findings(
         push!(reported, key)
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R017];
-                summary=unsafe_construct_summary(construct),
-                location=SourceLocation(parsed.report.path, call.line, call.column),
-                source_line=source_line(parsed.source, call.line),
-                label="document the safety/performance reason and focused verification evidence for this construct",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R017],
+                unsafe_construct_summary(construct),
+                SourceLocation(parsed.report.path, call.line, call.column),
+                source_line(parsed.source, call.line),
+                "document the safety/performance reason and focused verification evidence for this construct",
             ),
         )
     end
@@ -121,10 +121,10 @@ end
 
 function unsafe_construct_macro_findings(
     parsed::ParsedJuliaFile,
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
     reported::Set{Tuple{String,String,String}},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for invocation in parsed.syntax_facts.macro_invocations
         invocation.terminal_name in JULIA_ESCAPE_MACROS || continue
         construct = "@$(invocation.terminal_name)"
@@ -134,12 +134,12 @@ function unsafe_construct_macro_findings(
         push!(reported, key)
         push!(
             findings,
-            finding_from_rule(
-                rules[AGENT_JL_R017];
-                summary=unsafe_construct_summary(construct),
-                location=SourceLocation(parsed.report.path, invocation.line, invocation.column),
-                source_line=source_line(parsed.source, invocation.line),
-                label="document the safety/performance reason and focused verification evidence for this construct",
+            finding_from_rule_typed(
+                rules[AGENT_JL_R017],
+                unsafe_construct_summary(construct),
+                SourceLocation(parsed.report.path, invocation.line, invocation.column),
+                source_line(parsed.source, invocation.line),
+                "document the safety/performance reason and focused verification evidence for this construct",
             ),
         )
     end

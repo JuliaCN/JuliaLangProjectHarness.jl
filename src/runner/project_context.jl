@@ -1,4 +1,4 @@
-function project_policy_context(project_root::AbstractString, config::JuliaHarnessConfig)
+function project_policy_context(project_root::AbstractString, config::AspJuliaConfig)
     effective_config = project_toml_harness_config(project_root, config)
     scope = julia_project_harness_scope(project_root, effective_config)
     workspace_member_scopes = julia_workspace_member_scopes(scope, effective_config)
@@ -17,14 +17,14 @@ function project_policy_monitored_paths(
     )
 end
 
-function parse_julia_files_for_paths(paths::Vector{String}, config::JuliaHarnessConfig)
+function parse_julia_files_for_paths(paths::Vector{String}, config::AspJuliaConfig)
     [parse_julia_file(path) for path in discover_julia_files(paths, config)]
 end
 
 function harness_report_from_parsed(
     paths::Vector{String},
     parsed_files::Vector{ParsedJuliaFile},
-    config::JuliaHarnessConfig;
+    config::AspJuliaConfig;
     scope=nothing,
     workspace_member_scopes=JuliaProjectHarnessScope[],
 )
@@ -34,7 +34,7 @@ function harness_report_from_parsed(
         config;
         workspace_member_scopes,
     )
-    JuliaHarnessReport(
+    AspJuliaReport(
         [parsed.report for parsed in parsed_files],
         findings,
         paths,
@@ -44,7 +44,7 @@ function harness_report_from_parsed(
     )
 end
 
-function harness_report_from_project_context(context, config::JuliaHarnessConfig)
+function harness_report_from_project_context(context, config::AspJuliaConfig)
     harness_report_from_parsed(
         context.monitored_paths,
         context.parsed_files,

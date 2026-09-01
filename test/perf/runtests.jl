@@ -1,5 +1,5 @@
-using JSON3
-using JuliaLangProjectHarness
+using JSON
+using AspJulia
 using Test
 
 const JULIA_MICROBENCH_BUDGET_PATH = joinpath(@__DIR__, "query-search.microbench.json")
@@ -40,7 +40,7 @@ function write_julia_microbench_project(root::AbstractString)
 end
 
 function julia_microbench_config(case_name::AbstractString)
-    budget = JSON3.read(read(JULIA_MICROBENCH_BUDGET_PATH, String))
+    budget = JSON.parse(read(JULIA_MICROBENCH_BUDGET_PATH, String))
     case_config = budget["cases"][String(case_name)]
     (
         warmup_iterations=Int(case_config["warmupIterations"]),
@@ -135,7 +135,7 @@ function run_julia_batch_with_stdin(batch_input::AbstractString)
     status = try
         open(input_path, "r") do input
             redirect_stdin(input) do
-                JuliaLangProjectHarness.run_julia_harness_batch_cli(String[]; out)
+                AspJulia.run_julia_harness_batch_cli(String[]; out)
             end
         end
     finally
@@ -149,25 +149,25 @@ end
     write_julia_microbench_project(root)
 
     query_selector = "src/MicrobenchExample.jl:1-8"
-    query_output = JuliaLangProjectHarness.render_julia_query_code_selector(query_selector, root)
+    query_output = AspJulia.render_julia_query_code_selector(query_selector, root)
     @test occursin("module MicrobenchExample", query_output)
 
     run_julia_microbench("julia.query.exact-source-window") do
-        JuliaLangProjectHarness.render_julia_query_code_selector(query_selector, root)
+        AspJulia.render_julia_query_code_selector(query_selector, root)
     end
 
-    search_output = JuliaLangProjectHarness.render_julia_search_packet_json(
+    search_output = AspJulia.render_julia_search_packet_json(
         "prime";
         project_root=root,
         render_mode="seeds",
     )
-    search_packet = JSON3.read(search_output)
+    search_packet = JSON.parse(search_output)
     @test search_packet["schemaId"] == "agent.semantic-protocols.semantic-search-packet"
     @test search_packet["view"] == "prime"
     @test !isempty(search_packet["owners"])
 
     run_julia_microbench("julia.search.prime-packet-json-render") do
-        JuliaLangProjectHarness.render_julia_search_packet_json(
+        AspJulia.render_julia_search_packet_json(
             "prime";
             project_root=root,
             render_mode="seeds",
@@ -181,7 +181,7 @@ end
         @info "skip DataFrames provider internals: local DataFrames checkout not found"
     else
         selector = "src/DataFrames.jl:1:40"
-        query_output = JuliaLangProjectHarness.render_julia_query_code_selector(
+        query_output = AspJulia.render_julia_query_code_selector(
             selector,
             dataframes_root,
         )

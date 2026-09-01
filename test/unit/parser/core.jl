@@ -20,8 +20,8 @@ end
         baremodule Example
         export run, Config
         public internal_api
-        using JSON3
-        using JSON3: read, write
+        using JSON
+        using JSON: read, write
         import Base: show
         import Dates
         end
@@ -38,8 +38,8 @@ end
         ("public", ["internal_api"]),
     ]
     @test [(item.kind, item.root, item.names) for item in parsed.syntax_facts.imports] == [
-        ("using", "JSON3", String[]),
-        ("using", "JSON3", ["read", "write"]),
+        ("using", "JSON", String[]),
+        ("using", "JSON", ["read", "write"]),
         ("import", "Base", ["show"]),
         ("import", "Dates", String[]),
     ]

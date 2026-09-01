@@ -20,7 +20,7 @@ ASP_JULIA_BUILD_DIR=build/juliac-asp-local juliac/build_provider.sh
 
 `build_provider.sh` first attempts the JuliaC build. If JuliaC fails and
 `ASP_JULIA_ALLOW_WRAPPER_FALLBACK` is not `0`, it writes an executable wrapper
-with the same `asp-julia-harness` command surface that dispatches through the
+with the same `asp-julia` command surface that dispatches through the
 Julia project runtime. This keeps activation reproducible on machines where
 the JuliaC compile is too expensive or unavailable. Set `JULIA` to override
 the Julia command used by the build attempt and by the generated wrapper.
@@ -28,13 +28,13 @@ the Julia command used by the build attempt and by the generated wrapper.
 Smoke:
 
 ```sh
-build/juliac/asp-julia-harness guide .
-build/juliac/asp-julia-harness agent doctor --json .
-build/juliac/asp-julia-harness search lexical parser owner tests --workspace . --view seeds
-build/juliac/asp-julia-harness export index .
+build/juliac/asp-julia guide .
+build/juliac/asp-julia agent doctor --json .
+build/juliac/asp-julia search lexical parser owner tests --workspace . --view seeds
+build/juliac/asp-julia export index .
 ```
 
-Rust/asp should call `asp-julia-harness export index <project-root>` on cache
+Rust/asp should call `asp-julia export index <project-root>` on cache
 miss or stale cache generations. The command emits the main-repository
 `semantic-native-syntax-fact-index.v1` schema shape, then Rust can query and
 render from its cache. It should not run nested commands such as

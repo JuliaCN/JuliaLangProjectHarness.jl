@@ -1,6 +1,6 @@
-module JuliaLangProjectHarnessMoshiExt
+module AspJuliaMoshiExt
 
-using JuliaLangProjectHarness
+using AspJulia
 using Moshi.Data: @data
 using Moshi.Match: @match
 

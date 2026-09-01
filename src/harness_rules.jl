@@ -1,14 +1,14 @@
-const JULIA_HARNESS_RULES_PATH = joinpath(@__DIR__, "harness-rules.md")
+const ASP_JULIA_RULES_PATH = joinpath(@__DIR__, "harness-rules.md")
 
 """Return the source-embedded Julia harness rule list."""
 function julia_harness_rules_markdown()
-    read(JULIA_HARNESS_RULES_PATH, String)
+    read(ASP_JULIA_RULES_PATH, String)
 end
 
 """Render the source-embedded Julia harness rules as generated Markdown."""
 function render_julia_harness_rules_markdown()
     output = [
-        "# JuliaLangProjectHarness.jl",
+        "# AspJulia.jl",
         "",
         "## Harness Rules",
         "",

@@ -1,4 +1,4 @@
-using JSON3
+using JSON
 
 function write_cli_evidence_project(root::AbstractString)
     write(
@@ -38,9 +38,9 @@ end
     registry_status =
         run_julia_project_harness_cli(["agent", "doctor", "--json", root]; out = registry_out)
     guide_status = run_julia_project_harness_cli(["guide", root]; out = guide_out)
-    graph = JSON3.read(String(take!(graph_out)))
-    analysis = JSON3.read(String(take!(analysis_out)))
-    registry = JSON3.read(String(take!(registry_out)))
+    graph = JSON.parse(String(take!(graph_out)))
+    analysis = JSON.parse(String(take!(analysis_out)))
+    registry = JSON.parse(String(take!(registry_out)))
     guide = String(take!(guide_out))
     language = only(filter(language -> language.languageId == "julia", registry.languages))
 
@@ -48,7 +48,7 @@ end
     @test graph.schemaId == "agent.semantic-protocols.semantic-evidence-graph"
     @test graph.protocolId == "agent.semantic-protocols.evidence-graph"
     @test graph.producer.languageId == "julia"
-    @test graph.producer.providerId == "julia-lang-project-harness"
+    @test graph.producer.providerId == "asp-julia"
     @test graph.project.package == "CliEvidence"
     @test graph.summary.nodes == 4
     @test graph.summary.edges == 3
@@ -57,7 +57,7 @@ end
     @test graph.summary.gaps == 1
     @test any(node -> node.kind == "owner", graph.nodes)
     @test any(edge -> edge.kind == "requires-evidence", graph.edges)
-    @test only(graph.gaps).fields.nextCommand == "asp-julia-harness check --changed ."
+    @test only(graph.gaps).fields.requiredReceiptId == "julia.policy.api"
     @test analysis_status == 0
     @test analysis.schemaId == "agent.semantic-protocols.semantic-graph-turbo-request"
     @test analysis.packetKind == "graph-turbo-request"

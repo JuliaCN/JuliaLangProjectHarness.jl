@@ -27,9 +27,9 @@ function public_failure_contract_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         for function_fact in parsed.syntax_facts.functions
@@ -44,16 +44,16 @@ function public_failure_contract_findings(
             ) && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R026];
-                    summary="Exported/public method `$(function_fact.terminal_name)` has parser-visible failure paths without a failure contract: $(join(failure_constructs, ", ")).",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R026],
+                    "Exported/public method `$(function_fact.terminal_name)` has parser-visible failure paths without a failure contract: $(join(failure_constructs, ", ")).",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="document thrown errors, assertions, or invalid-input preconditions for this public method",
+                    source_line(parsed.source, function_fact.line),
+                    "document thrown errors, assertions, or invalid-input preconditions for this public method",
                 ),
             )
         end
@@ -66,11 +66,11 @@ function public_failure_test_findings(
     parsed_files::Vector{ParsedJuliaFile},
     public_names::Set{String},
     function_docs_by_name::Dict{String,Vector{String}},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     test_throws_calls = test_throws_call_names_by_public_name(scope, parsed_files)
     detected_summary = isempty(test_throws_calls) ? "none" : join(sort(collect(test_throws_calls)), ", ")
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -83,16 +83,16 @@ function public_failure_test_findings(
             name in test_throws_calls && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R027];
-                    summary="Exported/public method `$(name)` documents a failure contract but lacks a parser-visible `@test_throws` call in tests. Detected covered methods: $(detected_summary).",
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R027],
+                    "Exported/public method `$(name)` documents a failure contract but lacks a parser-visible `@test_throws` call in tests. Detected covered methods: $(detected_summary).",
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="add a direct parser-visible `@test_throws ExceptionType $(name)(...)` regression in a monitored test file",
+                    source_line(parsed.source, function_fact.line),
+                    "add a direct parser-visible `@test_throws ExceptionType $(name)(...)` regression in a monitored test file",
                 ),
             )
         end
@@ -154,23 +154,168 @@ function test_throws_call_names_by_public_name(
 end
 
 function test_throws_call_names(test_fact::JuliaTestSyntax)
-    try
-        syntax = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, test_fact.expression)
-        names = Set{String}()
-        collect_test_throws_call_names!(names, syntax)
-        names
-    catch
-        Set{String}()
-    end
+    lexical_call_names(test_fact.expression)
 end
 
-function collect_test_throws_call_names!(names::Set{String}, node::JuliaSyntax.SyntaxNode)
-    if syntax_kind(node) == "call"
-        name = call_expression_name(node)
-        !isnothing(name) && push!(names, terminal_public_name(name))
+const LEXICAL_CALL_KEYWORDS = Set([
+    "begin",
+    "catch",
+    "do",
+    "else",
+    "elseif",
+    "end",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "let",
+    "quote",
+    "try",
+    "while",
+])
+
+const LEXICAL_CALL_OPERATORS = Set([
+    "!=",
+    "%",
+    "&",
+    "*",
+    "+",
+    "-",
+    "/",
+    "<",
+    "<<",
+    "<=",
+    "==",
+    "=>",
+    ">",
+    ">=",
+    ">>",
+    ">>>",
+    "\\",
+    "^",
+    "|",
+    "|>",
+    "÷",
+    "⊻",
+])
+
+function lexical_call_names(
+    expression::AbstractString,
+)::Set{String}
+    text = unquoted_lexical_projection(expression)
+    names = Set{String}()
+    for matched in eachmatch(
+        r"([A-Za-z_][A-Za-z0-9_!?]*(?:\.[A-Za-z_][A-Za-z0-9_!?]*)*)\s*\(",
+        text,
+    )
+        name = terminal_public_name(matched.captures[1])
+        name in LEXICAL_CALL_KEYWORDS || push!(names, name)
     end
-    for child in syntax_children(node)
-        collect_test_throws_call_names!(names, child)
+    collect_lexical_call_operator_names!(names, text)
+    names
+end
+
+function unquoted_lexical_projection(expression::AbstractString)::String
+    characters = collect(String(expression))
+    delimiter::Union{Nothing,Char} = nothing
+    escaped = false
+    for index in eachindex(characters)
+        character = characters[index]
+        if !isnothing(delimiter)
+            characters[index] = ' '
+            if escaped
+                escaped = false
+            elseif character == '\\'
+                escaped = true
+            elseif character == delimiter
+                delimiter = nothing
+            end
+        elseif character == '"' || character == '\'' || character == '`'
+            delimiter = character
+            characters[index] = ' '
+        end
+    end
+    String(characters)
+end
+
+function collect_lexical_call_operator_names!(
+    names::Set{String},
+    expression::String,
+)::Set{String}
+    characters = collect(expression)
+    index = firstindex(characters)
+    while index <= lastindex(characters)
+        character = characters[index]
+        if is_lexical_call_operator_character(character)
+            start = index
+            while index <= lastindex(characters) &&
+                  is_lexical_call_operator_character(characters[index])
+                index += 1
+            end
+            operator = String(characters[start:(index - 1)])
+            if operator in LEXICAL_CALL_OPERATORS &&
+               is_binary_lexical_call_operator(characters, start, index - 1)
+                push!(names, operator)
+            end
+            continue
+        end
+        index += 1
     end
     names
+end
+
+function is_lexical_call_operator_character(character::Char)::Bool
+    character in (
+        '!',
+        '%',
+        '&',
+        '*',
+        '+',
+        '-',
+        '/',
+        '<',
+        '=',
+        '>',
+        '\\',
+        '^',
+        '|',
+        '÷',
+        '⊻',
+    )
+end
+
+function is_binary_lexical_call_operator(
+    characters::Vector{Char},
+    start::Int,
+    stop::Int,
+)::Bool
+    previous = previous_nonspace_character(characters, start - 1)
+    following = next_nonspace_character(characters, stop + 1)
+    isnothing(previous) && return false
+    isnothing(following) && return false
+    previous in ('(', '[', '{', ',', ';', '=') && return false
+    following in (')', ']', '}', ',', ';') && return false
+    true
+end
+
+function previous_nonspace_character(
+    characters::Vector{Char},
+    index::Int,
+)::Union{Nothing,Char}
+    while index >= firstindex(characters)
+        isspace(characters[index]) || return characters[index]
+        index -= 1
+    end
+    nothing
+end
+
+function next_nonspace_character(
+    characters::Vector{Char},
+    index::Int,
+)::Union{Nothing,Char}
+    while index <= lastindex(characters)
+        isspace(characters[index]) || return characters[index]
+        index += 1
+    end
+    nothing
 end

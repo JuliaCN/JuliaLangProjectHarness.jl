@@ -18,8 +18,8 @@
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner reports public generic type coverage advice" begin
@@ -52,12 +52,12 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R018", rendered)
     @test occursin("Public generic API lacks type coverage", rendered)
     @test occursin("where {T<:Real}", rendered)
     @test occursin("only parser-visible input types: Int", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts public generic type coverage" begin
@@ -90,8 +90,8 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner reports Documenter public API doctest advice" begin
@@ -134,11 +134,11 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R019", rendered)
     @test occursin("Documenter docs lack public API doctests", rendered)
     @test occursin("executable public API examples for: run", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts Documenter public API doctest examples" begin
@@ -185,8 +185,8 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end
 
 @testset "project runner advises source or optional Moshi domain model" begin
@@ -216,16 +216,16 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R020", rendered)
     @test occursin("Stringly branch dispatch lacks a typed domain model", rendered)
     @test occursin(
-        "set `[tool.JuliaLangProjectHarness] moshi = \"enable\"",
+        "set `[tool.AspJulia] moshi = \"enable\"",
         rendered,
     )
     @test occursin("If this is only an optional experiment", rendered)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R020"
     )
     @test finding.labels["capability_source"] == "Moshi"
@@ -244,7 +244,7 @@ end
         uuid = "11111111-1111-1111-1111-111111111111"
         version = "0.1.0"
 
-        [tool.JuliaLangProjectHarness]
+        [tool.AspJulia]
         moshi = "enable"
 
         [deps]
@@ -278,11 +278,11 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R020"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("Moshi is a direct dependency because Project.toml enables Moshi", rendered)
     @test finding.labels["moshi_extension_state"] == "direct_dep_enabled"
     @test finding.labels["moshi_extension_target"] == "src/Example.jl"
@@ -328,11 +328,11 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
     finding = only(
-        finding for finding in JuliaLangProjectHarness.advisory_findings(report) if
+        finding for finding in AspJulia.advisory_findings(report) if
         finding.rule_id == "AGENT-JL-R020"
     )
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("Moshi is already a weak dependency", rendered)
     @test occursin("ext/ExampleMoshiExt.jl", rendered)
     @test finding.labels["moshi_extension_state"] == "weakdep_without_extension"

@@ -50,7 +50,7 @@ function render_julia_query_read_packet_selector(selector::AbstractString, proje
     source_path = isabspath(owner_path) ? owner_path : joinpath(project_root, owner_path)
     isfile(source_path) || error("missing parser-visible Julia source $(owner_path)")
     packet = julia_direct_read_packet(owner_path, selector, project_root, source_path, line_range)
-    return JSON3.write(packet) * "\n"
+    return JSON.json(packet) * "\n"
 end
 
 function render_julia_direct_read_source_window(
@@ -83,9 +83,9 @@ function julia_direct_read_packet(
         "protocolId" => "agent.semantic-protocols.semantic-language",
         "protocolVersion" => "1",
         "languageId" => "julia",
-        "providerId" => "julia-lang-project-harness",
-        "binary" => "julia-project-harness",
-        "namespace" => "agent.semantic-protocols.languages.julia.julia-lang-project-harness",
+        "providerId" => "asp-julia",
+        "binary" => "asp-julia",
+        "namespace" => "agent.semantic-protocols.languages.julia.asp-julia",
         "method" => "query/direct-source-read",
         "projectRoot" => abspath(project_root),
         "ownerPath" => String(owner_path),

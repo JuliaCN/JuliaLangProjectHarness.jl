@@ -22,11 +22,11 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test JuliaLangProjectHarness.is_clean(report)
+    @test AspJulia.is_clean(report)
     @test occursin("AGENT-JL-R028", rendered)
     @test occursin("Public mutation contract lacks a test", rendered)
     @test occursin("mutating method `normalize!`", rendered)
-    @test length(JuliaLangProjectHarness.advisory_findings(report)) == 1
+    @test length(AspJulia.advisory_findings(report)) == 1
 end
 
 @testset "project runner accepts public mutation contract test" begin
@@ -64,6 +64,6 @@ end
 
     report = run_julia_project_harness(root)
 
-    @test JuliaLangProjectHarness.is_clean(report)
-    @test isempty(JuliaLangProjectHarness.advisory_findings(report))
+    @test AspJulia.is_clean(report)
+    @test isempty(AspJulia.advisory_findings(report))
 end

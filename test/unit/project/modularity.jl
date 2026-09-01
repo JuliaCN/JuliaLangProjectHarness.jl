@@ -16,7 +16,7 @@
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R003", rendered)
     @test occursin("Dynamic include hides source graph", rendered)
     @test occursin("JULIA-MOD-R004", rendered)
@@ -35,7 +35,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R001", rendered)
     @test occursin("Package entry file is too large for a facade", rendered)
     @test count(finding -> finding.rule_id == "JULIA-MOD-R001", report.findings) == 1
@@ -52,7 +52,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
     @test occursin("Julia owner file exceeds the owner budget", rendered)
     @test count(finding -> finding.rule_id == "JULIA-MOD-R002", report.findings) == 1
@@ -71,7 +71,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
     @test occursin("Julia owner file exceeds the owner budget", rendered)
     @test occursin("split this test owner", rendered)
@@ -88,13 +88,13 @@ end
         version = "0.1.0"
 
         [weakdeps]
-        JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+        JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 
         [compat]
-        JSON3 = "1"
+        JSON = "1"
 
         [extensions]
-        ExampleJSONExt = "JSON3"
+        ExampleJSONExt = "JSON"
         """,
     )
     mkpath(joinpath(root, "src"))
@@ -106,7 +106,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R002", rendered)
     @test occursin("Julia owner file exceeds the owner budget", rendered)
     @test occursin("split this extension owner", rendered)
@@ -123,7 +123,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R007", rendered)
     @test occursin("Source path uses a generic owner bucket", rendered)
     @test count(finding -> finding.rule_id == "JULIA-MOD-R007", report.findings) == 1
@@ -140,7 +140,7 @@ end
     report = run_julia_project_harness(root)
     rendered = render_julia_project_harness(report)
 
-    @test !JuliaLangProjectHarness.is_clean(report)
+    @test !AspJulia.is_clean(report)
     @test occursin("JULIA-MOD-R005", rendered)
     @test occursin("Literal include graph contains a cycle", rendered)
     @test count(finding -> finding.rule_id == "JULIA-MOD-R005", report.findings) == 1

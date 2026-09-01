@@ -9,11 +9,11 @@ const TYPE_PIRACY_CONTRACT_DOC_TOKENS = (
 function external_method_extension_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
     owned_type_names = package_owned_type_names(parsed_files)
     local_method_roots = package_method_roots(scope, parsed_files)
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) && continue
@@ -24,16 +24,16 @@ function external_method_extension_findings(
             has_type_piracy_contract_doc(parsed, function_fact) && continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R021];
-                    summary=type_piracy_summary(function_fact, root, owned_type_names),
-                    location=SourceLocation(
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R021],
+                    type_piracy_summary(function_fact, root, owned_type_names),
+                    SourceLocation(
                         parsed.report.path,
                         function_fact.line,
                         function_fact.column,
                     ),
-                    source_line=source_line(parsed.source, function_fact.line),
-                    label="dispatch the external method on a package-owned type or document the interop contract",
+                    source_line(parsed.source, function_fact.line),
+                    "dispatch the external method on a package-owned type or document the interop contract",
                 ),
             )
         end
@@ -95,12 +95,20 @@ function has_owned_dispatch_argument(
 end
 
 function annotation_identifier_names(annotation::AbstractString)
-    try
-        syntax = JuliaSyntax.parseall(JuliaSyntax.SyntaxNode, String(annotation))
-        Set(identifier_texts(syntax))
-    catch
-        Set{String}()
+    names = Set{String}()
+    identifier = Char[]
+    for character in annotation
+        if isempty(identifier)
+            Base.is_id_start_char(character) || continue
+        elseif !Base.is_id_char(character)
+            push!(names, String(identifier))
+            empty!(identifier)
+            Base.is_id_start_char(character) || continue
+        end
+        push!(identifier, character)
     end
+    isempty(identifier) || push!(names, String(identifier))
+    names
 end
 
 function has_type_piracy_contract_doc(

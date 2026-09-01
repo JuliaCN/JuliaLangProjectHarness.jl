@@ -12,7 +12,6 @@
     policy_out = IOBuffer()
     miss_out = IOBuffer()
     ingest_out = IOBuffer()
-    check_out = IOBuffer()
 
     guide_status = run_julia_project_harness_cli(["guide", root]; out=guide_out)
     workspace_status = run_julia_project_harness_cli(
@@ -35,7 +34,7 @@
         [
             "search",
             "deps",
-            "JSON3::read",
+            "JSON::parse",
             "owner",
             "tests",
             "--view",
@@ -112,7 +111,6 @@
         ];
         out=miss_out,
     )
-    check_status = run_julia_project_harness_cli(["check", "--changed", root]; out=check_out)
     ingest_status = let input = "src/CliExample.jl:1:module CliExample\ntest/runtests.jl:3:@testset \"run\" begin\n",
         pipe = Pipe()
         writer = @async begin
@@ -157,15 +155,15 @@
     policy_rendered = String(take!(policy_out))
     miss_rendered = String(take!(miss_out))
     ingest_rendered = String(take!(ingest_out))
-    check_rendered = String(take!(check_out))
 
     @test guide_status == 0
-    @test occursin("[julia-harness-guide]", guide_rendered)
+    @test occursin("[asp-julia-guide]", guide_rendered)
     @test occursin("asp julia guide", guide_rendered)
     @test occursin("asp julia agent doctor --workspace . --json", guide_rendered)
     @test !occursin("asp julia agent guide", guide_rendered)
     @test occursin("asp julia search workspace --workspace . --view seeds", guide_rendered)
-    @test occursin("asp julia query <owner-path> --term", guide_rendered)
+    @test occursin("exact query is unavailable until Julia declares typed native exact projection", guide_rendered)
+    @test !occursin("asp julia query <owner-path> --term", guide_rendered)
     @test occursin("--workspace <workspace-root>", guide_rendered)
     @test occursin("asp julia search policy", guide_rendered)
     @test occursin("asp julia search deps", guide_rendered)
@@ -173,7 +171,7 @@
     @test !occursin("asp julia export index", guide_rendered)
     @test !occursin("asp julia --search", guide_rendered)
     @test !occursin("--code .", guide_rendered)
-    @test !occursin("julia-project-harness", guide_rendered)
+    @test occursin("asp julia", guide_rendered)
     @test workspace_status == 0
     @test occursin("[search-workspace]", workspace_rendered)
     @test occursin("view=workspace", workspace_rendered)
@@ -192,12 +190,12 @@
     @test occursin("Q=query:term(run)!lexical", text_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", text_rendered)
     @test deps_status == 0
-    @test occursin("[search-deps] q=JSON3::read", deps_rendered) ||
-          occursin("[search-dependency] q=JSON3::read", deps_rendered)
+    @test occursin("[search-deps] q=JSON::parse", deps_rendered) ||
+          occursin("[search-dependency] q=JSON::parse", deps_rendered)
     @test occursin("view=deps", deps_rendered)
     @test occursin("O=owner:path(src/CliExample.jl)", deps_rendered)
     @test occursin("T=test:path(test/runtests.jl)!tests", deps_rendered)
-    @test occursin("JSON3", deps_rendered)
+    @test occursin("JSON", deps_rendered)
     @test query_status == 0
     @test occursin("[search-query] q=run", query_rendered)
     @test occursin("selector=**/*.jl", query_rendered)
@@ -227,6 +225,4 @@
         "search does not accept positional WORKSPACE",
         String(take!(ingest_extra_root_err)),
     )
-    @test check_status == 0
-    @test check_rendered == "[ok] julia\n"
 end

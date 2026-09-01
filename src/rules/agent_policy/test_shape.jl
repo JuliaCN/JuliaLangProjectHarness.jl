@@ -5,9 +5,9 @@ const MIN_TESTSET_BRANCH_COUNT = 1
 function test_control_flow_shape_findings(
     scope::JuliaProjectHarnessScope,
     parsed_files::Vector{ParsedJuliaFile},
-    rules::Dict{String,JuliaHarnessRule},
+    rules::Dict{String,AspJuliaRule},
 )
-    findings = JuliaHarnessFinding[]
+    findings = AspJuliaFinding[]
     for parsed in parsed_files
         parsed.report.is_valid || continue
         is_test_path(scope, parsed.report.path) || continue
@@ -16,12 +16,12 @@ function test_control_flow_shape_findings(
             is_nested_test_scenario(test_fact) || continue
             push!(
                 findings,
-                finding_from_rule(
-                    rules[AGENT_JL_R029];
-                    summary="Package testset $(display_testset_name(test_fact)) nests scenario scaffolding: $(test_shape_summary(test_fact)).",
-                    location=SourceLocation(parsed.report.path, test_fact.line, test_fact.column),
-                    source_line=source_line(parsed.source, test_fact.line),
-                    label="split nested test scaffolding into named scenario testsets or helper assertions",
+                finding_from_rule_typed(
+                    rules[AGENT_JL_R029],
+                    "Package testset $(display_testset_name(test_fact)) nests scenario scaffolding: $(test_shape_summary(test_fact)).",
+                    SourceLocation(parsed.report.path, test_fact.line, test_fact.column),
+                    source_line(parsed.source, test_fact.line),
+                    "split nested test scaffolding into named scenario testsets or helper assertions",
                 ),
             )
         end
@@ -40,6 +40,9 @@ function test_shape_summary(test_fact::JuliaTestSyntax)
 end
 
 function display_testset_name(test_fact::JuliaTestSyntax)
-    isnothing(test_fact.label) && return test_fact.name
-    "\"$(replace(test_fact.label, "\"" => "\\\"", "\n" => " "))\""
+    label::Union{Nothing,String} = test_fact.label
+    isnothing(label) && return test_fact.name
+    escaped_label::String = replace(label, "\"" => "\\\"")
+    single_line_label::String = replace(escaped_label, '\n' => ' ')
+    "\"$(single_line_label)\""
 end

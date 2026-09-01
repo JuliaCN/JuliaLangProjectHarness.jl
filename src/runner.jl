@@ -51,7 +51,7 @@ end
 
 function run_paths(
     paths::Vector{String},
-    config::JuliaHarnessConfig;
+    config::AspJuliaConfig;
     scope=nothing,
     workspace_member_scopes=JuliaProjectHarnessScope[],
 )
@@ -59,7 +59,7 @@ function run_paths(
     harness_report_from_parsed(paths, parsed_files, config; scope, workspace_member_scopes)
 end
 
-function julia_project_harness_scope(project_root::AbstractString, config::JuliaHarnessConfig)
+function julia_project_harness_scope(project_root::AbstractString, config::AspJuliaConfig)
     project_facts = parse_project_toml_facts(project_root)
     root = project_facts.project_root
     source_paths = pkg_source_paths(root, project_facts, config)
@@ -93,7 +93,7 @@ end
 
 function julia_workspace_member_scopes(
     scope::JuliaProjectHarnessScope,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     scopes = JuliaProjectHarnessScope[]
     seen_roots = Set([scope.project_root])
@@ -121,7 +121,7 @@ end
 function pkg_source_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     roots = String[]
     pkg_root = package_entry_source_root(
@@ -154,7 +154,7 @@ end
 function pkg_test_paths(
     project_root::AbstractString,
     project_facts,
-    config::JuliaHarnessConfig,
+    config::AspJuliaConfig,
 )
     existing_configured_paths(project_root, config.test_dir_names)
 end
@@ -212,144 +212,7 @@ function existing_configured_paths(project_root::AbstractString, path_names::Vec
     [joinpath(root, path_name) for path_name in path_names if ispath(joinpath(root, path_name))]
 end
 
-struct JuliaProjectTomlFacts
-    project_root::String
-    path::Union{Nothing,String}
-    parse_error::Union{Nothing,String}
-    package_name::Union{Nothing,String}
-    package_uuid::Union{Nothing,String}
-    entryfile::Union{Nothing,String}
-    direct_dependencies::Dict{String,String}
-    weak_dependencies::Dict{String,String}
-    extra_dependencies::Dict{String,String}
-    targets::Dict{String,Vector{String}}
-    compat::Dict{String,String}
-    sources::Dict{String,Dict{String,String}}
-    extensions::Dict{String,Vector{String}}
-    workspace_projects::Vector{String}
-    source_dependency_projects::Vector{String}
-end
-
-function parse_project_toml_facts(project_path::AbstractString)
-    start = project_search_start(project_path)
-    project_toml = Base.current_project(start)
-    if isnothing(project_toml)
-        root = abspath(start)
-        return empty_project_toml_facts(root, joinpath(root, "Project.toml"))
-    end
-    root = dirname(project_toml)
-    project = try
-        Pkg.Types.read_project(project_toml)
-    catch err
-        return empty_project_toml_facts(root, project_toml; parse_error=compact_error_message(err))
-    end
-    JuliaProjectTomlFacts(
-        root,
-        project_toml,
-        nothing,
-        isnothing(project.name) ? nothing : String(project.name),
-        isnothing(project.uuid) ? nothing : string(project.uuid),
-        isnothing(project.entryfile) ? nothing : String(project.entryfile),
-        string_uuid_dict(project.deps),
-        string_uuid_dict(project.weakdeps),
-        string_uuid_dict(project.extras),
-        string_vector_dict(project.targets),
-        string_value_dict(project.compat),
-        string_source_dict(project.sources),
-        string_extension_dict(project.exts),
-        string_workspace_projects(project.workspace),
-        string_source_dependency_projects(root, project.sources),
-    )
-end
-
-function empty_project_toml_facts(
-    project_root::AbstractString,
-    project_toml::Union{Nothing,String};
-    parse_error=nothing,
-)
-    JuliaProjectTomlFacts(
-        String(project_root),
-        project_toml,
-        parse_error,
-        nothing,
-        nothing,
-        nothing,
-        Dict{String,String}(),
-        Dict{String,String}(),
-        Dict{String,String}(),
-        Dict{String,Vector{String}}(),
-        Dict{String,String}(),
-        Dict{String,Dict{String,String}}(),
-        Dict{String,Vector{String}}(),
-        String[],
-        String[],
-    )
-end
-
-function compact_error_message(err)
-    replace(sprint(showerror, err), r"\s+" => " ")
-end
-
-function string_uuid_dict(values)
-    Dict(String(name) => string(uuid) for (name, uuid) in values)
-end
-
-function string_value_dict(values)
-    Dict(String(name) => project_value_string(value) for (name, value) in values)
-end
-
-function project_value_string(value)
-    :str in fieldnames(typeof(value)) ? string(getfield(value, :str)) : string(value)
-end
-
-function string_vector_dict(values)
-    Dict(String(name) => String[string(item) for item in items] for (name, items) in values)
-end
-
-function string_source_dict(values)
-    sources = Dict{String,Dict{String,String}}()
-    for (name, source) in values
-        source_name = String(name)
-        if source isa AbstractDict
-            sources[source_name] = Dict(String(key) => string(value) for (key, value) in source)
-        else
-            sources[source_name] = Dict("value" => string(source))
-        end
-    end
-    sources
-end
-
-function string_extension_dict(values)
-    Dict(String(name) => string_vector_value(value) for (name, value) in values)
-end
-
-function string_vector_value(value)
-    value isa AbstractVector && return String[string(item) for item in value]
-    String[string(value)]
-end
-
-function string_workspace_projects(workspace)
-    projects = get(workspace, "projects", String[])
-    String[string(project) for project in projects]
-end
-
-function string_source_dependency_projects(
-    project_root::AbstractString,
-    sources::Dict{String,Dict{String,String}},
-)
-    projects = String[]
-    seen = Set{String}()
-    for source in values(sources)
-        path = get(source, "path", "")
-        isempty(path) && continue
-        member_root = isabspath(path) ? normpath(path) : normpath(joinpath(project_root, path))
-        isfile(joinpath(member_root, "Project.toml")) || continue
-        member_root in seen && continue
-        push!(seen, member_root)
-        push!(projects, path)
-    end
-    sort!(projects)
-end
+include("runner/project_toml.jl")
 
 function project_search_start(project_path::AbstractString)
     path = abspath(String(project_path))
@@ -370,7 +233,7 @@ function package_entry_path(
     isfile(path) ? path : nothing
 end
 
-function discover_julia_files(paths::Vector{String}, config::JuliaHarnessConfig)
+function discover_julia_files(paths::Vector{String}, config::AspJuliaConfig)
     files = Set{String}()
     for path in paths
         discover_julia_path!(files, path, config.ignored_dir_names)
