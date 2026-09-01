@@ -157,7 +157,7 @@
     ingest_rendered = String(take!(ingest_out))
 
     @test guide_status == 0
-    @test occursin("[julia-harness-guide]", guide_rendered)
+    @test occursin("[asp-julia-guide]", guide_rendered)
     @test occursin("asp julia guide", guide_rendered)
     @test occursin("asp julia agent doctor --workspace . --json", guide_rendered)
     @test !occursin("asp julia agent guide", guide_rendered)

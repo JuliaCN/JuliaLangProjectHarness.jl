@@ -1,7 +1,7 @@
 const JULIA_VERIFICATION_RECEIPT_ESCAPE_STATES = Set(["skip", "skipped", "waive", "waived"])
 const JULIA_VERIFICATION_RECEIPT_CLEAN_STATUSES = Set([:accepted, :waived, :not_required])
 const JULIA_VERIFICATION_RECEIPT_RELATIVE_PATHS = [
-    joinpath(".julia-harness", "verification-receipts.json"),
+    joinpath(".asp-julia", "verification-receipts.json"),
 ]
 
 """Read agent verification receipts from a compact JSON file."""

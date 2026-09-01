@@ -124,8 +124,8 @@ jobs:
         env:
           JULIA_PKG_PRECOMPILE_AUTO: "0"
         run: |
-          julia --project=juliac juliac/asp_julia_app.jl guide . | grep '\[julia-harness-guide\]'
-          julia --project=juliac juliac/asp_julia_harness_app.jl export index . > build-index.json
+          julia --project=juliac juliac/asp_julia_app.jl guide . | grep '\[asp-julia-guide\]'
+          julia --project=juliac juliac/asp_julia_app.jl export index . > build-index.json
           julia --project=juliac -e 'using JSON; packet = JSON.parse(read("build-index.json", String)); @assert packet["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index"; @assert packet["protocolId"] == "agent.semantic-protocols.semantic-language"; @assert packet["languageId"] == "julia"; @assert length(packet["facts"]) > 0; println("julia-index-export-ok")'
       - name: Compile JuliaC app
         env:
@@ -135,6 +135,6 @@ jobs:
           julia --project=juliac juliac/compile.jl
       - name: Smoke compiled JuliaC app
         run: |
-          build/juliac-ci/asp-julia guide . | grep '\[julia-harness-guide\]'
+          build/juliac-ci/asp-julia guide . | grep '\[asp-julia-guide\]'
           build/juliac-ci/asp-julia export index . > compiled-index.json
           julia --project=juliac -e 'using JSON; packet = JSON.parse(read("compiled-index.json", String)); @assert packet["schemaId"] == "agent.semantic-protocols.semantic-native-syntax-fact-index"; @assert packet["providerId"] == "asp-julia"; @assert length(packet["facts"]) > 0; println("compiled-julia-index-export-ok")'

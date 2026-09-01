@@ -119,7 +119,7 @@ end
 @testset "verification profile reviews default agent receipt file" begin
     root = mktempdir()
     write_verification_project(root)
-    receipt_root = joinpath(root, ".julia-harness")
+    receipt_root = joinpath(root, ".asp-julia")
     mkpath(receipt_root)
     receipt_path = joinpath(receipt_root, "verification-receipts.json")
 

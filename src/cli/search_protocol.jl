@@ -62,7 +62,7 @@ end
 function julia_harness_agent_guide(project_root::AbstractString)
     root = abspath(String(project_root))
     """
-    [julia-harness-guide] project=$(root)
+    [asp-julia-guide] project=$(root)
     |cmd asp julia guide --workspace .
     |cmd asp julia agent doctor --workspace . --json
     |cmd asp julia search workspace --workspace . --view seeds
